@@ -1,0 +1,6 @@
+[2025-01-30 10:30:45] [INFO] [NameSpaceServer] - Carpeta PLC_Data creada con NodeId NodeId{ns=2, id=DataFolder}
+[2025-01-30 10:30:45] [INFO] [NameSpaceServer] - Nodos Temperature, Pressure y Status registrados correctamente en PLC_Data
+[2025-01-30 10:32:52] [INFO] [MainServer] - Shutdown Hook Triggered...
+[2025-01-30 16:35:25] [INFO] [NameSpaceServer] - Carpeta PLC_Data creada con NodeId NodeId{ns=2, id=DataFolder}
+[2025-01-30 16:35:25] [INFO] [NameSpaceServer] - Nodos Temperature, Pressure y Status registrados correctamente en PLC_Data
+[2025-01-30 16:37:32] [INFO] [MainServer] - Shutdown Hook Triggered...

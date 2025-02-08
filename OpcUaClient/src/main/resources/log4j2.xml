@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <!-- Directiva para los appender -->
+    <Appenders>
+        <!-- Appender para imprimir los logs en la consola -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] [%p] [%c{1}] - %m%n"/>
+        </Console>
+
+        <!-- Appender para escribir los logs en archivo -->
+        <RollingFile name="FileAppender" fileName="C:\Users\Public\Documents\rochlingapp\logging\application.log"
+                     filePattern="logs/application-%d{yyyy-MM-dd-HH-mm-ss}-%i.log.gz">
+            <!-- Layout que define el formato del mensaje -->
+            <PatternLayout>
+                <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%p] [%c{1}] - %m%n</Pattern>
+            </PatternLayout>
+            <!-- Política para el manejo de rotación -->
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+    </Appenders>
+
+    <!-- Configuración de loggers -->
+    <Loggers>
+        <!-- Logger raíz que incluye todos los niveles desde INFO -->
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

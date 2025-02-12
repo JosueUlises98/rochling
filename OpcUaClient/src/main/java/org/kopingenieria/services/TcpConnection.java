@@ -3,19 +3,19 @@ package org.kopingenieria.services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.exceptions.ConnectionException;
+import org.kopingenieria.exceptions.DisconnectException;
+import org.kopingenieria.exceptions.PingException;
+import org.kopingenieria.exceptions.ReconnectionException;
 import org.kopingenieria.model.TCPConnection;
 import org.kopingenieria.model.Url;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.ValidatorConexion;
+
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class TcpConnection extends ConnectionService {
     /**
@@ -66,6 +66,27 @@ public class TcpConnection extends ConnectionService {
      */
     private static final double BACKOFF_FACTOR;
     /**
+     * Represents the predetermined wait time in seconds between connection attempts,
+     * especially used in backoff or linear reconnection strategies.
+     * <p>
+     * This value is utilized to control the delay before retrying a connection attempt
+     * in scenarios where previous attempts have failed. It assists in maintaining a
+     * controlled load on the server and avoiding excessive immediate retries.
+     * <p>
+     * The {@code WAIT_TIME} is defined as a constant to ensure uniformity of usage
+     * and prevent accidental alteration during runtime.
+     */
+    private static final double WAIT_TIME;
+    /**
+     * Represents the initial number of retry attempts for reconnection in the {@code TcpConnection} class.
+     * This constant defines the starting point for retry mechanisms when attempting
+     * to re-establish a connection, particularly in backoff or linear reconnection strategies.
+     *
+     * The value of {@code INITIAL_RETRY} serves as a fundamental configuration to control the behavior
+     * of the retry logic and provides a baseline for subsequent retries.
+     */
+    private static final int INITIAL_RETRY;
+    /**
      * Represents the instance of an OPC UA client used for communicating with OPC UA servers.
      *
      * This variable is responsible for managing the connection to the server, facilitating
@@ -100,10 +121,12 @@ public class TcpConnection extends ConnectionService {
     private Url targeturl;
 
     static {
-        Properties properties = ConfigurationLoader.loadProperties("config.properties");
+        Properties properties = ConfigurationLoader.loadProperties("reconnection.properties");
+        INITIAL_RETRY = Integer.parseInt(properties.getProperty("initial_retry", "0"));
         MAX_RETRIES = Integer.parseInt(properties.getProperty("max_retries", "10"));
         INITIAL_WAIT = Integer.parseInt(properties.getProperty("initial_wait", "1000"));
         BACKOFF_FACTOR = Double.parseDouble(properties.getProperty("backoff_factor", "2.0"));
+        WAIT_TIME = Double.parseDouble(properties.getProperty("wait_time", "3000"));
     }
     /**
      * Private constructor for the {@code ConexionClienteService} class.
@@ -136,7 +159,11 @@ public class TcpConnection extends ConnectionService {
         // Validar en una cadena de ejecución asíncrona
         return CompletableFuture.supplyAsync(() -> {
                     if (!(validatorConection.sesionActiva(opcUaClient) && validatorConection.validateLocalHost(url.getUrl()))) {
-                        throw new CompletionException(new ConnectionException("Error al conectar al servidor OPC UA."));
+                        try {
+                            throw new ConnectionException("Error en la conexion");
+                        } catch (ConnectionException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                     return true;
                 }).thenCompose(valid -> {
@@ -158,12 +185,16 @@ public class TcpConnection extends ConnectionService {
                 });
     }
 
-    public CompletableFuture<Boolean> connect() throws ConnectionException {
+    public CompletableFuture<Boolean> connect()throws ConnectionException{
         logger.info("Intentando conectar al servidor OPC UA con default URL: {}", targeturl.getUrl());
         // Validar en una cadena de ejecución asíncrona
         return CompletableFuture.supplyAsync(() -> {
                     if (!(validatorConection.sesionActiva(opcUaClient) && validatorConection.validateLocalHost(targeturl.getUrl()))) {
-                        throw new CompletionException(new ConnectionException("Error al conectar al servidor OPC UA."));
+                        try {
+                            throw new ConnectionException("Error en la conexion");
+                        } catch (ConnectionException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                     return true;
                 }).thenCompose(valid -> {
@@ -184,6 +215,7 @@ public class TcpConnection extends ConnectionService {
                     throw new CompletionException(ex);
                 });
     }
+
     /**
      * Attempts to disconnect the OPC UA client from the server in a thread-safe manner.
      * <p>
@@ -193,30 +225,22 @@ public class TcpConnection extends ConnectionService {
      *
      * @return true if the disconnection operation is successful, false otherwise.
      */
-
-    public CompletableFuture<Boolean> disconnect() {
+    public CompletableFuture<Boolean> disconnect() throws DisconnectException {
         if (opcUaClient == null) {
             logger.warn("El cliente OPC UA ya está desconectado o no existe.");
-            return CompletableFuture.completedFuture(false); // Retorna inmediatamente, ya que no hay desconexión que realizar.
+            throw new DisconnectException("El cliente OPC UA ya está desconectado o no existe."); // Lanza la excepción de desconexión
         }
-        // Procesar la desconexión de forma asíncrona
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                if (!opcUaClient.disconnect().isDone()) {
-                    opcUaClient.disconnect().get(); // Espera la desconexión completa
-                    opcUaClient = null; // Libera el cliente
+        // Procesar la desconexión de forma completamente asíncrona
+        return opcUaClient.disconnect() // Llamada asíncrona para iniciar la desconexión
+                .thenApply(result -> {
                     logger.info("Desconectado exitosamente del servidor OPC UA.");
+                    opcUaClient = null; // Libera el cliente tras la desconexión
                     return true;
-                } else {
-                    logger.warn("El cliente OPC UA ya estaba desconectado.");
-                    return false;
-                }
-            } catch (Exception e) {
-                // Captura cualquier error durante la desconexión
-                logger.error("Error al desconectar el cliente OPC UA: {}", e.getMessage(), e);
-                throw new RuntimeException("Error durante la desconexión del cliente OPC UA", e);
-            }
-        });
+                })
+                .exceptionally(ex -> { // Manejar excepciones y arrojar una DisconnectException
+                    logger.error("Error al desconectar el cliente OPC UA: {}", ex.getMessage(), ex);
+                    throw new CompletionException(new DisconnectException("Error durante la desconexión del cliente OPC UA.", ex));
+                });
     }
     /**
      * Attempts to re-establish a connection to the specified server URL.
@@ -229,38 +253,42 @@ public class TcpConnection extends ConnectionService {
      * {@code false} if all retry attempts fail.
      */
 
-    public CompletableFuture<Boolean> backoffreconnection(Url url) throws ConnectionException {
-        return attemptReconnectionWithUrl(url,MAX_RETRIES,INITIAL_WAIT);
+    public CompletableFuture<Boolean> backoffreconnection(Url url) throws ConnectionException, ReconnectionException {
+        return attemptBackoffReconnectionWithUrl(url,INITIAL_RETRY,INITIAL_WAIT);
     }
 
-    private CompletableFuture<Boolean> attemptReconnectionWithUrl(Url url, int retries, double waitTime) throws ConnectionException {
-        if (retries >= MAX_RETRIES) {
-            logger.error("No se pudo reconectar al servidor OPC UA después de {} intentos.", retries);
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(Url url,int initialretry,double waittime) throws ConnectionException, ReconnectionException {
+        if (initialretry >= MAX_RETRIES) {
+            logger.error("No se pudo reconectar al servidor OPC UA después de {} intentos.",initialretry);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
         }
         return connect(url).thenCompose(success -> {
             if (success) {
-                logger.info("Reconexión exitosa en el intento #{}", retries + 1);
+                logger.info("Reconexión exitosa en el intento #{}", initialretry + 1);
                 return CompletableFuture.completedFuture(true); // Reconexión exitosa
             } else {
-                logger.info("Intento fallido de reconexión #{}. Esperando {} ms antes de reintentar...", retries + 1, waitTime);
-                return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
+                logger.info("Intento fallido de reconexión #{}. Esperando {} ms antes de reintentar...",initialretry + 1,waittime);
+                return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waittime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
                         .thenCompose(unused -> {
                             try {
-                                return attemptReconnectionWithUrl(url, retries + 1, waitTime * BACKOFF_FACTOR);
-                            } catch (ConnectionException e) {
-                                throw new RuntimeException(e);
+                                return attemptBackoffReconnectionWithUrl(url, initialretry + 1, waittime * BACKOFF_FACTOR);
+                            } catch (ConnectionException | ReconnectionException e) {
+                                try {
+                                    throw new ReconnectionException("Error de reconexion exponencial",e.getCause());
+                                } catch (ReconnectionException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                         }); // Incrementar el tiempo de espera y reintentar
             }
         });
     }
 
-    public CompletableFuture<Boolean> backoffreconnection() throws ConnectionException{
-        return attemptReconnectionWithoutUrl(targeturl,MAX_RETRIES,INITIAL_WAIT);
+    public CompletableFuture<Boolean> backoffreconnection() throws ConnectionException, ReconnectionException {
+        return attemptBackoffReconnectionWithoutUrl(targeturl,INITIAL_RETRY,INITIAL_WAIT);
     }
 
-    private CompletableFuture<Boolean> attemptReconnectionWithoutUrl(Url url, int retries, double waitTime) throws ConnectionException {
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(Url url, int retries, double waitTime) throws ConnectionException, ReconnectionException {
         if (retries >= MAX_RETRIES) {
             logger.error("Numero de intentos excedidos {} intentos.", retries);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
@@ -274,14 +302,57 @@ public class TcpConnection extends ConnectionService {
                 return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
                         .thenCompose(unused -> {
                             try {
-                                return attemptReconnectionWithoutUrl(url, retries + 1, waitTime * BACKOFF_FACTOR);
-                            } catch (ConnectionException e) {
-                                throw new RuntimeException(e);
+                                return attemptBackoffReconnectionWithoutUrl(url, retries + 1, waitTime * BACKOFF_FACTOR);
+                            } catch (ConnectionException | ReconnectionException e) {
+                                logger.error("Error al intentar reconectar al servidor OPC UA: {}", e.getMessage(), e);
+                                try {
+                                    throw new ReconnectionException("Error de reconexion exponencial:",e.getCause());
+                                } catch (ReconnectionException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                             }
                         }); // Incrementar el tiempo de espera y reintentar
             }
         });
     }
+
+    public CompletableFuture<Boolean> linearreconnection(Url url){
+        return attemptlinearReconnectionWithUrl(url,INITIAL_RETRY,WAIT_TIME);
+    }
+
+    private CompletableFuture<Boolean>attemptlinearReconnectionWithUrl(Url url,int retries,double waitTime) throws ConnectionException {
+        if (url == null || url.toString().isEmpty()) {
+            logger.error("La URL proporcionada es nula o vacía. Se cancela la reconexión.");
+            return CompletableFuture.failedFuture(new NullPointerException("Url vacia o nula."));
+        }
+        final int[] retry = {retries};
+        // Define la tarea de reconexión
+        return connect(url).thenCompose(success -> {
+            if (success) {
+                logger.info("Reconexión linear exitosa en el intento #{}", retry[0] + 1);
+                return CompletableFuture.completedFuture(true); // Reconexión exitosa
+            } else {
+                logger.info("Reconexion fallida #{}. Esperando {} ms antes de reintentar...",retry[0] + 1,waitTime);
+                return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
+                        .thenCompose(unused -> {
+                            try {
+                                return attemptlinearReconnectionWithUrl(url, retry[0] + 1,waitTime);
+                            } catch (ConnectionException | ReconnectionException e) {
+                                try {
+                                    throw new ReconnectionException("Error de reconexion exponencial",e.getCause());
+                                } catch (ReconnectionException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            }
+                        }); // Incrementar el tiempo de espera y reintentar
+            }
+        });
+    }
+
+    public CompletableFuture<Boolean> linearreconnection() throws Exception {
+        return null;
+    }
+
     /**
      * Verifies the health and connectivity status of the OPC UA server by performing a "ping" operation.
      * The method attempts to read a standard OPC UA node's value on the server to ensure it is reachable.
@@ -291,30 +362,44 @@ public class TcpConnection extends ConnectionService {
      *
      * @return true if the server responds successfully with a valid value; false otherwise
      */
-
-    public CompletableFuture<Boolean> ping() {
-        try {
-            if (opcUaClient == null) {
-                logger.warn("El cliente no está conectado. Realice una conexión antes de intentar un ping.");
-                return CompletableFuture.completedFuture(false);
-            }
-            // Nodo estándar en OPC UA para verificar el estado del servidor
-            NodeId pingNodeId = NodeId.parse("ns=0;i=2259");
-            // Leer el valor del nodo en el servidor
-            CompletableFuture<DataValue> valueFuture = opcUaClient.readValue(0, TimestampsToReturn.Both, pingNodeId);
-            // Obtener el resultado de la lectura
-            DataValue value = valueFuture.get();
-            if (value.getValue() != null) {
-                logger.info("Ping exitoso. El servidor respondió con el valor: {}", value.getValue());
-                return true;
-            } else {
-                logger.warn("El ping falló. El servidor no devolvió un valor válido.");
-            }
-        } catch (Exception e) {
-            logger.error("Error durante el ping al servidor OPC UA: {}", e.getMessage());
+    public CompletableFuture<Boolean> ping() throws PingException {
+        if (opcUaClient == null) {
+            logger.warn("Realice una conexión antes de intentar un ping.");
+            return CompletableFuture.failedFuture(new PingException("El cliente OPC UA no está conectado."));
         }
-        return false;
+        // Nodo estándar en OPC UA para verificar el estado del servidor
+        NodeId pingNodeId = NodeId.parse("ns=0;i=2259");
+        logger.debug("Ping se ejecutará en el nodo estándar con NodeId: {}", pingNodeId);
+        // Leer el valor del nodo en el servidor de forma asíncrona
+        try{
+            return opcUaClient.readValue(0, TimestampsToReturn.Both, pingNodeId)
+                    .thenApply(value -> {
+                        if (value.getValue() != null) {
+                            logger.info("Ping exitoso");
+                            return true;
+                        } else {
+                            logger.warn("Ping fallido");
+                            try {
+                                throw new PingException("Ping fallido: el valor devuelto fue nulo.");
+                            } catch (PingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        logger.error("Error durante el ping al servidor OPC UA: {}", ex.getMessage(), ex);
+                        try {
+                            throw new PingException("Error durante el ping al servidor OPC UA.", ex);
+                        } catch (PingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        }catch (Exception e){
+            logger.error("Error durante el ping al servidor OPC UA: {}", e.getMessage(), e);
+        }
+        return null;
     }
+
     /**
      * Retrieves the current instance of the OPC UA client associated with this service.
      *

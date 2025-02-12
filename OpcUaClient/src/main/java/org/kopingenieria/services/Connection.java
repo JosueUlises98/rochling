@@ -34,7 +34,7 @@ public interface Connection {
      *
      * @return A CompletableFuture that, when completed, returns true if the connection
      *        */
-    CompletableFuture<Boolean>connect()throws Exception;
+    CompletableFuture<Boolean> connect()throws Exception;
     /**
      * Establishes a connection to an external system or resource asynchronously
      * using the specified URL.
@@ -92,15 +92,4 @@ public interface Connection {
      * @throws Exception if an error occurs while attempting to ping the external system or resource.
      */
     CompletableFuture<Boolean> ping()throws Exception;
-    /**
-     * Checks the connectivity status for a specific predefined URL.
-     * This method is used to verify the health and accessibility of the external system
-     * or resource associated with the specified URL.
-     *
-     * @param url The predefined {@link Url} object representing the endpoint to ping.
-     * @return A CompletableFuture that, when completed, returns true if the connectivity
-     *         to the URL is active and functioning correctly, or false otherwise.
-     * @throws Exception if an error occurs while attempting to ping the URL.
-     */
-    CompletableFuture<Boolean>ping(Url url)throws Exception;
 }

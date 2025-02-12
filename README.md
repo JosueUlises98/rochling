@@ -38,3 +38,31 @@ TCP/IP Autentication,SSLAutentication
 TCP/IP Encryption,SSLEncryption
 TCP/IP Session,SSLSession
 TCP/IP Comunication,SSLComunication
+
+
+// Intentamos conectar al cliente opcua
+            opcUaClient = configuration.create(Url.Adress2.getUrl(),
+                    new OpcUaClientConfigBuilder().setAcknowledgeTimeout(UInteger.MAX)
+                            .setApplicationUri("opcuaclient")
+                            .setApplicationName(LocalizedText.english("opcua-client"))
+                            .setConnectTimeout(UInteger.valueOf(10000))
+                            .setSessionName(()->new SessionObject(String.valueOf(UUID.randomUUID()),"default-session","user",SessionStatus.ACTIVE,"2025-01-10T23:59:59","2025-01-10T23:59:59").toString())
+                            .build());
+
+//Notas importantes sobre las conexiones opcua
+
+1.-ConexionTCp tunnel tcp.opcua
+el túnel tendra la lógica de conexión de la clase tcpconnection para procesar la conexión de un cliente tcp hacia un servidor opcua
+2.-ConexionSSL tunnel tcp.opcua
+el túnel tendra la lógica de conexión de la clase tcpconnection para procesar la conexión de un cliente tcp hacia un servidor opcua
+junto con la seguridad de encriptación de la conexión y la comunicación.
+3.-ConexionOPCUA 
+Esta conexión será una conexión directa entre un opcuaclient y un opcuaserver,en donde no se establecen intermediarios como un tunnel tcp para la conexión.
+
+//Notas importantes sobre la comunicación opcua
+
+1.-Toda la comunicación será encapsulada en una clase que será utilizada por los tipos de conexión:tcp,ssl,opcua.
+
+//Notas importantes sobre la autenticación opcua
+
+1.-

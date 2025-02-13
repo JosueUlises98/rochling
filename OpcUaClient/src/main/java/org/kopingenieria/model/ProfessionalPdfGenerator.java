@@ -20,13 +20,14 @@ public class ProfessionalPdfGenerator {
         this.outputFilePath = outputFilePath;
     }
     /**
-     * Genera un archivo PDF profesional para las sesiones de los usuarios.
+     * Generates a professional PDF document with the specified title and session details.
+     * This PDF includes a well-formatted table and a professional footer.
      *
-     * @param title       Título del documento.
-     * @param sessions    Lista de sesiones (ej. información de usuarios y actividades de sesión).
-     * @throws IOException Si ocurre un error al escribir el archivo.
+     * @param title the title of the PDF document
+     * @param session the session object containing the details to be included in the table
+     * @throws IOException if an I/O error occurs during PDF generation
      */
-    public void generatePdf(String title, List<SessionObject> sessions) throws IOException {
+    public void generatePdf(String title, SessionObject session) throws IOException {
         // Crear el documento PDF
         PdfWriter writer = new PdfWriter(outputFilePath);
         PdfDocument pdf = new PdfDocument(writer);
@@ -47,16 +48,13 @@ public class ProfessionalPdfGenerator {
                     .setBackgroundColor(DeviceGray.GRAY)
                     .setTextAlignment(TextAlignment.CENTER);
             table.addHeaderCell(headerCell);
-        }
-        // Agregar filas con las sesiones
-        for (SessionObject session : sessions) {
+        }   //Agregar las celdas con los valores correspondientes
             table.addCell(new Cell().add(new Paragraph(session.getId())));
             table.addCell(new Cell().add(new Paragraph(session.getName())));
             table.addCell(new Cell().add(new Paragraph(session.getUserId())));
             table.addCell(new Cell().add(new Paragraph(session.getStatus().name())));
             table.addCell(new Cell().add(new Paragraph(session.getStartDate().toString())));
             table.addCell(new Cell().add(new Paragraph(session.getEndDate().toString())));
-        }
         // Agregar la tabla al documento
         document.add(table);
         // Pie de página profesional

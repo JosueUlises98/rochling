@@ -18,11 +18,6 @@ public class TCPAuthentication extends AuthenticationService {
     }
 
     public IdentityProvider authenticateAnonymously() throws ExecutionException, InterruptedException, ConnectionException {
-        client.conexion(Url.Adress1);
-        String estatus = .getSession().get().getSessionId()!=null?"authenticated":"non-authenticated";
-        if (estatus.equals("authenticated")){
-            return new AnonymousProvider();
-        }
         return null;
     }
 

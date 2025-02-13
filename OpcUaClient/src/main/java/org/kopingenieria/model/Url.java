@@ -1,6 +1,5 @@
 package org.kopingenieria.model;
 
-
 /**
  * The Url enum represents predefined URLs used for establishing connections
  * with a Programmable Logic Controller (PLC) or other OPC-UA compatible systems.

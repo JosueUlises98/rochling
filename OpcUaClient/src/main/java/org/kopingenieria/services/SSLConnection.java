@@ -1,26 +1,34 @@
 package org.kopingenieria.services;
 
+
+import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.exceptions.DisconnectException;
-import org.kopingenieria.exceptions.PingException;
-import org.kopingenieria.exceptions.ReconnectionException;
+import org.kopingenieria.exceptions.SSLConnectionException;
+import org.kopingenieria.model.SSLConfigurations;
 import org.kopingenieria.model.Url;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.ValidatorConexion;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import java.net.URL;
-import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.springframework.scheduling.annotation.Scheduled;
+import javax.annotation.concurrent.GuardedBy;
+import javax.net.ssl.*;
+import javax.net.ssl.SSLSession;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.cert.*;
+import java.security.cert.Certificate;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+
 
 public class SSLConnection extends ConnectionService {
     /**
@@ -92,18 +100,6 @@ public class SSLConnection extends ConnectionService {
      */
     private static final int INITIAL_RETRY;
     /**
-     * Represents the instance of an OPC UA client used for communicating with OPC UA servers.
-     *
-     * This variable is responsible for managing the connection to the server, facilitating
-     * operations such as data exchange, server browsing, and monitoring. It acts as the primary
-     * interface for handling OPC UA communication in the {@code ConexionClienteService} class.
-     *
-     * The {@code uaclient} is initialized and maintained internally within the service, ensuring
-     * that all interactions with the OPC UA server are encapsulated and managed in a synchronized
-     * and thread-safe manner.
-     */
-    private OpcUaClient opcUaClient;
-    /**
      * Represents an instance of {@link ValidatorConexion} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      *
@@ -125,523 +121,637 @@ public class SSLConnection extends ConnectionService {
      */
     private Url targeturl;
 
+    private static final int DEFAULT_CONNECTION_TIMEOUT;
+
+    private static final int DEFAULT_READ_TIMEOUT;
+
+    private static final int MAX_RETRY_ATTEMPTS;
+
+    private static final int PING_TIMEOUT;
+
+    @GuardedBy("connectionLock")
+    private final SSLContext sslContext;
+
+    @GuardedBy("connectionLock")
+    private volatile SSLSocket sslSocket;
+
+    private final Properties conf;
+
+    private final CertificateValidator certificateValidator;
+
+    @GuardedBy("connectionLock")
+    private final ScheduledExecutorService heartbeatExecutor;
+
+    @GuardedBy("connectionLock")
+    private volatile Url currentUrl;
+
+    @GuardedBy("connectionLock")
+    private volatile boolean isConnected;
+
+    private final Object connectionLock = new Object();
+
+    private final ExecutorService connectionExecutor;
+
+    private final ScheduledExecutorService reconnectionExecutor;
+
     static {
-        Properties properties = ConfigurationLoader.loadProperties("reconnection.properties");
+        Properties properties = ConfigurationLoader.loadProperties("opcuareconnection.properties");
         INITIAL_RETRY = Integer.parseInt(properties.getProperty("initial_retry", "0"));
         MAX_RETRIES = Integer.parseInt(properties.getProperty("max_retries", "10"));
         INITIAL_WAIT = Integer.parseInt(properties.getProperty("initial_wait", "1000"));
         BACKOFF_FACTOR = Double.parseDouble(properties.getProperty("backoff_factor", "2.0"));
         WAIT_TIME = Double.parseDouble(properties.getProperty("wait_time", "3000"));
+        DEFAULT_CONNECTION_TIMEOUT = Integer.parseInt(properties.getProperty("default_connection_timeout", "30000"));
+        DEFAULT_READ_TIMEOUT = Integer.parseInt(properties.getProperty("default_read_timeout", "30000"));
+        MAX_RETRY_ATTEMPTS = Integer.parseInt(properties.getProperty("max_retry_attempts", "3"));
+        PING_TIMEOUT = Integer.parseInt(properties.getProperty("ping_timeout", "5000"));
     }
-    /**
-     * Constructor for establishing an SSL connection with the provided OpcUaClient.
-     *
-     * @param opcUaClient The OpcUaClient instance used for the SSL connection.
-     */
-    public SSLConnection(OpcUaClient opcUaClient) {
-        super();
-        this.opcUaClient=opcUaClient;
-        this.validatorConection=new ValidatorConexion();
+
+    public SSLConnection(SSLConfigurations config) throws SSLConnectionException {
+        this.conf = loadSSLConfiguration(config);
+        this.certificateValidator = createCertificateValidator();
+        this.sslContext = initializeSSLContext();
+        this.heartbeatExecutor = createHeartbeatExecutor();
+        this.connectionExecutor = createConnectionExecutor();
+        this.reconnectionExecutor = createReconnectionExecutor();
+        configureSecurity();
     }
-    /**
-     * Default constructor for the SSLConnection class. This constructor initializes
-     * the SSLConnection instance with a default ValidatorConexion object to validate
-     * connection parameters. It extends from the base class ConnectionService.
-     */
-    public SSLConnection() {
-        super();
-        this.validatorConection=new ValidatorConexion();
+
+    private ScheduledExecutorService createHeartbeatExecutor() {
+        return Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "SSL-Heartbeat");
+            t.setDaemon(true);
+            return t;
+        });
     }
-    public CompletableFuture<Boolean> connect(Url url) throws ConnectionException {
-        logger.info("Intentando establecer conexión SSL segura con URL: {}", url);
+
+    private ExecutorService createConnectionExecutor() {
+        return Executors.newCachedThreadPool(r -> {
+            Thread t = new Thread(r, "SSL-Connection");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    private ScheduledExecutorService createReconnectionExecutor() {
+        return Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "SSL-Reconnection");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    private void configureSecurity() throws SSLConnectionException {
         try {
-            // Crear objeto CompletableFuture que ejecutará la conexión
-            return CompletableFuture.supplyAsync(() -> {
-                        try {
-                            // Configurar el contexto SSL
-                            SSLContext sslContext = createSSLContext();
-                            // Crear el socket SSL
-                            SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-                            try (SSLSocket sslSocket = (SSLSocket) socketFactory.createSocket(url.getUrl(), url.getPort())) {
-                                // Activar protocolos y cifrados seguros
-                                enableSecureProtocolsAndCiphers(sslSocket);
-                                // Realizar el handshake SSL
-                                sslSocket.startHandshake();
-                                logger.info("Conexión SSL establecida satisfactoriamente con URL: {}", url);
-                            }
-                            return true;
-                        } catch (Exception e) {
-                            logger.error("Error al establecer conexión SSL con la URL: {}", url, e);
-                            throw new CompletionException(new ConnectionException("Error al establecer conexión SSL.", e));
-                        }
-                    })
-                    .orTimeout(10, TimeUnit.SECONDS)
-                    .exceptionally(ex -> {
-                        if (ex.getCause() instanceof TimeoutException) {
-                            logger.error("Timeout al intentar conectarse mediante SSL en URL: {}", url);
-                            throw new CompletionException(new ConnectionException("Tiempo límite de conexión SSL superado.", ex));
-                        } else if (ex.getCause() instanceof ConnectionException) {
-                            throw new CompletionException(ex.getCause());
-                        } else {
-                            logger.error("Error desconocido durante la conexión SSL en URL: {}", url, ex);
-                            throw new CompletionException(new ConnectionException("Error desconocido en la conexión SSL.", ex));
-                        }
-                    });
-        } catch (CompletionException e) {
-            if (e.getCause() instanceof ConnectionException) {
-                throw (ConnectionException) e.getCause();
-            }
-            throw new ConnectionException("Error inesperado durante la conexión SSL.", e);
+            System.setProperty("javax.net.ssl.keyStore", conf.getProperty("keystore.path"));
+            System.setProperty("javax.net.ssl.keyStorePassword", conf.getProperty("keystore.password"));
+            System.setProperty("javax.net.ssl.trustStore", conf.getProperty("truststore.path"));
+            System.setProperty("javax.net.ssl.trustStorePassword", conf.getProperty("truststore.password"));
+        } catch (Exception e) {
+            logger.error("Error configurando propiedades de seguridad SSL", e);
+            throw new SSLConnectionException("Error en la configuracion de seguridad",e);
         }
     }
-    /**
-     * Establishes a connection to an OPC UA server using the provided client and validates the connection.
-     * The connection is asynchronous and returns a CompletableFuture that resolves once the connection
-     * has been successfully established.
-     *
-     * The following operations are performed:
-     * - Validates if the session is active and the target URL is valid.
-     * - Attempts to connect to the OPC UA server.
-     * - Handles exceptions such as timeout, invalid session, or unknown errors, and wraps them in
-     *   a {@link ConnectionException}.
-     *
-     * @return a CompletableFuture that completes with a Boolean value:
-     *         - {@code true} if the connection was successfully established,
-     *         - {@code false} otherwise.
-     * @throws ConnectionException if the session is inactive, the URL is invalid, or if an error
-     *         occurs during the connection process, including timeouts or unexpected conditions.
-     */
-    public CompletableFuture<Boolean> connect() throws ConnectionException {
-        logger.info("Conectando a un cliente TCP en URL: {}.", targeturl.getUrl());
+
+    private CertificateValidator createCertificateValidator() throws SSLConnectionException {
         try {
-            // Usamos CompletableFuture y desempaquetamos posibles excepciones
-            return CompletableFuture.supplyAsync(() -> {
-                        // Validar que la sesión está activa y que la URL es válida
-                        if (!(validatorConection.sesionActiva(opcUaClient) && validatorConection.validateLocalHost(targeturl.getUrl()))) {
-                            logger.warn("La sesión OPC UA no está activa");
-                            throw new CompletionException(new ConnectionException("La sesión OPC UA no está activa o la URL es inválida."));
-                        }
-                        return true;
-                    })
-                    .thenCompose(valid -> {
-                        // Intentar conectar al cliente OPC UA
-                        return opcUaClient.connect()
-                                .thenApply(connection -> {
-                                    logger.info("Conectado al servidor OPC UA en URL: {}.", targeturl.getUrl());
-                                    return true;
-                                });
-                    })
-                    .orTimeout(10, TimeUnit.SECONDS)
-                    .exceptionally(ex -> {
-                        // Manejar excepciones y convertirlas en `ConnectionException`
-                        if (ex.getCause() instanceof TimeoutException) {
-                            logger.error("Tiempo límite de conexión superado al servidor OPC UA.");
-                            throw new CompletionException(new ConnectionException("Tiempo límite de conexión superado al servidor OPC UA.", ex));
-                        } else if (ex.getCause() instanceof ConnectionException) {
-                            throw new CompletionException(ex.getCause());
-                        } else {
-                            logger.error("Error desconocido al conectar al servidor OPC UA en URL: {}", targeturl.getUrl(), ex);
-                            throw new CompletionException(new ConnectionException("Error desconocido al conectar al servidor OPC UA.", ex));
-                        }
-                    });
-        } catch (CompletionException e) {
-            // Desempaqueta y propaga ConnectionException
-            if (e.getCause() instanceof ConnectionException) {
-                throw (ConnectionException) e.getCause();
-            }
-            throw new ConnectionException("Error inesperado en la conexión OPC UA.", e);
+            return new CertificateValidator();
+        } catch (Exception e) {
+            throw new SSLConnectionException("Error creating certificate validator", e);
         }
     }
-    /**
-     * Disconnects the existing OPC UA client asynchronously, releasing any associated resources.
-     * If the client is already disconnected or non-existent, a {@code DisconnectException} is thrown.
-     * This operation is handled asynchronously and any exceptions occurring during the disconnection
-     * process are captured and rethrown as a {@code DisconnectException}.
-     *
-     * @return A {@code CompletableFuture<Boolean>} that completes with {@code true} if the disconnection
-     *         was successful or rethrows a {@code DisconnectException} on failure.
-     * @throws DisconnectException If the client is already disconnected, non-existent, or an error occurs
-     *         during the disconnection process.
-     */
-    public CompletableFuture<Boolean> disconnect() throws DisconnectException {
-        if (opcUaClient == null) {
-            logger.warn("El cliente TCP ya está desconectado o no existe.");
-            throw new DisconnectException("El cliente TCP ya está desconectado o no existe."); // Lanza la excepción de desconexión
+
+    private Properties loadSSLConfiguration(SSLConfigurations sslConfig) {
+        Properties config = new Properties();
+        config.setProperty("keystore.path",sslConfig.keystorePath());
+        config.setProperty("keystore.password",sslConfig.keystorePassword());
+        config.setProperty("truststore.path",sslConfig.truststorePath());
+        config.setProperty("truststore.password",sslConfig.truststorePassword());
+        return config;
+    }
+
+    private SSLContext initializeSSLContext() throws SSLConnectionException {
+        try {
+            KeyManager[] keyManagers = configureKeyManagers();
+            TrustManager[] trustManagers = configureTrustManagers();
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(keyManagers, trustManagers, new SecureRandom());
+            return context;
+        } catch (Exception e) {
+            throw new SSLConnectionException("Error al inicializar el contexto",e.getCause());
         }
+    }
+
+    private KeyManager[] configureKeyManagers() throws SSLConnectionException {
+        String keystorePath = conf.getProperty("keystore.path");
+        String keystorePassword = conf.getProperty("keystore.password");
+        String keystoreType = conf.getProperty("keystore.type", "PKCS12");
+
+        try (InputStream is = Files.newInputStream(Paths.get(keystorePath))) {
+            KeyStore keyStore = KeyStore.getInstance(keystoreType);
+            keyStore.load(is, keystorePassword.toCharArray());
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, keystorePassword.toCharArray());
+
+            return kmf.getKeyManagers();
+        } catch (IOException | KeyStoreException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException e) {
+                throw new SSLConnectionException("Error en la configuracion en el gestor de claves",e);
+        }
+    }
+
+    private TrustManager[] configureTrustManagers() throws SSLConnectionException {
+
+        String truststorePath = conf.getProperty("truststore.path");
+        String truststorePassword = conf.getProperty("truststore.password");
+        String truststoreType = conf.getProperty("truststore.type", "PKCS12");
+
+        try (InputStream is = Files.newInputStream(Paths.get(truststorePath))) {
+            KeyStore trustStore = KeyStore.getInstance(truststoreType);
+            trustStore.load(is, truststorePassword.toCharArray());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            return createCustomTrustManager(tmf);
+        } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException e) {
+            throw new SSLConnectionException("Error en la configuracion de los trust managers",e);
+        }
+    }
+
+    private TrustManager[] createCustomTrustManager(TrustManagerFactory tmf) {
+        return new TrustManager[] {
+                new X509ExtendedTrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s){
+
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s){
+
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+
+                    private final X509TrustManager delegate = (X509TrustManager) tmf.getTrustManagers()[0];
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) throws CertificateException {
+                        certificateValidator.validateCertificateChain(chain);
+                        delegate.checkClientTrusted(chain, authType);
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket){
+
+                    }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine){
+
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine){
+
+                    }
+
+                    // Implementar otros métodos requeridos del X509ExtendedTrustManager
+                }
+        };
+    }
+
+    private SSLSocket createAndConfigureSocket(Url url) throws SSLConnectionException {
+        SSLSocket socket;
+        try {
+            socket = (SSLSocket) sslContext.getSocketFactory().createSocket(url.getUrl(), 4840);
+            configureSSLSocket(socket);
+        } catch (IOException e) {
+            logger.error("Error creando socket SSL", e);
+            throw new SSLConnectionException("Error creando socket SSL",e);
+        }
+        return socket;
+    }
+
+    private void configureSSLSocket(SSLSocket socket) throws SSLConnectionException {
         try{
-            // Procesar la desconexión de forma completamente asíncrona
-            return opcUaClient.disconnect() // Llamada asíncrona para iniciar la desconexión
-                    .thenApply(result -> {
-                        logger.info("Desconectado exitosamente del servidor OPC UA.");
-                        opcUaClient = null; // Libera el cliente tras la desconexión
-                        return true;
+            socket.setEnabledProtocols(new String[] {"TLSv1.3", "TLSv1.2"});
+            socket.setEnabledCipherSuites(getSecureCipherSuites());
+            socket.setSoTimeout(DEFAULT_READ_TIMEOUT);
+            socket.setTcpNoDelay(true);
+            socket.setKeepAlive(true);
+            socket.setSoLinger(true, 0);
+            socket.setNeedClientAuth(true);
+            socket.setWantClientAuth(true);
+        }catch (SocketException e){
+            logger.error("Error en la configuracion del socket SSL",e);
+            throw new SSLConnectionException("Error en la configuracion del socket SSL",e);
+        }
+    }
+
+    private String[] getSecureCipherSuites() {
+        return new String[] {
+                "TLS_AES_256_GCM_SHA384",
+                "TLS_CHACHA20_POLY1305_SHA256",
+                "TLS_AES_128_GCM_SHA256"
+        };
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        synchronized (connectionLock) {
+            try {
+                disconnect().get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.error("Error during shutdown: ", e);
+            } finally {
+                connectionExecutor.shutdown();
+                reconnectionExecutor.shutdown();
+                heartbeatExecutor.shutdown();
+            }
+        }
+    }
+
+    private void performSSLHandshake() throws SSLConnectionException {
+        try{
+            sslSocket.startHandshake();
+            SSLSession session = sslSocket.getSession();
+            logger.debug("Protocolo negociado: {}", session.getProtocol());
+            logger.debug("Cipher Suite: {}", session.getCipherSuite());
+            validateSSLSession(session);
+        }catch (IOException e){
+            logger.error("Error en el handshake SSL",e.getCause());
+            throw new SSLConnectionException("Error en el handshake SSL",e.getCause());
+        }
+    }
+
+    private void validateSSLSession(SSLSession session) throws SSLConnectionException {
+        try {
+            Certificate[] certs = session.getPeerCertificates();
+            certificateValidator.validateCertificates(certs);
+        } catch (SSLPeerUnverifiedException | CertificateException e) {
+            try {
+                throw new SSLHandshakeException("Certificate validation failed: " + e.getCause().getMessage(), e.getCause());
+            } catch (SSLHandshakeException ex) {
+                logger.error("Error en validacion de sesion",ex.getCause());
+                throw new SSLConnectionException("Error en validacion de sesion",ex.getCause());
+            }
+        }
+    }
+
+    @Scheduled(fixedDelay = 3000)
+    private void scheduleHealthCheck() throws Exception {
+        if (isConnected) {
+            ping()
+                    .thenAccept(isAlive -> {
+                        if (!isAlive) {
+                            try {
+                                handleConnectionLoss();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     })
-                    .exceptionally(ex -> { // Manejar excepciones y arrojar una DisconnectException
-                        logger.error("Error al desconectar el cliente TCP: {}", ex.getMessage(), ex);
-                        throw new CompletionException(new DisconnectException("Error durante la desconexión del cliente TCP.", ex));
+                    .exceptionally(throwable -> {
+                        logger.error("Health check failed: ", throwable);
+                        return null;
                     });
-        }catch (CompletionException e){
-            // Desempaqueta y propaga DisconnectException
-            if (e.getCause() instanceof DisconnectException) {
-                logger.error("Error al desconectar el cliente TCP: {}", e.getCause().getMessage(), e.getCause());
-                throw (DisconnectException) e.getCause();
-            }
-            throw new DisconnectException("Error en la desconexion de un cliente TCP.", e);
         }
     }
-    /**
-     * Attempts a backoff reconnection to the specified URL. The method applies
-     * an incremental retry mechanism with an initial retry count and wait period.
-     *
-     * @param url the URL to which the reconnection attempt is made
-     * @return a CompletableFuture containing a Boolean value indicating
-     *         whether the reconnection attempt was successful
-     * @throws ReconnectionException if the reconnection attempt fails
-     */
-    public CompletableFuture<Boolean> backoffreconnection(Url url) throws ReconnectionException {
-        return attemptBackoffReconnectionWithUrl(url,INITIAL_RETRY,INITIAL_WAIT);
-    }
-    /**
-     * Attempts to reconnect to a given URL using a backoff strategy, retrying the connection
-     * with an increased wait time after each failed attempt up to a maximum retry limit.
-     *
-     * @param url the URL to which the connection attempt should be made
-     * @param initialretry the current retry count, starting from 0
-     * @param waittime the initial wait time in milliseconds before attempting reconnection
-     * @return a CompletableFuture that completes with {@code true} if the reconnection is successful,
-     *         or {@code false} if the maximum retry limit is reached without success
-     * @throws ReconnectionException if the reconnection process fails due to an unrecoverable error
-     */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(Url url,int initialretry,double waittime) throws ReconnectionException {
-        if (initialretry >= MAX_RETRIES) {
-            logger.error("Numero de intentos excedidos {} intentos",initialretry);
-            return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
-        }
-        try {
-            return connect(url).thenCompose(success -> {
-                if (success) {
-                    logger.info("Reconexión en el intento. #{}", initialretry + 1);
-                    return CompletableFuture.completedFuture(true); // Reconexión exitosa
-                } else {
-                    logger.info("Intento de reconexion fallido #{}. Esperando {} ms....", initialretry + 1, waittime);
-                    return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waittime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
-                            .thenCompose(unused -> {
-                                try {
-                                    return attemptBackoffReconnectionWithUrl(url, initialretry + 1, waittime * BACKOFF_FACTOR);
-                                } catch (ReconnectionException e) {
-                                    throw new CompletionException(e);
-                                }
-                            }); // Incrementar el tiempo de espera y reintentar
-                }
-            });
-        }catch (ConnectionException | CompletionException e){
-            // Desempaqueta y propaga ReconnectionException
-            if (e.getCause() instanceof ReconnectionException) {
-                logger.error("Error al reconectar el cliente TCP: {}", e.getCause().getMessage(), e.getCause());
-                throw (ReconnectionException) e.getCause();
-            }
-            throw new ReconnectionException("Error en la reconexion de un cliente TCP.", e);
-        }
-    }
-    /**
-     * Attempts to re-establish a connection using an exponential backoff strategy.
-     * This method aims to handle transient connectivity issues by retrying the
-     * connection attempt after increasing wait intervals on each failure, up to
-     * a maximum number of retries.
-     *
-     * @return a CompletableFuture that completes with a Boolean value indicating
-     *         whether the reconnection was successful (true) or not (false).
-     * @throws ReconnectionException if the reconnection process encounters a
-     *         fatal error or exceeds the allowed retries.
-     */
-    public CompletableFuture<Boolean> backoffreconnection() throws ReconnectionException {
-        return attemptBackoffReconnectionWithoutUrl(targeturl,INITIAL_RETRY,INITIAL_WAIT);
-    }
-    /**
-     * Attempts to reconnect to a given URL with a backoff strategy. The method retries the connection
-     * a specified number of times, increasing the wait time based on a defined backoff factor for
-     * each unsuccessful attempt. If the maximum number of retries is reached, the method returns
-     * a failed future.
-     *
-     * @param url the target URL to reconnect to.
-     * @param retries the current attempt count for reconnection.
-     * @param waitTime the delay in milliseconds before the next connection attempt.
-     * @return a CompletableFuture that resolves to {@code true} if reconnection is successful,
-     *         or {@code false} if the maximum number of retries is exceeded.
-     * @throws ReconnectionException if an error occurs during reconnection.
-     */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(Url url, int retries, double waitTime) throws ReconnectionException {
-        if (retries >= MAX_RETRIES) {
-            logger.error("Numero de intentos excedidos {} intentos.", retries);
-            return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
-        }
-        try {
-            return connect(url).thenCompose(success -> {
-                if (success) {
-                    logger.info("Reconexión en el intento #{}", retries + 1);
-                    return CompletableFuture.completedFuture(true); // Reconexión exitosa
-                } else {
-                    logger.info("Intento de reconexion fallido #{}. Esperando {} ms...", retries + 1, waitTime);
-                    return CompletableFuture.supplyAsync(() -> null, CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS)) // Devuelve un futuro después del retraso
-                            .thenCompose(unused -> {
-                                try {
-                                    return attemptBackoffReconnectionWithUrl(url, retries + 1, waitTime * BACKOFF_FACTOR);
-                                } catch (ReconnectionException e) {
-                                    throw new CompletionException(e);
-                                }
-                            }); // Incrementar el tiempo de espera y reintentar
-                }
-            });
-        }catch (ConnectionException | CompletionException e){
-            // Desempaqueta y propaga ReconnectionException
-            if (e.getCause() instanceof ReconnectionException) {
-                logger.error("Error al reconectar el cliente TCP: {}", e.getCause().getMessage(), e.getCause());
-                throw (ReconnectionException) e.getCause();
-            }
-            throw new ReconnectionException("Error en la reconexion de un cliente TCP.", e);
-        }
-    }
-    /**
-     * Attempts to re-establish a connection to the specified URL using a linear reconnection strategy.
-     *
-     * @param url the URL to which the reconnection attempt should be made
-     * @return a CompletableFuture that resolves to true if the reconnection is successful,
-     *         or false if the reconnection fails
-     * @throws ReconnectionException if an error occurs during the reconnection attempt
-     */
-    public CompletableFuture<Boolean> linearreconnection(Url url) throws ReconnectionException {
-        return attemptlinearReconnectionWithUrl(url,INITIAL_RETRY,WAIT_TIME);
-    }
-    /**
-     * Attempts a linear reconnection to the specified URL with a defined number of retries and wait time between attempts.
-     * If the connection fails after exhausting all retries, a {@link ReconnectionException} is thrown.
-     *
-     * @param url the URL to connect to
-     * @param retries the number of retry attempts allowed
-     * @param waitTime the wait time in milliseconds before each retry
-     * @return a CompletableFuture indicating whether the reconnection was successful or not
-     * @throws ReconnectionException if the reconnection process fails after exhausting retries
-     * or if an unexpected error occurs during the process
-     */
-    private CompletableFuture<Boolean>attemptlinearReconnectionWithUrl(Url url, int retries, double waitTime) throws ReconnectionException{
-        final int[] retry = {retries};
-        try {
-            return connect(url).thenCompose(success -> {
-                if (success) {
-                    // Reconexión exitosa
-                    logger.info("Reconexión lineal en el intento. #{}", retry[0] + 1);
-                    return CompletableFuture.completedFuture(true);
-                } else {
-                    retry[0]--; // Reducir el número de reintentos restantes
-                    if (retry[0] <= 0) {
-                        // Si no quedan más reintentos, lanzar la excepción
-                        logger.error("ReconnectionException: Maximo de intentos excedidos");
-                        try {
-                            throw new ReconnectionException("Maximo de intentos excedidos.");
-                        } catch (ReconnectionException e) {
-                            throw new CompletionException(e);
-                        }
-                    }
-                    // Si aún quedan intentos, esperar y volver a intentarlo
-                    logger.info("Reintento fallido #{}. Esperando {} ms....",
-                            retries - retry[0], waitTime);
-                    return CompletableFuture.supplyAsync(() -> null,
-                                    CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS))
-                            .thenCompose(unused -> {
-                                try {
-                                    return attemptlinearReconnectionWithUrl(url, retry[0], waitTime);
-                                } catch (ReconnectionException e) {
-                                    throw new CompletionException(e);
-                                }
-                            });
-                }
-            }).exceptionally(ex -> {
-                // Manejamos cualquier excepción no controlada previamente
-                logger.error("Ocurrió un error durante la reconexión: {}", ex.getMessage());
+
+    private void startHeartbeat() {
+        synchronized (connectionLock) {
+            heartbeatExecutor.scheduleAtFixedRate(() -> {
                 try {
-                    throw new ReconnectionException("Error inesperado durante el proceso de reconexión", ex);
-                } catch (ReconnectionException e) {
-                    throw new CompletionException(e);
+                    if (!isConnectionAlive()) {
+                        handleConnectionLoss();
+                    }
+                } catch (Exception e) {
+                    logger.error("Heartbeat error: ", e);
                 }
-            });
-        }catch (CompletionException | ConnectionException e){
-            // Desempaqueta y propaga ReconnectionException
-            if (e.getCause() instanceof ReconnectionException) {
-                logger.error("Error al reconectar el cliente TCP: {}", e.getCause().getMessage(), e.getCause());
-                throw (ReconnectionException) e.getCause();
-            }
-            throw new ReconnectionException("Error en la reconexion de un cliente TCP.", e);
+            }, 30, 30, TimeUnit.SECONDS);
         }
     }
-    /**
-     * Attempts to establish a linear reconnection to the target while observing predefined retry and wait configurations.
-     *
-     * This method performs reconnection attempts in a linear sequence using a fixed number of retries and wait time between attempts.
-     * The target URL for the reconnection is defined by the internal configuration.
-     *
-     * @return a CompletableFuture containing a Boolean result indicating whether the reconnection was successful (true) or not (false).
-     * @throws ReconnectionException if an error occurs during the reconnection process.
-     */
-    public CompletableFuture<Boolean> linearreconnection() throws ReconnectionException {
-        return attemptlinearReconnectionWithoutUrl(targeturl,INITIAL_RETRY,WAIT_TIME);
+
+    private void stopHeartbeat() {
+        synchronized (connectionLock) {
+            heartbeatExecutor.shutdown();
+            try {
+                if (!heartbeatExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    heartbeatExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                heartbeatExecutor.shutdownNow();
+            }
+        }
     }
-    /**
-     * Attempts to perform a linear reconnection to the given URL without creating a new URL object.
-     * The method retries the connection for a specified number of attempts, waiting for a specified
-     * amount of time between each attempt. If all retries are exhausted without success, a
-     * {@link ReconnectionException} is thrown.
-     *
-     * @param url the target URL to reconnect to
-     * @param retries the maximum number of retries allowed
-     * @param waitTime the wait time in milliseconds between retries
-     * @return a {@link CompletableFuture} containing {@code true} if the reconnection is successful,
-     *         otherwise it completes exceptionally with a {@link ReconnectionException}
-     * @throws ReconnectionException if the maximum retries are exceeded or an unexpected error occurs
-     *         during the reconnection process
-     */
-    private CompletableFuture<Boolean>attemptlinearReconnectionWithoutUrl(Url url, int retries,double waitTime)throws ReconnectionException{
-        final int[] retry = {retries};
+
+    @Override
+    public void close() {
+        shutdown();
+    }
+
+    private boolean isConnectionAlive() {
         try {
-            return connect(url).thenCompose(success -> {
-                if (success) {
-                    // Reconexión exitosa
-                    logger.info("Reconexión lineal en el intento. #{}.", retry[0] + 1);
-                    return CompletableFuture.completedFuture(true);
-                } else {
-                    retry[0]--; // Reducir el número de reintentos restantes
-                    if (retry[0] <= 0) {
-                        // Si no quedan más reintentos, lanzar la excepción
-                        logger.error("ReconnectionException: Maximo de intentos excedidos.");
-                        try {
-                            throw new ReconnectionException("Maximo de intentos excedidos.");
-                        } catch (ReconnectionException e) {
-                            throw new CompletionException(e);
-                        }
-                    }
-                    // Si aún quedan intentos, esperar y volver a intentarlo
-                    logger.info("Reintento fallido #{}. Esperando {} ms...",retries - retry[0], waitTime);
-                    return CompletableFuture.supplyAsync(() -> null,
-                                    CompletableFuture.delayedExecutor((long) waitTime, TimeUnit.MILLISECONDS))
-                            .thenCompose(unused -> {
-                                try {
-                                    return attemptlinearReconnectionWithUrl(url, retry[0], waitTime);
-                                } catch (ReconnectionException e) {
-                                    throw new CompletionException(e);
-                                }
-                            });
-                }
-            }).exceptionally(ex -> {
-                // Manejamos cualquier excepción no controlada previamente
-                logger.error("Ocurrió un error durante la reconexión: {}.", ex.getMessage());
-                try {
-                    throw new ReconnectionException("Error inesperado durante el proceso de reconexión", ex);
-                } catch (ReconnectionException e) {
-                    throw new CompletionException(e);
-                }
-            });
-        }catch (CompletionException | ConnectionException e){
-            // Desempaqueta y propaga ReconnectionException
-            if (e.getCause() instanceof ReconnectionException) {
-                logger.error("Error al reconectar el cliente TCP: {}", e.getCause().getMessage(), e.getCause());
-                throw (ReconnectionException) e.getCause();
+            sslSocket.getOutputStream().write(0);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void handleConnectionLoss() throws Exception {
+        synchronized (connectionLock) {
+            if (isConnected) {
+                isConnected = false;
+                logger.warn("Connection lost. Initiating reconnection...");
+                backoffreconnection(currentUrl)
+                        .thenAccept(reconnected -> {
+                            if (!reconnected) {
+                                logger.error("Reconnection failed after all attempts");
+                            }
+                        })
+                        .exceptionally(throwable -> {
+                            logger.error("Reconnection error: ", throwable);
+                            return null;
+                        });
             }
-            throw new ReconnectionException("Error en la reconexion de un cliente TCP.", e);
         }
     }
-    /**
-     * Sends a ping request to the OPC UA server to validate the connection state.
-     * The method performs an asynchronous read operation on a standard OPC UA node.
-     * If the server responds with valid data, the ping is considered successful.
-     * In case of an error or null response, an appropriate exception will be thrown.
-     *
-     * @return a {@link CompletableFuture} that resolves to {@code true} if the ping is successful,
-     *         or {@code false} if the response is invalid. In case of an error, the future completes
-     *         exceptionally with a {@link PingException}.
-     * @throws PingException if the OPC UA client is not connected or if an error occurs during the ping operation.
-     */
-    public CompletableFuture<Boolean> ping() throws PingException {
-        if (opcUaClient == null) {
-            logger.warn("Realice una conexión antes de intentar un ping.");
-            // Fallo inmediato si el cliente no está conectado.
-            throw new PingException("Cliente Tcp desconectado");
+
+    private boolean executePing() throws SSLConnectionException {
+        CountDownLatch responseLatch = new CountDownLatch(1);
+        AtomicBoolean pingSuccess = new AtomicBoolean(false);
+        try {
+            sslSocket.setSoTimeout(PING_TIMEOUT);
+
+            CompletableFuture.runAsync(() -> {
+
+                try (OutputStream out = sslSocket.getOutputStream();
+                     InputStream in = sslSocket.getInputStream()) {
+
+                    out.write(0);
+                    out.flush();
+                    int response = in.read();
+                    pingSuccess.set(response != -1);
+                    responseLatch.countDown();
+                } catch (IOException e) {
+                    logger.error("Error during ping execution: ", e);
+                    responseLatch.countDown();
+                }
+            }, connectionExecutor);
+            return responseLatch.await(PING_TIMEOUT, TimeUnit.MILLISECONDS) &&
+                    pingSuccess.get();
+        }catch (InterruptedException | SocketException e){
+            throw new SSLConnectionException("Error durante el ping",e.getCause());
+        }finally {
+            try {
+                sslSocket.setSoTimeout(DEFAULT_READ_TIMEOUT);
+            } catch (SocketException e) {
+                logger.error("Error al restablecer el timeout de lectura del socket SSL",e.getCause());
+            }
         }
-        // Nodo estándar en OPC UA para verificar el estado del servidor
-        NodeId pingNodeId = NodeId.parse("ns=0;i=2259");
-        logger.debug("Ping se ejecutará en el nodo estándar con NodeId: {}", pingNodeId);
-        // Realiza la lectura del valor del nodo en el servidor de forma asíncrona
-        CompletableFuture<Boolean> pingFuture = new CompletableFuture<>();
-        opcUaClient.readValue(0, TimestampsToReturn.Both, pingNodeId)
-                .thenAccept(value -> {
-                    if (value != null && value.getValue() != null) {
-                        // El valor devuelto es válido, el ping es exitoso
-                        logger.info("Ping exitoso.");
-                        pingFuture.complete(true); // Completar el futuro con éxito
-                    } else {
-                        // Si el valor devuelto es nulo, lanzar directamente una excepción personalizada
-                        logger.warn("Ping fallido: Repuesta enviada nula");
-                        pingFuture.complete(false);
-                        try {
-                            throw new PingException("PingException: Respuesta enviada nula");
-                        } catch (PingException e) {
-                            throw new CompletionException(e);
-                        }
+    }
+
+    private boolean tryReconnect(Url url) {
+        try {
+            disconnect().get(5, TimeUnit.SECONDS);
+            return connect(url).get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.error("Intento de reconexión fallido: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private Boolean executeConnect(Url url) throws Exception {
+        if (isConnected) {
+            logger.warn("Already connected. Disconnecting first...");
+            disconnect().get(5, TimeUnit.SECONDS);
+        }
+        validateConnectionParameters(url);
+        currentUrl = url;
+        sslSocket = createAndConfigureSocket(url);
+        performSSLHandshake();
+        startHeartbeat();
+        isConnected = true;
+        logger.info("SSL Connection established successfully with: {}", url.getIpAddress());
+        return true;
+    }
+
+    private void validateConnectionParameters(Url url) throws ConnectionException {
+        Objects.requireNonNull(url, "URL no puede ser nula");
+        if (!url.getProtocol().equals("https")) {
+            throw new SSLConnectionException("URL inválida o protocolo no seguro");
+        }
+        // Validar certificados y revocación
+        if (!certificateValidator.isValidCertificateChain(url)) {
+            throw new SSLConnectionException("Cadena de certificados inválida");
+        }
+    }
+
+    private Boolean executeReconnectionStrategy(Url url, Supplier<Boolean> shouldContinue, Supplier<Long> getDelay) throws Exception {
+        synchronized (connectionLock) {
+            while (shouldContinue.get()) {
+                if (tryReconnect(url)) {
+                    return true;
+                }
+                Thread.sleep(getDelay.get());
+            }
+            return false;
+        }
+    }
+
+    private ExecutorService getConnectionExecutor() {
+        return connectionExecutor;
+    }
+
+    private void handleConnectionError(Exception e) {
+        logger.error("Error de conexión: {}", e.getMessage());
+        isConnected = false;
+        throw new CompletionException(new ConnectionException("Error al establecer conexión SSL: " + e.getMessage()));
+    }
+
+
+    public CompletableFuture<Boolean> connect() throws Exception {
+        if (currentUrl == null) {
+            throw new ConnectionException("No se ha especificado una URL para la conexión");
+        }
+        return connect(currentUrl);
+    }
+
+    @Retryable(
+            value = {ConnectionException.class},
+            maxAttempts = MAX_RETRY_ATTEMPTS,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public CompletableFuture<Boolean> connect(Url url) throws Exception {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                synchronized (connectionLock) {
+                    if (isConnected) {
+                        logger.warn("Ya existe una conexión activa");
+                        return true;
                     }
-                }).exceptionally(ex -> {
-                    // Manejo de cualquier error que ocurra durante el proceso de ping
-                    String errorMessage = "Error durante el ping al servidor OPC UA.";
-                    logger.error("{}: {}", errorMessage, ex.getMessage(), ex);
-                    pingFuture.completeExceptionally(new PingException(errorMessage, ex));
-                    return null;
-                });
-        return pingFuture;
+                    validateConnectionParameters(url);
+                    currentUrl = url;
+                    configureSSLSocket(url);
+                    performSSLHandshake();
+                    startHeartbeat();
+                    isConnected = true;
+                    logger.info("Conexión SSL establecida exitosamente con: {}", url.getHost());
+                    return true;
+                }
+            } catch (Exception e) {
+                handleConnectionError(e);
+                return false;
+            }
+        }, getConnectionExecutor());
     }
-    /**
-     * Retrieves the instance of the OpcUaClient.
-     *
-     * @return the instance of OpcUaClient.
-     */
-    public OpcUaClient opcUaClient() {
-        return opcUaClient;
+
+    @Override
+    public CompletableFuture<Boolean> disconnect() throws Exception {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                synchronized (connectionLock) {
+                    if (!isConnected) {
+                        logger.warn("No hay conexión activa para desconectar");
+                        return true;
+                    }
+
+                    heartbeatExecutor.shutdown();
+                    if (sslSocket != null && !sslSocket.isClosed()) {
+                        sslSocket.close();
+                    }
+                    isConnected = false;
+                    logger.info("Conexión SSL cerrada correctamente");
+                    return true;
+                }
+            } catch (Exception e) {
+                logger.error("Error al desconectar: {}", e.getMessage());
+                return false;
+            }
+        });
     }
-    /**
-     * Sets the OpcUaClient instance for the SSLConnection.
-     *
-     * @param opcUaClient the OpcUaClient instance to be set
-     * @return the current SSLConnection instance
-     */
-    public SSLConnection setOpcUaClient(OpcUaClient opcUaClient) {
-        this.opcUaClient = opcUaClient;
-        return this;
+
+    @Override
+    public CompletableFuture<Boolean> backoffreconnection(Url url) throws Exception {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                int attempt = 0;
+                long delay = 1000; // Delay inicial de 1 segundo
+
+                while (attempt < MAX_RETRY_ATTEMPTS) {
+                    if (tryReconnect(url)) {
+                        return true;
+                    }
+                    Thread.sleep(delay);
+                    delay *= 2; // Incremento exponencial del delay
+                    attempt++;
+                }
+                return false;
+            } catch (Exception e) {
+                logger.error("Error en reconexión con backoff: {}", e.getMessage());
+                return false;
+            }
+        });
     }
-    /**
-     * Retrieves the target URL associated with the current object.
-     *
-     * @return the target URL as an instance of the Url class.
-     */
-    public Url targeturl() {
-        return targeturl;
-    }
-    /**
-     * Sets the target URL for the SSL connection.
-     *
-     * @param targeturl the target URL to be set for the SSL connection
-     * @return the updated SSLConnection instance with the new target URL set
-     */
-    public SSLConnection setTargeturl(Url targeturl) {
-        this.targeturl = targeturl;
-        return this;
-    }
-    /**
-     * Casts the given object to an instance of SSLConnection if it is not null.
-     *
-     * @param object the object to be cast to SSLConnection
-     * @return the casted SSLConnection instance if the object is not null;
-     *         otherwise, returns null
-     */
-    public SSLConnection castClass(Object object){
-        if (object!=null){
-            return (SSLConnection) object;
+
+    @Override
+    public CompletableFuture<Boolean> backoffreconnection() throws Exception {
+        if (currentUrl == null) {
+            throw new ConnectionException("No hay URL previa para reconexión");
         }
-        return null;
+        return backoffreconnection(currentUrl);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> linearreconnection(Url url) throws Exception {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                int attempt = 0;
+                final long FIXED_DELAY = 2000; // Delay fijo de 2 segundos
+
+                while (attempt < MAX_RETRY_ATTEMPTS) {
+                    if (tryReconnect(url)) {
+                        return true;
+                    }
+                    Thread.sleep(FIXED_DELAY);
+                    attempt++;
+                }
+                return false;
+            } catch (Exception e) {
+                logger.error("Error en reconexión lineal: {}", e.getMessage());
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<Boolean> linearreconnection() throws Exception {
+        if (currentUrl == null) {
+            throw new ConnectionException("No hay URL previa para reconexión");
+        }
+        return linearreconnection(currentUrl);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> ping() {
+        return CompletableFuture.supplyAsync(() -> {
+            synchronized (connectionLock) {
+                if (!isConnected || sslSocket == null || sslSocket.isClosed()) {
+                    return false;
+                }
+
+                try {
+                    return executePing();
+                } catch (Exception e) {
+                    logger.error("Ping error: ", e);
+                    return false;
+                }
+            }
+        }, connectionExecutor);
+    }
+
+    // Clase interna CertificateValidator
+    private static class CertificateValidator {
+
+        private final CertPathValidator validator;
+        private final CertificateFactory certFactory;
+
+        public CertificateValidator() throws CertificateException, NoSuchAlgorithmException {
+            this.validator = CertPathValidator.getInstance("PKIX");
+            this.certFactory = CertificateFactory.getInstance("X.509");
+        }
+
+        public void validateCertificateChain(X509Certificate[] chain) throws CertificateException {
+            try {
+                CertPath certPath = certFactory.generateCertPath(Arrays.asList(chain));
+                PKIXParameters params = new PKIXParameters(createTrustAnchors(chain[chain.length - 1]));
+                params.setRevocationEnabled(false);
+                validator.validate(certPath, params);
+            } catch (Exception e) {
+                throw new CertificateException("Certificate chain validation failed", e);
+            }
+        }
+
+        private Set<TrustAnchor> createTrustAnchors(X509Certificate rootCert) {
+            return Collections.singleton(new TrustAnchor(rootCert, null));
+        }
+
+        public void validateCertificates(Certificate[] certificates) throws CertificateException {
+            if (certificates == null || certificates.length == 0) {
+                throw new CertificateException("No certificates provided");
+            }
+
+            for (Certificate cert : certificates) {
+                if (!(cert instanceof X509Certificate)) {
+                    throw new CertificateException("Non-X509 certificate found");
+                }
+                ((X509Certificate) cert).checkValidity();
+            }
+        }
     }
 }

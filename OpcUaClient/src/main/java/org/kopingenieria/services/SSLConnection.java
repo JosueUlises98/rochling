@@ -11,7 +11,7 @@ import org.kopingenieria.model.Url;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.ValidatorConexion;
 import org.springframework.scheduling.annotation.Scheduled;
-import javax.annotation.concurrent.GuardedBy;
+
 import javax.net.ssl.*;
 import javax.net.ssl.SSLSession;
 import java.io.IOException;
@@ -94,7 +94,7 @@ public class SSLConnection extends ConnectionService {
      * Represents the initial number of retry attempts for reconnection in the {@code TcpConnection} class.
      * This constant defines the starting point for retry mechanisms when attempting
      * to re-establish a connection, particularly in backoff or linear reconnection strategies.
-     *
+     * <p>
      * The value of {@code INITIAL_RETRY} serves as a fundamental configuration to control the behavior
      * of the retry logic and provides a baseline for subsequent retries.
      */
@@ -102,7 +102,7 @@ public class SSLConnection extends ConnectionService {
     /**
      * Represents an instance of {@link ValidatorConexion} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
-     *
+     * <p>
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
@@ -110,11 +110,11 @@ public class SSLConnection extends ConnectionService {
     private ValidatorConexion validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
-     *
+     * <p>
      * This field is used to initialize, manage, and maintain communication
      * with a predefined OPC-UA server. The {@code url} is of type {@link Url},
      * which defines strongly typed references to specific server addresses.
-     *
+     * <p>
      * Typically configured during the initialization of the {@code TcpConnection} class
      * and may be used in connection management tasks such as establishing, reconnecting,
      * or verifying server connections.
@@ -129,30 +129,17 @@ public class SSLConnection extends ConnectionService {
 
     private static final int PING_TIMEOUT;
 
-    @GuardedBy("connectionLock")
     private final SSLContext sslContext;
 
-    @GuardedBy("connectionLock")
     private volatile SSLSocket sslSocket;
 
     private final Properties conf;
 
     private final CertificateValidator certificateValidator;
 
-    @GuardedBy("connectionLock")
-    private final ScheduledExecutorService heartbeatExecutor;
-
-    @GuardedBy("connectionLock")
     private volatile Url currentUrl;
 
-    @GuardedBy("connectionLock")
     private volatile boolean isConnected;
-
-    private final Object connectionLock = new Object();
-
-    private final ExecutorService connectionExecutor;
-
-    private final ScheduledExecutorService reconnectionExecutor;
 
     static {
         Properties properties = ConfigurationLoader.loadProperties("opcuareconnection.properties");
@@ -171,34 +158,7 @@ public class SSLConnection extends ConnectionService {
         this.conf = loadSSLConfiguration(config);
         this.certificateValidator = createCertificateValidator();
         this.sslContext = initializeSSLContext();
-        this.heartbeatExecutor = createHeartbeatExecutor();
-        this.connectionExecutor = createConnectionExecutor();
-        this.reconnectionExecutor = createReconnectionExecutor();
         configureSecurity();
-    }
-
-    private ScheduledExecutorService createHeartbeatExecutor() {
-        return Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "SSL-Heartbeat");
-            t.setDaemon(true);
-            return t;
-        });
-    }
-
-    private ExecutorService createConnectionExecutor() {
-        return Executors.newCachedThreadPool(r -> {
-            Thread t = new Thread(r, "SSL-Connection");
-            t.setDaemon(true);
-            return t;
-        });
-    }
-
-    private ScheduledExecutorService createReconnectionExecutor() {
-        return Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "SSL-Reconnection");
-            t.setDaemon(true);
-            return t;
-        });
     }
 
     private void configureSecurity() throws SSLConnectionException {
@@ -209,7 +169,7 @@ public class SSLConnection extends ConnectionService {
             System.setProperty("javax.net.ssl.trustStorePassword", conf.getProperty("truststore.password"));
         } catch (Exception e) {
             logger.error("Error configurando propiedades de seguridad SSL", e);
-            throw new SSLConnectionException("Error en la configuracion de seguridad",e);
+            throw new SSLConnectionException("Error en la configuracion de seguridad", e);
         }
     }
 
@@ -223,10 +183,10 @@ public class SSLConnection extends ConnectionService {
 
     private Properties loadSSLConfiguration(SSLConfigurations sslConfig) {
         Properties config = new Properties();
-        config.setProperty("keystore.path",sslConfig.keystorePath());
-        config.setProperty("keystore.password",sslConfig.keystorePassword());
-        config.setProperty("truststore.path",sslConfig.truststorePath());
-        config.setProperty("truststore.password",sslConfig.truststorePassword());
+        config.setProperty("keystore.path", sslConfig.keystorePath());
+        config.setProperty("keystore.password", sslConfig.keystorePassword());
+        config.setProperty("truststore.path", sslConfig.truststorePath());
+        config.setProperty("truststore.password", sslConfig.truststorePassword());
         return config;
     }
 
@@ -238,7 +198,7 @@ public class SSLConnection extends ConnectionService {
             context.init(keyManagers, trustManagers, new SecureRandom());
             return context;
         } catch (Exception e) {
-            throw new SSLConnectionException("Error al inicializar el contexto",e.getCause());
+            throw new SSLConnectionException("Error al inicializar el contexto", e.getCause());
         }
     }
 
@@ -255,8 +215,9 @@ public class SSLConnection extends ConnectionService {
             kmf.init(keyStore, keystorePassword.toCharArray());
 
             return kmf.getKeyManagers();
-        } catch (IOException | KeyStoreException | UnrecoverableKeyException | CertificateException | NoSuchAlgorithmException e) {
-                throw new SSLConnectionException("Error en la configuracion en el gestor de claves",e);
+        } catch (IOException | KeyStoreException | UnrecoverableKeyException | CertificateException |
+                 NoSuchAlgorithmException e) {
+            throw new SSLConnectionException("Error en la configuracion en el gestor de claves", e);
         }
     }
 
@@ -273,20 +234,20 @@ public class SSLConnection extends ConnectionService {
             tmf.init(trustStore);
             return createCustomTrustManager(tmf);
         } catch (IOException | KeyStoreException | CertificateException | NoSuchAlgorithmException e) {
-            throw new SSLConnectionException("Error en la configuracion de los trust managers",e);
+            throw new SSLConnectionException("Error en la configuracion de los trust managers", e);
         }
     }
 
     private TrustManager[] createCustomTrustManager(TrustManagerFactory tmf) {
-        return new TrustManager[] {
+        return new TrustManager[]{
                 new X509ExtendedTrustManager() {
                     @Override
-                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s){
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
 
                     }
 
                     @Override
-                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s){
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
 
                     }
 
@@ -304,17 +265,17 @@ public class SSLConnection extends ConnectionService {
                     }
 
                     @Override
-                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket){
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, Socket socket) {
 
                     }
 
                     @Override
-                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine){
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) {
 
                     }
 
                     @Override
-                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine){
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) {
 
                     }
 
@@ -330,14 +291,14 @@ public class SSLConnection extends ConnectionService {
             configureSSLSocket(socket);
         } catch (IOException e) {
             logger.error("Error creando socket SSL", e);
-            throw new SSLConnectionException("Error creando socket SSL",e);
+            throw new SSLConnectionException("Error creando socket SSL", e);
         }
         return socket;
     }
 
     private void configureSSLSocket(SSLSocket socket) throws SSLConnectionException {
-        try{
-            socket.setEnabledProtocols(new String[] {"TLSv1.3", "TLSv1.2"});
+        try {
+            socket.setEnabledProtocols(new String[]{"TLSv1.3", "TLSv1.2"});
             socket.setEnabledCipherSuites(getSecureCipherSuites());
             socket.setSoTimeout(DEFAULT_READ_TIMEOUT);
             socket.setTcpNoDelay(true);
@@ -345,14 +306,14 @@ public class SSLConnection extends ConnectionService {
             socket.setSoLinger(true, 0);
             socket.setNeedClientAuth(true);
             socket.setWantClientAuth(true);
-        }catch (SocketException e){
-            logger.error("Error en la configuracion del socket SSL",e);
-            throw new SSLConnectionException("Error en la configuracion del socket SSL",e);
+        } catch (SocketException e) {
+            logger.error("Error en la configuracion del socket SSL", e);
+            throw new SSLConnectionException("Error en la configuracion del socket SSL", e);
         }
     }
 
     private String[] getSecureCipherSuites() {
-        return new String[] {
+        return new String[]{
                 "TLS_AES_256_GCM_SHA384",
                 "TLS_CHACHA20_POLY1305_SHA256",
                 "TLS_AES_128_GCM_SHA256"
@@ -361,29 +322,23 @@ public class SSLConnection extends ConnectionService {
 
     @PreDestroy
     public void shutdown() {
-        synchronized (connectionLock) {
-            try {
-                disconnect().get(5, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                logger.error("Error during shutdown: ", e);
-            } finally {
-                connectionExecutor.shutdown();
-                reconnectionExecutor.shutdown();
-                heartbeatExecutor.shutdown();
-            }
+        try {
+            disconnect().get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            logger.error("Error during shutdown: ", e);
         }
     }
 
     private void performSSLHandshake() throws SSLConnectionException {
-        try{
+        try {
             sslSocket.startHandshake();
             SSLSession session = sslSocket.getSession();
             logger.debug("Protocolo negociado: {}", session.getProtocol());
             logger.debug("Cipher Suite: {}", session.getCipherSuite());
             validateSSLSession(session);
-        }catch (IOException e){
-            logger.error("Error en el handshake SSL",e.getCause());
-            throw new SSLConnectionException("Error en el handshake SSL",e.getCause());
+        } catch (IOException e) {
+            logger.error("Error en el handshake SSL", e.getCause());
+            throw new SSLConnectionException("Error en el handshake SSL", e.getCause());
         }
     }
 
@@ -395,8 +350,8 @@ public class SSLConnection extends ConnectionService {
             try {
                 throw new SSLHandshakeException("Certificate validation failed: " + e.getCause().getMessage(), e.getCause());
             } catch (SSLHandshakeException ex) {
-                logger.error("Error en validacion de sesion",ex.getCause());
-                throw new SSLConnectionException("Error en validacion de sesion",ex.getCause());
+                logger.error("Error en validacion de sesion", ex.getCause());
+                throw new SSLConnectionException("Error en validacion de sesion", ex.getCause());
             }
         }
     }
@@ -422,30 +377,12 @@ public class SSLConnection extends ConnectionService {
     }
 
     private void startHeartbeat() {
-        synchronized (connectionLock) {
-            heartbeatExecutor.scheduleAtFixedRate(() -> {
-                try {
-                    if (!isConnectionAlive()) {
-                        handleConnectionLoss();
-                    }
-                } catch (Exception e) {
-                    logger.error("Heartbeat error: ", e);
-                }
-            }, 30, 30, TimeUnit.SECONDS);
-        }
-    }
-
-    private void stopHeartbeat() {
-        synchronized (connectionLock) {
-            heartbeatExecutor.shutdown();
-            try {
-                if (!heartbeatExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    heartbeatExecutor.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                heartbeatExecutor.shutdownNow();
+        try {
+            if (!isConnectionAlive()) {
+                handleConnectionLoss();
             }
+        } catch (Exception e) {
+            logger.error("Heartbeat error: ", e);
         }
     }
 
@@ -464,21 +401,19 @@ public class SSLConnection extends ConnectionService {
     }
 
     private void handleConnectionLoss() throws Exception {
-        synchronized (connectionLock) {
-            if (isConnected) {
-                isConnected = false;
-                logger.warn("Connection lost. Initiating reconnection...");
-                backoffreconnection(currentUrl)
-                        .thenAccept(reconnected -> {
-                            if (!reconnected) {
-                                logger.error("Reconnection failed after all attempts");
-                            }
-                        })
-                        .exceptionally(throwable -> {
-                            logger.error("Reconnection error: ", throwable);
-                            return null;
-                        });
-            }
+        if (!isConnected) {
+            isConnected = true;
+            logger.warn("Connection lost. Initiating reconnection...");
+            backoffreconnection(currentUrl)
+                    .thenAccept(reconnected -> {
+                        if (!reconnected) {
+                            logger.error("Reconnection failed after all attempts");
+                        }
+                    })
+                    .exceptionally(throwable -> {
+                        logger.error("Reconnection error: ", throwable);
+                        return null;
+                    });
         }
     }
 
@@ -502,16 +437,16 @@ public class SSLConnection extends ConnectionService {
                     logger.error("Error during ping execution: ", e);
                     responseLatch.countDown();
                 }
-            }, connectionExecutor);
+            });
             return responseLatch.await(PING_TIMEOUT, TimeUnit.MILLISECONDS) &&
                     pingSuccess.get();
-        }catch (InterruptedException | SocketException e){
-            throw new SSLConnectionException("Error durante el ping",e.getCause());
-        }finally {
+        } catch (InterruptedException | SocketException e) {
+            throw new SSLConnectionException("Error durante el ping", e.getCause());
+        } finally {
             try {
                 sslSocket.setSoTimeout(DEFAULT_READ_TIMEOUT);
             } catch (SocketException e) {
-                logger.error("Error al restablecer el timeout de lectura del socket SSL",e.getCause());
+                logger.error("Error al restablecer el timeout de lectura del socket SSL", e.getCause());
             }
         }
     }
@@ -543,7 +478,7 @@ public class SSLConnection extends ConnectionService {
 
     private void validateConnectionParameters(Url url) throws ConnectionException {
         Objects.requireNonNull(url, "URL no puede ser nula");
-        if (!url.getProtocol().equals("https")) {
+        if (!Objects.equals(url.getProtocol(), "https")) {
             throw new SSLConnectionException("URL inválida o protocolo no seguro");
         }
         // Validar certificados y revocación
@@ -553,85 +488,67 @@ public class SSLConnection extends ConnectionService {
     }
 
     private Boolean executeReconnectionStrategy(Url url, Supplier<Boolean> shouldContinue, Supplier<Long> getDelay) throws Exception {
-        synchronized (connectionLock) {
-            while (shouldContinue.get()) {
-                if (tryReconnect(url)) {
-                    return true;
-                }
-                Thread.sleep(getDelay.get());
+        while (shouldContinue.get()) {
+            if (tryReconnect(url)) {
+                return true;
             }
-            return false;
+            Thread.sleep(getDelay.get());
         }
-    }
-
-    private ExecutorService getConnectionExecutor() {
-        return connectionExecutor;
+        return false;
     }
 
     private void handleConnectionError(Exception e) {
         logger.error("Error de conexión: {}", e.getMessage());
         isConnected = false;
-        throw new CompletionException(new ConnectionException("Error al establecer conexión SSL: " + e.getMessage()));
+        throw new CompletionException(new SSLConnectionException("Error al establecer conexión SSL: " + e.getMessage()));
     }
-
 
     public CompletableFuture<Boolean> connect() throws Exception {
         if (currentUrl == null) {
-            throw new ConnectionException("No se ha especificado una URL para la conexión");
+            throw new SSLConnectionException("No se ha especificado una URL para la conexión");
         }
         return connect(currentUrl);
     }
 
-    @Retryable(
-            value = {ConnectionException.class},
-            maxAttempts = MAX_RETRY_ATTEMPTS,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
-    )
     public CompletableFuture<Boolean> connect(Url url) throws Exception {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                synchronized (connectionLock) {
                     if (isConnected) {
                         logger.warn("Ya existe una conexión activa");
                         return true;
                     }
                     validateConnectionParameters(url);
                     currentUrl = url;
-                    configureSSLSocket(url);
+                    configureSSLSocket(sslSocket);
                     performSSLHandshake();
                     startHeartbeat();
                     isConnected = true;
-                    logger.info("Conexión SSL establecida exitosamente con: {}", url.getHost());
+                    logger.info("Conexión SSL establecida exitosamente con: {}", url.getIpAddress());
                     return true;
-                }
             } catch (Exception e) {
                 handleConnectionError(e);
                 return false;
             }
-        }, getConnectionExecutor());
+        });
     }
 
     @Override
-    public CompletableFuture<Boolean> disconnect() throws Exception {
+    public CompletableFuture<Boolean> disconnect(){
         return CompletableFuture.supplyAsync(() -> {
             try {
-                synchronized (connectionLock) {
                     if (!isConnected) {
                         logger.warn("No hay conexión activa para desconectar");
                         return true;
                     }
-
-                    heartbeatExecutor.shutdown();
                     if (sslSocket != null && !sslSocket.isClosed()) {
                         sslSocket.close();
                     }
                     isConnected = false;
                     logger.info("Conexión SSL cerrada correctamente");
                     return true;
-                }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 logger.error("Error al desconectar: {}", e.getMessage());
-                return false;
+                throw new SSLConnectionException("Error en la desconexion",e.getCause());
             }
         });
     }
@@ -692,7 +609,7 @@ public class SSLConnection extends ConnectionService {
     @Override
     public CompletableFuture<Boolean> linearreconnection() throws Exception {
         if (currentUrl == null) {
-            throw new ConnectionException("No hay URL previa para reconexión");
+            throw new SSLConnectionException("Url vacia o nula");
         }
         return linearreconnection(currentUrl);
     }
@@ -704,7 +621,6 @@ public class SSLConnection extends ConnectionService {
                 if (!isConnected || sslSocket == null || sslSocket.isClosed()) {
                     return false;
                 }
-
                 try {
                     return executePing();
                 } catch (Exception e) {
@@ -712,7 +628,7 @@ public class SSLConnection extends ConnectionService {
                     return false;
                 }
             }
-        }, connectionExecutor);
+        });
     }
 
     // Clase interna CertificateValidator

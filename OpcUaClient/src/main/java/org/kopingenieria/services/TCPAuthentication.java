@@ -4,7 +4,7 @@ import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import java.util.concurrent.ExecutionException;
 
 
@@ -33,7 +33,7 @@ public class TCPAuthentication extends AuthenticationService {
     }
 
     public static void main(String[] args) throws UaException, ExecutionException, InterruptedException {
-        TCPAuthentication tcpAuthentication = new TCPAuthentication(OpcUaClient.create(Url.Adress1.getUrl()));
+        TCPAuthentication tcpAuthentication = new TCPAuthentication(OpcUaClient.create(UrlType.Adress1.getUrl()));
         tcpAuthentication.authenticateAnonymously();
     }
 }

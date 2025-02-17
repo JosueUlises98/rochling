@@ -2,7 +2,7 @@ package org.kopingenieria.services;
 
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.model.SessionObject;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 
 public class OpcuaSession extends SessionService {
 
@@ -17,7 +17,7 @@ public class OpcuaSession extends SessionService {
     }
 
     @Override
-    public SessionObject login(Url url, String username, String password) throws ConnectionException {
+    public SessionObject login(UrlType url, String username, String password) throws ConnectionException {
         return null;
     }
 

@@ -1,7 +1,7 @@
 package org.kopingenieria.services;
 
 import org.kopingenieria.model.SessionObject;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 
 public final class OpcuaClient {
 
@@ -18,7 +18,7 @@ public final class OpcuaClient {
         this.clave = clave;
     }
 
-    public void conectar(Url url) throws Exception {
+    public void conectar(UrlType url) throws Exception {
         ConnectionProcess processConnection = new SSLConnectionProcess(conexionservice, url);
         processConnection.call();
     }
@@ -27,7 +27,7 @@ public final class OpcuaClient {
         conexionservice.desconexion();
     }
 
-    public void reconectar(Url url) throws Exception {
+    public void reconectar(UrlType url) throws Exception {
         conexionservice.reconexion(url);
     }
 

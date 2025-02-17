@@ -2,7 +2,7 @@ package org.kopingenieria.services;
 
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.model.SessionObject;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 
 public interface Session {
     /**
@@ -22,7 +22,7 @@ public interface Session {
      * @param clientService the client connection service used for authentication
      * @return {@code true} if the login was successful, {@code false} otherwise
      */
-     SessionObject login(Url url, String username, String password) throws ConnectionException;
+     SessionObject login(UrlType url, String username, String password) throws ConnectionException;
     /**
      * Logs out from the current session.
      *

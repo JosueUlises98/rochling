@@ -1,6 +1,6 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -39,9 +39,9 @@ public interface Connection {
      * Establishes a connection to an external system or resource asynchronously
      * using the specified URL.
      *
-     * @param url The {@link Url} representing the endpoint to connect to.
+     * @param url The {@link UrlType} representing the endpoint to connect to.
      * @return A CompletableFuture that, when completed,*/
-    CompletableFuture<Boolean> connect(Url url)throws Exception;
+    CompletableFuture<Boolean> connect(UrlType url)throws Exception;
     /**
      * Terminates the connection to an external system or resource asynchronously.
      *
@@ -55,8 +55,8 @@ public interface Connection {
      * This method retries the connection with incremental delays, aiming to achieve a stable connection
      * while managing resource usage efficiently during repeated connection attempts.
      *
-     * @param url The {@link Url} representing the target endpoint for the recon*/
-    CompletableFuture<Boolean> backoffreconnection(Url url)throws Exception;
+     * @param url The {@link UrlType} representing the target endpoint for the recon*/
+    CompletableFuture<Boolean> backoffreconnection(UrlType url)throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously
      * using a backoff strategy. This approach ensures a systematic retry mechanism
@@ -66,12 +66,12 @@ public interface Connection {
      * Attempts to reconnect to an external system or resource asynchronously using a linear retry strategy.
      * This method tries to establish a connection to the specified URL with consistent intervals between retries.
      *
-     * @param url The {@link Url} representing the endpoint to reconnect to.
+     * @param url The {@link UrlType} representing the endpoint to reconnect to.
      * @return A CompletableFuture that, when completed, returns true if the reconnection
      *         attempt was successful, or false if the reconnection failed.
      * @throws Exception if an error occurs during the reconnection process.
      */
-    CompletableFuture<Boolean>linearreconnection(Url url)throws Exception;
+    CompletableFuture<Boolean>linearreconnection(UrlType url)throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously
      * using a linear retry strategy. This method retries the reconnection process

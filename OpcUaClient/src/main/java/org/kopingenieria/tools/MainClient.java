@@ -2,7 +2,7 @@ package org.kopingenieria.tools;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import org.kopingenieria.services.OpcuaClient;
 
 
@@ -12,6 +12,6 @@ public class MainClient {
 
     public static void main(String[] args) throws Exception {
         OpcuaClient opcuaClient = new OpcuaClient("192.168.50.2",8976,"user","password");
-        opcuaClient.conectar(Url.Adress2);
+        opcuaClient.conectar(UrlType.Adress2);
     }
 }

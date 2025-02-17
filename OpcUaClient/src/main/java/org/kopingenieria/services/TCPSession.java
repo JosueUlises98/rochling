@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.model.SessionObject;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import org.kopingenieria.validators.ValidatorSession;
 
 public class TCPSession extends SessionService{
@@ -29,7 +29,7 @@ public class TCPSession extends SessionService{
     }
 
     @Override
-    public SessionObject login(Url url, String username, String password) throws ConnectionException {
+    public SessionObject login(UrlType url, String username, String password) throws ConnectionException {
         return null;
     }
 

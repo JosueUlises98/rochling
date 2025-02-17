@@ -6,14 +6,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class OpcUaTcpTunnel {
 
     private static final int PORT = 5050; // Puerto del túnel TCP
-    private static final Url OPCUA_URL = Url.Adress2; // URL del servidor OPC UA
+    private static final UrlType OPCUA_URL = UrlType.Adress2; // URL del servidor OPC UA
     private static ExecutorService threadPool = Executors.newCachedThreadPool(); // Pool de hilos para clientes
 
     public void start() throws Exception {
@@ -58,7 +58,7 @@ public class OpcUaTcpTunnel {
 
         private void handleConnectionEstablished(ChannelHandlerContext ctx) throws Exception {
             System.out.println("Conexión establecida con cliente: " + ctx.channel().remoteAddress());
-            connectionService.conexion(Url.Adress1);
+            connectionService.conexion(UrlType.Adress1);
         }
 
         protected void channelRead0(ChannelHandlerContext ctx, String msg) {

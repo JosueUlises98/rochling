@@ -2,9 +2,7 @@ package org.kopingenieria.validators;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
-import org.kopingenieria.model.Url;
 
 import java.net.InetAddress;
 import java.net.URI;

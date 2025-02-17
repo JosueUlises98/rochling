@@ -10,7 +10,7 @@ import org.kopingenieria.exceptions.DisconnectException;
 import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
 import org.kopingenieria.model.TCPConnection;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.ValidatorConexion;
 import java.util.Properties;
@@ -36,7 +36,7 @@ import java.util.concurrent.*;
  * - `INITIAL_RETRY`: Initial number of retries for backoff processes.
  * - `opcUaClient`: The {@link OpcUaClient} instance used for communication.
  * - `validatorConection`: A utility to validate the connection state.
- * - `targeturl`: The target {@link Url} associated with the connection.
+ * - `targeturl`: The target {@link UrlType} associated with the connection.
  */
 public class TcpConnection extends ConnectionService {
     /**
@@ -120,17 +120,17 @@ public class TcpConnection extends ConnectionService {
      * Represents the server endpoint URL for establishing TCP connections.
      *
      * This field is used to initialize, manage, and maintain communication
-     * with a predefined OPC-UA server. The {@code url} is of type {@link Url},
+     * with a predefined OPC-UA server. The {@code url} is of type {@link UrlType},
      * which defines strongly typed references to specific server addresses.
      *
      * Typically configured during the initialization of the {@code TcpConnection} class
      * and may be used in connection management tasks such as establishing, reconnecting,
      * or verifying server connections.
      */
-    private Url targeturl;
+    private UrlType targeturl;
 
     static {
-        Properties properties = ConfigurationLoader.loadProperties("opcuareconnection.properties");
+        Properties properties = ConfigurationLoader.loadProperties("opcuaconnection.properties");
         INITIAL_RETRY = Integer.parseInt(properties.getProperty("initial_retry", "0"));
         MAX_RETRIES = Integer.parseInt(properties.getProperty("max_retries", "10"));
         INITIAL_WAIT = Integer.parseInt(properties.getProperty("initial_wait", "1000"));
@@ -143,7 +143,7 @@ public class TcpConnection extends ConnectionService {
      * This constructor initializes the server endpoint URL to a predefined value.
      * It restricts direct object creation and is utilized internally for controlled initialization.
      *
-     * @param url the {@link Url} object providing the endpoint address to initialize the connection service.
+     * @param url the {@link UrlType} object providing the endpoint address to initialize the connection service.
      */
     public TcpConnection() {
         super();
@@ -159,7 +159,7 @@ public class TcpConnection extends ConnectionService {
      * @throws ConnectionException if an error occurs during the connection process, such as an invalid session,
      *         timeout, or other unexpected issues.
      */
-    public CompletableFuture<Boolean> connect(Url url) throws ConnectionException {
+    public CompletableFuture<Boolean> connect(UrlType url) throws ConnectionException {
         logger.info("Conectando a un cliente TCP en URL: {}", url.getUrl());
         try {
             // Usamos CompletableFuture y desempaquetamos posibles excepciones
@@ -304,7 +304,7 @@ public class TcpConnection extends ConnectionService {
      *         whether the reconnection attempt was successful
      * @throws OpcUaReconnectionException if the reconnection attempt fails
      */
-    public CompletableFuture<Boolean> backoffreconnection(Url url) throws OpcUaReconnectionException {
+    public CompletableFuture<Boolean> backoffreconnection(UrlType url) throws OpcUaReconnectionException {
         return attemptBackoffReconnectionWithUrl(url,INITIAL_RETRY,INITIAL_WAIT);
     }
     /**
@@ -318,7 +318,7 @@ public class TcpConnection extends ConnectionService {
      *         or {@code false} if the maximum retry limit is reached without success
      * @throws OpcUaReconnectionException if the reconnection process fails due to an unrecoverable error
      */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(Url url,int initialretry,double waittime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(UrlType url, int initialretry, double waittime) throws OpcUaReconnectionException {
         if (initialretry >= MAX_RETRIES) {
             logger.error("Numero de intentos excedidos {} intentos",initialretry);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
@@ -376,7 +376,7 @@ public class TcpConnection extends ConnectionService {
      *         or {@code false} if the maximum number of retries is exceeded.
      * @throws OpcUaReconnectionException if an error occurs during reconnection.
      */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(Url url, int retries, double waitTime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(UrlType url, int retries, double waitTime) throws OpcUaReconnectionException {
         if (retries >= MAX_RETRIES) {
             logger.error("Numero de intentos excedidos {} intentos.", retries);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
@@ -415,7 +415,7 @@ public class TcpConnection extends ConnectionService {
      *         or false if the reconnection fails
      * @throws OpcUaReconnectionException if an error occurs during the reconnection attempt
      */
-    public CompletableFuture<Boolean> linearreconnection(Url url) throws OpcUaReconnectionException {
+    public CompletableFuture<Boolean> linearreconnection(UrlType url) throws OpcUaReconnectionException {
         return attemptlinearReconnectionWithUrl(url,INITIAL_RETRY,WAIT_TIME);
     }
     /**
@@ -429,7 +429,7 @@ public class TcpConnection extends ConnectionService {
      * @throws OpcUaReconnectionException if the reconnection process fails after exhausting retries
      * or if an unexpected error occurs during the process
      */
-    private CompletableFuture<Boolean>attemptlinearReconnectionWithUrl(Url url, int retries, double waitTime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean>attemptlinearReconnectionWithUrl(UrlType url, int retries, double waitTime) throws OpcUaReconnectionException {
         final int[] retry = {retries};
         try {
             return connect(url).thenCompose(success -> {
@@ -505,7 +505,7 @@ public class TcpConnection extends ConnectionService {
      * @throws OpcUaReconnectionException if the maximum retries are exceeded or an unexpected error occurs
      *         during the reconnection process
      */
-    private CompletableFuture<Boolean>attemptlinearReconnectionWithoutUrl(Url url, int retries,double waitTime)throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean>attemptlinearReconnectionWithoutUrl(UrlType url, int retries, double waitTime)throws OpcUaReconnectionException {
         final int[] retry = {retries};
         try {
             return connect(url).thenCompose(success -> {
@@ -634,21 +634,21 @@ public class TcpConnection extends ConnectionService {
         return this;
     }
     /**
-     * Sets the target {@link Url} for this TCP connection.
+     * Sets the target {@link UrlType} for this TCP connection.
      *
-     * @param url the {@link Url} instance representing the target address to be set for the connection
+     * @param url the {@link UrlType} instance representing the target address to be set for the connection
      * @return the current instance of {@code TcpConnection} with the updated target URL
      */
-    public TcpConnection setUrl(Url url) {
+    public TcpConnection setUrl(UrlType url) {
         this.targeturl = url;
         return this;
     }
     /**
-     * Retrieves the target {@link Url} associated with this TCP connection.
+     * Retrieves the target {@link UrlType} associated with this TCP connection.
      *
-     * @return the {@link Url} instance representing the target address for the connection.
+     * @return the {@link UrlType} instance representing the target address for the connection.
      */
-    public Url url() {
+    public UrlType url() {
         return targeturl;
     }
     /**

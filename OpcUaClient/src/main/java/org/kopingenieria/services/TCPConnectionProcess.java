@@ -1,10 +1,10 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 
 public class TCPConnectionProcess extends ConnectionProcess{
 
-    public TCPConnectionProcess(ConnectionService conexion, Url url) {
+    public TCPConnectionProcess(ConnectionService conexion, UrlType url) {
         this.conexion = conexion;
         this.url = url;
     }

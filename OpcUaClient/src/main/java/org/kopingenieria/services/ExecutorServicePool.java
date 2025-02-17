@@ -12,9 +12,9 @@ public class ExecutorServicePool {
         this.executorService = Executors.newFixedThreadPool(poolSize);
     }
 
-    public void submitTask(Process processConnection) {
+    public void submitTask(Process<?> processConnection) {
         // Ejecuta las operaciones en un hilo independiente
-        executorService.submit(processConnection::run);
+        executorService.submit(processConnection::);
     }
 
     public void shutdown() {

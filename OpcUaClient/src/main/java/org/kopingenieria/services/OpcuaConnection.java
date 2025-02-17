@@ -9,7 +9,7 @@ import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.DisconnectException;
 import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
-import org.kopingenieria.model.Url;
+import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.ValidatorConexion;
 import java.util.Properties;
@@ -112,17 +112,17 @@ public class OpcuaConnection extends ConnectionService {
      * Represents the server endpoint URL for establishing TCP connections.
      * <p>
      * This field is used to initialize, manage, and maintain communication
-     * with a predefined OPC-UA server. The {@code url} is of type {@link Url},
+     * with a predefined OPC-UA server. The {@code url} is of type {@link UrlType},
      * which defines strongly typed references to specific server addresses.
      * <p>
      * Typically configured during the initialization of the {@code TcpConnection} class
      * and may be used in connection management tasks such as establishing, reconnecting,
      * or verifying server connections.
      */
-    private Url targeturl;
+    private UrlType targeturl;
 
     static {
-        Properties properties = ConfigurationLoader.loadProperties("opcuareconnection.properties");
+        Properties properties = ConfigurationLoader.loadProperties("opcuaconnection.properties");
         INITIAL_RETRY = Integer.parseInt(properties.getProperty("initial_retry", "0"));
         MAX_RETRIES = Integer.parseInt(properties.getProperty("max_retries", "10"));
         INITIAL_WAIT = Integer.parseInt(properties.getProperty("initial_wait", "1000"));
@@ -157,7 +157,7 @@ public class OpcuaConnection extends ConnectionService {
      * @throws ConnectionException if an error occurs during the connection process, such as an invalid session,
      *                             timeout, or other unexpected issues.
      */
-    public CompletableFuture<Boolean> connect(Url url) throws ConnectionException {
+    public CompletableFuture<Boolean> connect(UrlType url) throws ConnectionException {
         logger.info("Conectando a un cliente OPC UA en URL: {}", url.getUrl());
         try {
             // Usamos CompletableFuture y desempaquetamos posibles excepciones
@@ -302,7 +302,7 @@ public class OpcuaConnection extends ConnectionService {
      * whether the reconnection attempt was successful
      * @throws OpcUaReconnectionException if the reconnection attempt fails
      */
-    public CompletableFuture<Boolean> backoffreconnection(Url url) throws OpcUaReconnectionException {
+    public CompletableFuture<Boolean> backoffreconnection(UrlType url) throws OpcUaReconnectionException {
         return attemptBackoffReconnectionWithUrl(url, INITIAL_RETRY, INITIAL_WAIT);
     }
     /**
@@ -316,7 +316,7 @@ public class OpcuaConnection extends ConnectionService {
      * or {@code false} if the maximum retry limit is reached without success
      * @throws OpcUaReconnectionException if the reconnection process fails due to an unrecoverable error
      */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(Url url, int initialretry, double waittime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithUrl(UrlType url, int initialretry, double waittime) throws OpcUaReconnectionException {
         if (initialretry >= MAX_RETRIES) {
             logger.error("Numero de intentos excedidos {} intentos", initialretry);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
@@ -374,7 +374,7 @@ public class OpcuaConnection extends ConnectionService {
      * or {@code false} if the maximum number of retries is exceeded.
      * @throws OpcUaReconnectionException if an error occurs during reconnection.
      */
-    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(Url url, int retries, double waitTime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptBackoffReconnectionWithoutUrl(UrlType url, int retries, double waitTime) throws OpcUaReconnectionException {
         if (retries >= MAX_RETRIES) {
             logger.error("Numero de intentos excedidos {} intentos.", retries);
             return CompletableFuture.completedFuture(false); // Devuelve un futuro fallido después del límite máximo de intentos
@@ -413,7 +413,7 @@ public class OpcuaConnection extends ConnectionService {
      * or false if the reconnection fails
      * @throws OpcUaReconnectionException if an error occurs during the reconnection attempt
      */
-    public CompletableFuture<Boolean> linearreconnection(Url url) throws OpcUaReconnectionException {
+    public CompletableFuture<Boolean> linearreconnection(UrlType url) throws OpcUaReconnectionException {
         return attemptlinearReconnectionWithUrl(url, INITIAL_RETRY, WAIT_TIME);
     }
     /**
@@ -427,7 +427,7 @@ public class OpcuaConnection extends ConnectionService {
      * @throws OpcUaReconnectionException if the reconnection process fails after exhausting retries
      *                               or if an unexpected error occurs during the process
      */
-    private CompletableFuture<Boolean> attemptlinearReconnectionWithUrl(Url url, int retries, double waitTime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptlinearReconnectionWithUrl(UrlType url, int retries, double waitTime) throws OpcUaReconnectionException {
         final int[] retry = {retries};
         try {
             return connect(url).thenCompose(success -> {
@@ -503,7 +503,7 @@ public class OpcuaConnection extends ConnectionService {
      * @throws OpcUaReconnectionException if the maximum retries are exceeded or an unexpected error occurs
      *                               during the reconnection process
      */
-    private CompletableFuture<Boolean> attemptlinearReconnectionWithoutUrl(Url url, int retries, double waitTime) throws OpcUaReconnectionException {
+    private CompletableFuture<Boolean> attemptlinearReconnectionWithoutUrl(UrlType url, int retries, double waitTime) throws OpcUaReconnectionException {
         final int[] retry = {retries};
         try {
             return connect(url).thenCompose(success -> {
@@ -622,7 +622,7 @@ public class OpcuaConnection extends ConnectionService {
      *
      * @return the target URL as an instance of Url
      */
-    public Url targeturl() {
+    public UrlType targeturl() {
         return targeturl;
     }
     /**
@@ -631,7 +631,7 @@ public class OpcuaConnection extends ConnectionService {
      * @param targeturl the URL to be set as the target for the OPC UA connection
      * @return the current instance of OpcuaConnection
      */
-    public OpcuaConnection setTargeturl(Url targeturl) {
+    public OpcuaConnection setTargeturl(UrlType targeturl) {
         this.targeturl = targeturl;
         return this;
     }
@@ -648,4 +648,8 @@ public class OpcuaConnection extends ConnectionService {
         return null;
     }
 
+    @Override
+    public void close() throws Exception {
+
+    }
 }

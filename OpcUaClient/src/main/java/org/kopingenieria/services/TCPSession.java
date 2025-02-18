@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.model.SessionObject;
 import org.kopingenieria.model.UrlType;
-import org.kopingenieria.validators.ValidatorSession;
 
 public class TCPSession extends SessionService{
 

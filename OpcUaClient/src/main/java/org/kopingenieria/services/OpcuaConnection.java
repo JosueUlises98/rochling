@@ -11,7 +11,7 @@ import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
 import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.ValidatorConexion;
+import org.kopingenieria.validators.opcua.Connection;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -100,14 +100,14 @@ public class OpcuaConnection extends ConnectionService {
      */
     private OpcUaClient opcUaClient;
     /**
-     * Represents an instance of {@link ValidatorConexion} used to perform validation operations related
+     * Represents an instance of {@link Connection} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      * <p>
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
      */
-    private ValidatorConexion validatorConection;
+    private Connection validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
      * <p>
@@ -137,7 +137,7 @@ public class OpcuaConnection extends ConnectionService {
     public OpcuaConnection(OpcUaClient opcUaClient) {
         super();
         this.opcUaClient = opcUaClient;
-        this.validatorConection = new ValidatorConexion();
+        this.validatorConection = new Connection();
     }
     /**
      * Default constructor for creating an instance of OpcuaConnection.
@@ -145,7 +145,7 @@ public class OpcuaConnection extends ConnectionService {
      */
     public OpcuaConnection() {
         super();
-        this.validatorConection = new ValidatorConexion();
+        this.validatorConection = new Connection();
     }
     /**
      * Establishes a connection to an OPC UA server using the provided URL.

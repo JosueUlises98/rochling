@@ -6,7 +6,6 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] [%p] [%c{1}] - %m%n"/>
         </Console>
-
         <!-- Appender para escribir los logs en archivo -->
         <RollingFile name="FileAppender" fileName="C:\Users\Public\Documents\rochlingapp\logging\application.log"
                      filePattern="logs/application-%d{yyyy-MM-dd-HH-mm-ss}-%i.log.gz">
@@ -21,7 +20,6 @@
             <DefaultRolloverStrategy max="5"/>
         </RollingFile>
     </Appenders>
-
     <!-- Configuración de loggers -->
     <Loggers>
         <!-- Logger raíz que incluye todos los niveles desde INFO -->

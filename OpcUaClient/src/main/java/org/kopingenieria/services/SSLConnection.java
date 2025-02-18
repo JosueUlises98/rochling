@@ -9,7 +9,7 @@ import org.kopingenieria.exceptions.SSLConnectionException;
 import org.kopingenieria.model.SSLConfigurations;
 import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.ValidatorConexion;
+import org.kopingenieria.validators.opcua.Connection;
 
 import javax.net.ssl.*;
 import javax.net.ssl.SSLSession;
@@ -99,14 +99,14 @@ public class SSLConnection extends ConnectionService {
      */
     private static final int INITIAL_RETRY;
     /**
-     * Represents an instance of {@link ValidatorConexion} used to perform validation operations related
+     * Represents an instance of {@link Connection} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      * <p>
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
      */
-    private ValidatorConexion validatorConection;
+    private Connection validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
      * <p>
@@ -282,22 +282,19 @@ public class SSLConnection extends ConnectionService {
                     public void checkServerTrusted(X509Certificate[] x509Certificates, String s, SSLEngine sslEngine) {
 
                     }
-
                     // Implementar otros métodos requeridos del X509ExtendedTrustManager
                 }
         };
     }
 
-    private SSLSocket createAndConfigureSocket(UrlType url) throws SSLConnectionException {
-        SSLSocket socket;
+    private void createAndConfigureSocket(UrlType url) throws SSLConnectionException {
         try {
-            socket = (SSLSocket) sslContext.getSocketFactory().createSocket(url.getUrl(), 4840);
-            configureSSLSocket(socket);
+            sslSocket = (SSLSocket) sslContext.getSocketFactory().createSocket(url.getIpAddress(), 4840);
+            configureSSLSocket(sslSocket);
         } catch (IOException e) {
             logger.error("Error creando socket SSL", e);
             throw new SSLConnectionException("Error creando socket SSL", e);
         }
-        return socket;
     }
 
     private void configureSSLSocket(SSLSocket socket) throws SSLConnectionException {
@@ -469,6 +466,7 @@ public class SSLConnection extends ConnectionService {
 
     private boolean tryReconnect(UrlType url) {
         try {
+            Objects.requireNonNull(url, "La URL no puede ser nula");
             disconnect().get(5, TimeUnit.SECONDS);
             return connect(url).get(5, TimeUnit.SECONDS);
         } catch (Exception e) {
@@ -481,7 +479,7 @@ public class SSLConnection extends ConnectionService {
         if (url == null) {
             throw new SSLConnectionException("Url no especificada");
         } else if (!Objects.equals(url.getProtocol(), "https")) {
-            throw new SSLConnectionException("Url no es HTTPS");
+            throw new SSLConnectionException("Protocolo erroneo");
         }
         // Validar certificados y revocación
         try {
@@ -518,9 +516,10 @@ public class SSLConnection extends ConnectionService {
         return connect(currentUrl);
     }
 
-    public CompletableFuture<Boolean> connect(UrlType url) throws Exception {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
+    public CompletableFuture<Boolean> connect(UrlType url) throws SSLConnectionException {
+        try{
+            return CompletableFuture.supplyAsync(() -> {
+                try {
                     if (isConnected) {
                         logger.warn("Ya existe una conexión activa");
                         return true;
@@ -533,11 +532,15 @@ public class SSLConnection extends ConnectionService {
                     isConnected = true;
                     logger.info("Conexión SSL establecida exitosamente con: {}", url.getIpAddress());
                     return true;
-            } catch (Exception e) {
-                handleConnectionError(e);
-                return false;
-            }
-        });
+                } catch (Exception e) {
+                    handleConnectionError(e);
+                    return false;
+                }
+            });
+        }catch (Exception e){
+            logger.error("Error en la conexión", e.getCause());
+            throw new SSLConnectionException("Error en la conexión",e.getCause());
+        }
     }
 
     @Override

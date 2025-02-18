@@ -9,7 +9,7 @@ import org.kopingenieria.exceptions.SSLConnectionException;
 import org.kopingenieria.model.SSLConfigurations;
 import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.opcua.Connection;
+import org.kopingenieria.validators.client.opcua.Connection;
 
 import javax.net.ssl.*;
 import javax.net.ssl.SSLSession;

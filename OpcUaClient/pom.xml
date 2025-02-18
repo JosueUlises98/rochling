@@ -193,5 +193,17 @@
             <version>1.18.36</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Logback + ELK -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.3</version>
+        </dependency>
+        <!-- Alerting -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+            <version>3.3.4</version>
+        </dependency>
     </dependencies>
 </project>

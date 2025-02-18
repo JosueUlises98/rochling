@@ -1,4 +1,4 @@
-package org.kopingenieria.validators.opcua;
+package org.kopingenieria.validators.client.opcua;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;

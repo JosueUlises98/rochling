@@ -1,4 +1,4 @@
-package org.kopingenieria.validators.opcua;
+package org.kopingenieria.validators.client.opcua;
 
 public interface AuthenticationValidator {
     /**

@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.model.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.opcua.Connection;
+import org.kopingenieria.validators.client.opcua.Connection;
 import java.util.Properties;
 
 public class TcpConnection extends ConnectionService {

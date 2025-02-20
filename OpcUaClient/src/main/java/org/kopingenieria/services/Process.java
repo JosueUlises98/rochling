@@ -2,6 +2,9 @@ package org.kopingenieria.services;
 
 
 import jakarta.ws.rs.core.SecurityContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -15,6 +18,9 @@ import java.util.*;
  * @param <T> The type of the result produced by this process.
  */
 public abstract class Process<T> {
+
+    //Log temporal que sera remplazado por logback
+    private static final Logger log = LoggerFactory.getLogger(Process.class);
 
     // Identificación del proceso
     private final String processId;

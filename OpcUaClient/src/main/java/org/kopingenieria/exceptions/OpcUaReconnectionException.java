@@ -1,5 +1,6 @@
 package org.kopingenieria.exceptions;
 
+
 public class OpcUaReconnectionException extends OpcUaConnectionException {
     public OpcUaReconnectionException(String mensaje) {
         super(mensaje);

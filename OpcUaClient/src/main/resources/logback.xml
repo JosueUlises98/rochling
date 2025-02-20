@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- Propiedades -->
+    <property name="LOG_PATH" value="logs"/>
+    <property name="LOG_ARCHIVE" value="${LOG_PATH}/archive"/>
+    <property name="APP_NAME" value="OpcUaClient"/>
+
+    <!-- Appender para Consola -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timeZone>America/Mexico_City</timeZone>
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+            <customFields>{"application":"${APP_NAME}","environment":"${SPRING_PROFILES_ACTIVE:-local}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Appender para archivo JSON -->
+    <appender name="JsonFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${APP_NAME}.json</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timeZone>America/Mexico_City</timeZone>
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+            <customFields>{"application":"${APP_NAME}","environment":"${SPRING_PROFILES_ACTIVE:-local}"}</customFields>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_ARCHIVE}/${APP_NAME}-%d{yyyy-MM-dd}.json</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender para Elasticsearch -->
+    <appender name="Elasticsearch" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
+        <url>http://localhost:9200/_bulk</url>
+        <index>auth-logs-%date{yyyy.MM.dd}</index>
+        <type>auth_log</type>
+        <loggerName>es-logger</loggerName>
+        <errorLoggerName>es-error-logger</errorLoggerName>
+        <connectTimeout>30000</connectTimeout>
+        <readTimeout>30000</readTimeout>
+        <maxQueueSize>104857600</maxQueueSize>
+        <includeCallerData>true</includeCallerData>
+        <maxRetries>3</maxRetries>
+        <sleepBetweenRetries>1000</sleepBetweenRetries>
+        <authentication class="com.internetitem.logback.elasticsearch.config.BasicAuthentication">
+            <username>elastic</username>
+            <password>${ELASTIC_PASSWORD:-changeme}</password>
+        </authentication>
+        <properties>
+            <property>
+                <name>host</name>
+                <value>${HOSTNAME}</value>
+            </property>
+            <property>
+                <name>severity</name>
+                <value>%level</value>
+            </property>
+            <property>
+                <name>thread</name>
+                <value>%thread</value>
+            </property>
+            <property>
+                <name>stacktrace</name>
+                <value>%ex</value>
+            </property>
+            <property>
+                <name>logger</name>
+                <value>%logger</value>
+            </property>
+        </properties>
+    </appender>
+
+    <!-- Appender para métricas de Prometheus -->
+    <appender name="Metrics" class="io.prometheus.client.logback.InstrumentedAppender">
+        <counter>
+            <name>logback_appender_total</name>
+            <help>Contador de eventos de log por nivel</help>
+            <labelNames>level,logger</labelNames>
+        </counter>
+    </appender>
+
+    <!-- AsyncAppender para mejor rendimiento -->
+    <appender name="Async" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="JsonFile"/>
+        <appender-ref ref="Elasticsearch"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <!-- Configuración de Loggers -->
+    <logger name="org.kopingenieria" level="DEBUG" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="Async"/>
+        <appender-ref ref="Metrics"/>
+    </logger>
+
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="Async"/>
+        <appender-ref ref="Metrics"/>
+    </root>
+
+</configuration>

@@ -6,7 +6,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.kopingenieria.logging.model.LogEvent;
 import org.kopingenieria.logging.service.LoggingService;
-import org.kopingenieria.logging.service.NotificationServiceImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 import java.lang.reflect.Method;
@@ -43,11 +42,11 @@ public class LoggingAspect {
                 .parameters(getParameters(method, joinPoint.getArgs()));
 
         Object result;
+
         try {
             result = joinPoint.proceed();
             logEventBuilder.result(result != null ? result.toString() : null);
             logEventBuilder.success(true);
-
             return result;
         } catch (Throwable ex) {
             logEventBuilder.exception(ex.getMessage());

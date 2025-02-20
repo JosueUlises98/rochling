@@ -25,8 +25,11 @@ public class LoggingServiceImpl implements LoggingService {
 
         // Agregar metadatos adicionales (ej. usuario, entorno, etc.)
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("application", "mi-aplicacion");
+        metadata.put("application", "opcua-client");
         metadata.put("environment", "production");
+        metadata.put("user", "admin");
+        metadata.put("version", "1.0.0");
+        metadata.put("timestamp", event.getTimestamp());
         event.setMetadata(metadata);
 
         //Registro a consola

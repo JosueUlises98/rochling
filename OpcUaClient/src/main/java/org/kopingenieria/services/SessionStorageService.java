@@ -1,7 +1,7 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.JsonSerializator;
-import org.kopingenieria.model.SessionObject;
+import org.kopingenieria.tools.JsonSerializator;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

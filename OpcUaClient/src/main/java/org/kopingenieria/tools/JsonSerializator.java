@@ -1,4 +1,4 @@
-package org.kopingenieria.model;
+package org.kopingenieria.tools;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

@@ -1,7 +1,6 @@
 package org.kopingenieria.services;
 
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.model.SessionObject;
 import org.kopingenieria.model.UrlType;
 
 public interface Session {

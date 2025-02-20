@@ -1,6 +1,5 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.SessionObject;
 import java.io.IOException;
 import java.nio.file.attribute.BasicFileAttributes;
 

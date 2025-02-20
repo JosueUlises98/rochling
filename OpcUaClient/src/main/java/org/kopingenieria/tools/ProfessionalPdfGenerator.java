@@ -1,4 +1,4 @@
-package org.kopingenieria.model;
+package org.kopingenieria.tools;
 
 import com.itextpdf.kernel.colors.DeviceGray;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -10,7 +10,6 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import java.io.IOException;
-import java.util.List;
 
 public class ProfessionalPdfGenerator {
 

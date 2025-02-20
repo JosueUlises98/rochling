@@ -1,4 +1,4 @@
-package org.kopingenieria.model;
+package org.kopingenieria.tools;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;

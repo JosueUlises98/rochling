@@ -1,6 +1,5 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.SessionObject;
 import org.kopingenieria.model.UrlType;
 
 public final class OpcuaClient {

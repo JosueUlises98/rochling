@@ -1,6 +1,6 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.UrlType;
+import org.kopingenieria.model.enums.network.UrlType;
 import java.util.concurrent.CompletableFuture;
 
 /**

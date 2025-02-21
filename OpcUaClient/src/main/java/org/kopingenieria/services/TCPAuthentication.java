@@ -4,7 +4,7 @@ import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.model.UrlType;
+import org.kopingenieria.model.enums.network.UrlType;
 import java.util.concurrent.ExecutionException;
 
 

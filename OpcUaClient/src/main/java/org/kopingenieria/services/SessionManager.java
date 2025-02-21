@@ -1,6 +1,6 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.OpcUaSession;
+import org.kopingenieria.model.classes.OpcUaSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

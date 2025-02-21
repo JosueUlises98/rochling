@@ -1,7 +1,7 @@
 package org.kopingenieria.validators.client.opcua;
 
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
-import org.kopingenieria.model.UrlType;
+import org.kopingenieria.model.enums.network.UrlType;
 
 public interface ConnectionValidator extends OpcUaValidator {
     boolean validateActiveSession(UaClient client);

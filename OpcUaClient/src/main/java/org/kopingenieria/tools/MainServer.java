@@ -1,6 +1,6 @@
 package org.kopingenieria.tools;
 
-import org.kopingenieria.model.OpcUaServerClass;
+import org.kopingenieria.model.classes.OpcUaServerClass;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

@@ -6,7 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.model.UrlType;
+import org.kopingenieria.model.enums.network.UrlType;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

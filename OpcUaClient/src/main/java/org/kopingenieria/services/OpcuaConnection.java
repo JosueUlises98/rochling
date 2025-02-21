@@ -9,7 +9,7 @@ import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.DisconnectException;
 import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
-import org.kopingenieria.model.UrlType;
+import org.kopingenieria.model.enums.network.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.client.opcua.Connection;
 import java.util.Properties;

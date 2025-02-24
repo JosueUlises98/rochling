@@ -19,8 +19,6 @@ public abstract class Configuration<T extends Configuration<T>>implements Serial
     protected boolean enabled;
 
     // Atributos de conexión básicos
-    protected String host;
-    protected Integer port;
     protected Integer timeout;
     protected Integer retryAttempts;
     protected Integer retryDelay;
@@ -42,16 +40,6 @@ public abstract class Configuration<T extends Configuration<T>>implements Serial
 
     public T setEnabled(boolean enabled) {
         this.enabled = enabled;
-        return self();
-    }
-
-    public T setHost(String host) {
-        this.host = host;
-        return self();
-    }
-
-    public T setPort(Integer port) {
-        this.port = port;
         return self();
     }
 

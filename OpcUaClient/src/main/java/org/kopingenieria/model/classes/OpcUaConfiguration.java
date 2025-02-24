@@ -17,10 +17,7 @@ import org.kopingenieria.model.enums.opcua.SecurityPolicy;
 @Builder
 public class OpcUaConfiguration extends Configuration<OpcUaConfiguration> {
     // Atributos de conexión OPC UA
-    private String endpointUrl;
-    private String applicationName;
-    private String applicationUri;
-    private String productUri;
+    private OpcUaConnection connection;
 
     // Atributos de seguridad
     @Enumerated(EnumType.STRING)

@@ -2,7 +2,7 @@ package org.kopingenieria.model.classes;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.kopingenieria.model.enums.tcp.ConnectionStatus;
+import org.kopingenieria.model.enums.network.ConnectionStatus;
 import org.kopingenieria.model.enums.ssh.SshAuthenticationType;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;

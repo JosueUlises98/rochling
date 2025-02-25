@@ -91,6 +91,15 @@ public class QualityConnection {
     @Column(name = "disconnectedcount")
     private Integer disconnectedcount;
 
+    @Column(name = "last_handshake")
+    private LocalDateTime lastHandshake;
+
+    @Column(name = "cipher_suite_in_use")
+    private String cipherSuiteInUse;
+
+    @Column(name = "protocol_in_use")
+    private String protocolInUse;
+
     // Campos de auditoría comunes
     @CreatedDate
     @Column(name = "created_at")
@@ -108,14 +117,32 @@ public class QualityConnection {
     @Column(name = "updated_by")
     private String updatedBy;
 
+    // Configuración de reintentos
+    @Column(name = "max_retries")
+    private Integer maxRetries;
+
+    @Column(name = "retry_delay")
+    private Integer retryDelay;
+
+    // Configuración de keepalive
+    @Column(name = "keep_alive_interval")
+    private Integer keepAliveInterval;
+
+    @Column(name = "keep_alive_count_max")
+    private Integer keepAliveCountMax;
+
+    // Estados y banderas
+    @Column(nullable = false)
+    private Boolean enabled;
+
     // Métricas
     @Embedded
-    private OpcUaMetrics metrics;
+    private NetworksMetrics metrics;
 
     // Clase embebida para métricas
     @Embeddable
     @Data
-    public static class OpcUaMetrics {
+    public static class NetworksMetrics {
         private Long goodCount;
         private Long badCount;
         private Long dataChangeCount;
@@ -124,6 +151,9 @@ public class QualityConnection {
         private Double averageDataChangeTime;
         private Long totalBytesReceived;
         private Long totalBytesSent;
+        private Long tlsSessionCount;
+        private Long sshConnectionCount;
+        private Long tcpPacketCount;
     }
 
 

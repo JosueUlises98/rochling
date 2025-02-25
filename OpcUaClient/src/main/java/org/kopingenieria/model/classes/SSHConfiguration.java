@@ -14,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public class SSHConfiguration extends Configuration<SSHConfiguration> {
+
     // Atributos de autenticación SSH
     private String username;
     private String privateKeyPath;

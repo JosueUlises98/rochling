@@ -9,6 +9,11 @@ import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.DisconnectException;
 import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
+import org.kopingenieria.model.classes.OpcUaAuthentication;
+import org.kopingenieria.model.classes.OpcUaConnection;
+import org.kopingenieria.model.classes.QualityConnection;
+import org.kopingenieria.model.enums.network.ConnectionStatus;
+import org.kopingenieria.model.enums.network.ConnectionType;
 import org.kopingenieria.model.enums.network.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.client.opcua.Connection;
@@ -163,7 +168,7 @@ public class OpcuaConnection extends ConnectionService {
             // Usamos CompletableFuture y desempaquetamos posibles excepciones
             return CompletableFuture.supplyAsync(() -> {
                         // Validar que la sesión está activa y que la URL es válida
-                        if (!(validatorConection.sesionActiva(opcUaClient) && validatorConection.validateLocalHost(url.getUrl()))) {
+                        if (!(validatorConection.validateActiveSession(opcUaClient) && validatorConection.validateLocalHost(url.getUrl()))) {
                             logger.warn("La sesión OPC UA no está activa.");
                             throw new CompletionException(new ConnectionException("La sesión OPC UA no está activa o la URL es inválida."));
                         }

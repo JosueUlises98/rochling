@@ -16,9 +16,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ssh_connections")
+@Table(name = "ssh_authentications")
 @EntityListeners(AuditingEntityListener.class)
-public class SSHAuthentication extends Authentication {
+public final class SSHAuthentication extends Authentication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,9 +28,6 @@ public class SSHAuthentication extends Authentication {
     @Enumerated(EnumType.STRING)
     private SshAuthenticationType authenticationType;
 
-    @Column(length = 1024)
-    private String password;
-
     @Column(name = "private_key_path")
     private String privateKeyPath;
 
@@ -39,4 +36,18 @@ public class SSHAuthentication extends Authentication {
 
     @Column(name = "known_hosts_path")
     private String knownHostsPath;
+
+    @Override
+    public String toString() {
+        return "SSHAuthentication{" +
+                ", none='" + none + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", certificate='" + certificate + '\'' +
+                ", authenticationType=" + authenticationType +
+                ", privateKeyPath='" + privateKeyPath + '\'' +
+                ", privateKeyPassphrase='" + privateKeyPassphrase + '\'' +
+                ", knownHostsPath='" + knownHostsPath + '\'' +
+                "} ";
+    }
 }

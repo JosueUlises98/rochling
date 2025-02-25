@@ -1,12 +1,28 @@
 package org.kopingenieria.model.classes;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.kopingenieria.model.enums.opcua.MessageSecurityMode;
 import org.kopingenieria.model.enums.opcua.SecurityPolicy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-public class OpcUaAuthentication extends Authentication<OpcUaAuthentication>{
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "opcua_authentications")
+@EntityListeners(AuditingEntityListener.class)
+public final class OpcUaAuthentication extends Authentication {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // Configuración de seguridad
     @Enumerated(EnumType.STRING)
@@ -32,4 +48,20 @@ public class OpcUaAuthentication extends Authentication<OpcUaAuthentication>{
     @Column(name = "revocation_list_path")
     private String revocationListPath;
 
+    @Override
+    public String toString() {
+        return "OpcUaAuthentication{" +
+                "none='" + none + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", certificate='" + certificate + '\'' +
+                ", securityPolicy=" + securityPolicy +
+                ", messageSecurityMode=" + messageSecurityMode +
+                ", certificatePath='" + certificatePath + '\'' +
+                ", privateKeyPath='" + privateKeyPath + '\'' +
+                ", trustListPath='" + trustListPath + '\'' +
+                ", issuerListPath='" + issuerListPath + '\'' +
+                ", revocationListPath='" + revocationListPath + '\'' +
+                '}';
+    }
 }

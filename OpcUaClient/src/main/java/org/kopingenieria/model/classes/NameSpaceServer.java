@@ -82,9 +82,8 @@ public class NameSpaceServer extends ManagedNamespace {
      *
      * @param server The instance of the `OpcUaServer` to which this namespace will be attached.
      *               It provides the functionality and context necessary for creating the namespace.
-     * @throws Exception If there is an error during the namespace initialization or node creation process.
      */
-    public NameSpaceServer(OpcUaServer server) throws Exception {
+    public NameSpaceServer(OpcUaServer server) {
         super(server, "urn:professional:opcua:server:namespace");
         subscriptionModel = new SubscriptionModel(server, this);
         initializeNodes();

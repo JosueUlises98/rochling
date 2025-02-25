@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+
 @SuperBuilder(toBuilder = true)
 @MappedSuperclass
 @AllArgsConstructor
@@ -38,7 +39,6 @@ public abstract sealed class Connection permits TCPConnection, TLSConnection, SS
     {
         status = ConnectionStatus.UNKNOWN;
     }
-
 
     private static final Map<ConnectionStatus, ConnectionStateHandler> STATE_HANDLERS = Map.of(
             ConnectionStatus.CONNECTED, quality -> {
@@ -96,11 +96,9 @@ public abstract sealed class Connection permits TCPConnection, TLSConnection, SS
         logger.info("Status successfully updated from {} to {}", this.status, newStatus);
     }
 
-
     private void updateConnectionStatus(ConnectionStatus newStatus) {
         this.status = newStatus;
     }
-
 
     private void updateQualityMetrics(ConnectionStatus newStatus) {
         ConnectionStateHandler handler = STATE_HANDLERS.getOrDefault(

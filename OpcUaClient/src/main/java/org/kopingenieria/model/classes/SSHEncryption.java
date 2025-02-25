@@ -1,13 +1,27 @@
 package org.kopingenieria.model.classes;
 
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.JoinColumn;
-
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.util.Set;
 
-public class SSHEncryption extends Encryption{
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "ssh_encryptions")
+@EntityListeners(AuditingEntityListener.class)
+public final class SSHEncryption extends Encryption{
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // Configuración de seguridad
     @Column(name = "strict_host_checking")
@@ -18,5 +32,17 @@ public class SSHEncryption extends Encryption{
             name = "ssh_allowed_algorithms",
             joinColumns = @JoinColumn(name = "connection_id")
     )
+    @Column(name = "allowed_algorithm")
     private Set<String> allowedAlgorithms;
+
+    @Override
+    public String toString() {
+        return "SSHEncryption {" +
+                ", keyLength='" + keyLength + '\'' +
+                ", algorithmName='" + algorithmName + '\'' +
+                ", protocolVersion='" + protocolVersion + '\'' +
+                ", strictHostKeyChecking=" + strictHostKeyChecking +
+                ", allowedAlgorithms=" + allowedAlgorithms +
+                '}';
+    }
 }

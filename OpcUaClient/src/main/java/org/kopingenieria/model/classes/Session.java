@@ -1,11 +1,18 @@
 package org.kopingenieria.model.classes;
 
+import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.kopingenieria.model.enums.network.ProtocolType;
 import org.kopingenieria.model.enums.network.SessionStatus;
 import java.time.LocalDateTime;
 
-
-public abstract sealed class Session permits TLSSession{
+@MappedSuperclass
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
+public abstract sealed class Session permits TCPSession,TLSSession,SSHSession,OpcUaSession {
 
     protected String sessionId; // A unique identifier for the session
     protected String clientAddress; // The client's network address
@@ -18,5 +25,4 @@ public abstract sealed class Session permits TLSSession{
     protected LocalDateTime creationTime;
     protected LocalDateTime expirationTime;
     protected Integer timeout;
-
 }

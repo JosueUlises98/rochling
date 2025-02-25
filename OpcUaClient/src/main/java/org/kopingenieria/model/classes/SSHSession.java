@@ -2,7 +2,7 @@ package org.kopingenieria.model.classes;
 
 import jakarta.persistence.Column;
 
-public class SSHSession extends Session{
+public final class SSHSession extends Session{
     // Configuración de sesión
     @Column(name = "session_timeout")
     private Integer sessionTimeout;

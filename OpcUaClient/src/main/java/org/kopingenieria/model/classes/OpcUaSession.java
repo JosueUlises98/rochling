@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "opcua_sessions")
 @EntityListeners(AuditingEntityListener.class)
-public class OpcUaSession extends Session<OpcUaSession> {
+public final class OpcUaSession extends Session {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,39 +49,6 @@ public class OpcUaSession extends Session<OpcUaSession> {
     private Integer maxChunkCount;
     @Column(name = "error")
     private String error;
-
-    @Override
-    protected OpcUaSession self() {
-        return this;
-    }
-
-    @Override
-    public OpcUaSession build() {
-        OpcUaSession opcUaSession = new OpcUaSession();
-        opcUaSession.sessionId = this.sessionId;
-        opcUaSession.clientAddress = this.clientAddress;
-        opcUaSession.port = this.port;
-        opcUaSession.isSecure = this.isSecure;
-        opcUaSession.protocolType = this.protocolType;
-        opcUaSession.status = this.status;
-        opcUaSession.connectionDetails = this.connectionDetails;
-        opcUaSession.creationTime = this.creationTime;
-        opcUaSession.lastActivity= this.lastActivity;
-        opcUaSession.expirationTime = this.expirationTime;
-        opcUaSession.timeout = this.timeout;
-        opcUaSession.sessionName = this.sessionName;
-        opcUaSession.serverUri = this.serverUri;
-        opcUaSession.maxResponseMessageSize = this.maxResponseMessageSize;
-        opcUaSession.securityMode = this.securityMode;
-        opcUaSession.securityPolicyUri = this.securityPolicyUri;
-        opcUaSession.clientCertificate = this.clientCertificate;
-        opcUaSession.serverCertificate = this.serverCertificate;
-        opcUaSession.authenticationToken = this.authenticationToken;
-        opcUaSession.localeIds = this.localeIds;
-        opcUaSession.maxChunkCount = this.maxChunkCount;
-        opcUaSession.error = this.error;
-        return opcUaSession;
-    }
 
     @Override
     public String toString() {

@@ -2,17 +2,18 @@ package org.kopingenieria.model.classes;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "tls_authentications")
 @EntityListeners(AuditingEntityListener.class)
-public class TLSAuthentication extends Authentication{
+public final class TLSAuthentication extends Authentication{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,5 +32,17 @@ public class TLSAuthentication extends Authentication{
     @Column(name = "crl_enabled")
     private Boolean crlEnabled;
 
-
+    @Override
+    public String toString() {
+        return "TLSAuthentication{" +
+                "none='" + none + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", certificate='" + certificate + '\'' +
+                ", clientAuthRequired=" + clientAuthRequired +
+                ", hostnameVerification=" + hostnameVerification +
+                ", ocspEnabled=" + ocspEnabled +
+                ", crlEnabled=" + crlEnabled +
+                "} ";
+    }
 }

@@ -20,6 +20,10 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public final class TCPConnection extends Connection {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     // Configuración de socket
     @Column(name = "socket_timeout")
     private Integer socketTimeout;

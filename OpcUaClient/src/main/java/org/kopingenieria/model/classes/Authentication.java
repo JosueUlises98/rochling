@@ -1,13 +1,19 @@
 package org.kopingenieria.model.classes;
 
-import java.io.Serializable;
+import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-public abstract class Authentication implements Serializable {
+@MappedSuperclass
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
+public abstract sealed class Authentication permits TLSAuthentication,SSHAuthentication,OpcUaAuthentication  {
 
     protected String none;
     protected String username;
     protected String password;
     protected String certificate;
-
 
 }

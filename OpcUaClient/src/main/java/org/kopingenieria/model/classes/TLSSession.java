@@ -1,9 +1,6 @@
 package org.kopingenieria.model.classes;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -18,13 +15,27 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public final class TLSSession extends Session {
 
-    // Configuración de sesión
-    @Column(name = "session_timeout")
-    private Integer sessionTimeout;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    // Configuración de sesión
     @Column(name = "session_cache_size")
     private Integer sessionCacheSize;
 
+    @Column(name = "connection_timeout")
+    private Integer connectionTimeout;
+
+    @Column(name = "channel_timeout")
+    private Integer channelTimeout;
+
+    @Column(name = "destination_ip")
+    private String destinationIP;
+
+    @Column(name = "destination_port")
+    private Integer destinationPort;
+
+    @Override
     public String toString() {
         return "TCPSession{" +
                 ", sessionId='" + sessionId + '\'' +
@@ -37,13 +48,12 @@ public final class TLSSession extends Session {
                 ",creationTime=" + creationTime +
                 ",expirationTime=" + expirationTime +
                 ",timeout=" + timeout +
-                ", sessionTimeout=" + sessionTimeout +
                 ", sessionCacheSize=" + sessionCacheSize +
+                ", connectionTimeout=" + connectionTimeout +
+                ", channelTimeout=" + channelTimeout +
+                ", destinationIP='" + destinationIP + '\'' +
+                ", destinationPort=" + destinationPort +
                 '}';
     }
-
-
-
-
 
 }

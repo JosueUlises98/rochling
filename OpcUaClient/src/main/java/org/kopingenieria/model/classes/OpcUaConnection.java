@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.ConnectionStatus;
+import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @EqualsAndHashCode(callSuper = true)

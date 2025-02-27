@@ -1,12 +1,9 @@
 package org.kopingenieria.model.classes;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.kopingenieria.model.enums.tls.TlsVersion;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @EqualsAndHashCode(callSuper = true)
@@ -15,25 +12,25 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ssh_configurations")
+@Table(name = "tls_configurations")
 @EntityListeners(AuditingEntityListener.class)
-public final class SSHConfiguration extends Configuration {
+public final class TLSConfiguration extends Configuration {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Atributos de conexión SSH
+    // Atributos de conexión TLS
     @Column(name = "connection",nullable = false)
-    private SSHConnection connection;
+    private TLSConnection connection;
 
-    //Atributos de seguridad SSH
+    //Atributos de seguridad TLS
     @Column(name = "authentication",nullable = false)
-    private SSHAuthentication authentication;
+    private TLSAuthentication authentication;
     @Column(name = "encryption",nullable = false)
-    private SSHEncryption encryption;
+    private TLSEncryption encryption;
 
-    // Atributos de sesión SSH
+    // Atributos de sesión TLS
     @Column(name = "session",nullable = false)
     private TLSSession session;
 
@@ -51,7 +48,7 @@ public final class SSHConfiguration extends Configuration {
 
     @Override
     public String toString() {
-        return "SSHConfiguration{" +
+        return "TLSConfiguration{" +
                 ",name=' " + name + '\'' +
                 ",description=' " + description + '\'' +
                 ",enabled=' " + enabled + '\'' +

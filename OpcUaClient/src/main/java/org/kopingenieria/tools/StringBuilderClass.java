@@ -87,6 +87,7 @@ public final class StringBuilderClass {
         }
         this.index = initialString.length();
     }
+
     public synchronized StringBuilderClass append(char c) {
         if (index == chars.length) {
             IndexOutOfBoundsException exception = new IndexOutOfBoundsException("Index: " + index + ", Size: " + chars.length);

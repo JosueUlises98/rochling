@@ -1,5 +1,4 @@
 package org.kopingenieria.model.classes;
 
-public class MonitoreoEventos {
-
+public class SSHCommunication {
 }

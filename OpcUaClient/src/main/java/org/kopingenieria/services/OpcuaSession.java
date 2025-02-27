@@ -1,7 +1,7 @@
 package org.kopingenieria.services;
 
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.model.enums.network.UrlType;
+import org.kopingenieria.model.enums.network.connection.UrlType;
 
 public class OpcuaSession extends SessionService {
 

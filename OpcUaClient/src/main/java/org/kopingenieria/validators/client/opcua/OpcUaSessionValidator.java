@@ -1,4 +1,4 @@
 package org.kopingenieria.validators.client.opcua;
 
-public class Comunication {
+public class OpcUaSessionValidator {
 }

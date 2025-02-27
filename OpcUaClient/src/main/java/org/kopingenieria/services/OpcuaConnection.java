@@ -9,14 +9,9 @@ import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.DisconnectException;
 import org.kopingenieria.exceptions.OpcUaPingException;
 import org.kopingenieria.exceptions.OpcUaReconnectionException;
-import org.kopingenieria.model.classes.OpcUaAuthentication;
-import org.kopingenieria.model.classes.OpcUaConnection;
-import org.kopingenieria.model.classes.QualityConnection;
-import org.kopingenieria.model.enums.network.ConnectionStatus;
-import org.kopingenieria.model.enums.network.ConnectionType;
-import org.kopingenieria.model.enums.network.UrlType;
+import org.kopingenieria.model.enums.network.connection.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.client.opcua.Connection;
+import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -105,14 +100,14 @@ public class OpcuaConnection extends ConnectionService {
      */
     private OpcUaClient opcUaClient;
     /**
-     * Represents an instance of {@link Connection} used to perform validation operations related
+     * Represents an instance of {@link OpcUaConnectionValidator} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      * <p>
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
      */
-    private Connection validatorConection;
+    private OpcUaConnectionValidator validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
      * <p>
@@ -142,7 +137,7 @@ public class OpcuaConnection extends ConnectionService {
     public OpcuaConnection(OpcUaClient opcUaClient) {
         super();
         this.opcUaClient = opcUaClient;
-        this.validatorConection = new Connection();
+        this.validatorConection = new OpcUaConnectionValidator();
     }
     /**
      * Default constructor for creating an instance of OpcuaConnection.
@@ -150,7 +145,7 @@ public class OpcuaConnection extends ConnectionService {
      */
     public OpcuaConnection() {
         super();
-        this.validatorConection = new Connection();
+        this.validatorConection = new OpcUaConnectionValidator();
     }
     /**
      * Establishes a connection to an OPC UA server using the provided URL.

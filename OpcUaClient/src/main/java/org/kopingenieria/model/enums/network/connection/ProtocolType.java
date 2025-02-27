@@ -1,6 +1,4 @@
-package org.kopingenieria.model.enums.network;
-
-import org.kopingenieria.model.classes.Session;
+package org.kopingenieria.model.enums.network.connection;
 
 public enum ProtocolType {
 

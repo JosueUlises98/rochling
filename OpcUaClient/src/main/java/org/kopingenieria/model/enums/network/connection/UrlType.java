@@ -1,4 +1,4 @@
-package org.kopingenieria.model.enums.network;
+package org.kopingenieria.model.enums.network.connection;
 
 
 /**

@@ -27,9 +27,9 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.regex.Pattern;
 
-public class Authentication implements AuthenticationValidator {
+public class OpcUaAuthenticationValidator implements AuthenticationValidator {
 
-    private static final Logger logger = LogManager.getLogger(Authentication.class);
+    private static final Logger logger = LogManager.getLogger(OpcUaAuthenticationValidator.class);
 
     @Value("${opcua.server.endpoint}")
     private String opcUaEndpoint;
@@ -39,7 +39,7 @@ public class Authentication implements AuthenticationValidator {
 
     private final Pattern passwordPattern;
 
-    public Authentication() {
+    public OpcUaAuthenticationValidator() {
         // Patrón para validar complejidad de contraseña
         this.passwordPattern = Pattern.compile(
                 "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
@@ -191,7 +191,7 @@ public class Authentication implements AuthenticationValidator {
                 MessageSecurityMode.SignAndEncrypt,          // securityMode
                 SecurityPolicy.Basic256Sha256.getUri(),      // securityPolicyUri
                 userTokenPolicies,                           // userIdentityTokens
-                "opc.tcp",                                   // transportProfileUri
+                "ocp.tcp",                                   // transportProfileUri
                 UByte.valueOf(0)                             // securityLevel
         );
     }

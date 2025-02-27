@@ -3,12 +3,8 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.*;
 import lombok.*;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.ConnectionStatus;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity

@@ -3,14 +3,12 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.experimental.SuperBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.ConnectionStatus;
-import org.kopingenieria.model.enums.network.ConnectionType;
-import org.kopingenieria.services.OpcuaConnection;
+import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.network.connection.ConnectionType;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -34,7 +32,7 @@ public abstract sealed class Connection permits TCPConnection, TLSConnection, SS
     protected String method;
     protected ConnectionType type;
     protected ConnectionStatus status;
-    protected QualityConnection qualityConnection;
+    protected QualityNetwork qualityConnection;
 
     {
         status = ConnectionStatus.UNKNOWN;

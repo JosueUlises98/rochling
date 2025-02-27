@@ -4,19 +4,19 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
-import org.kopingenieria.model.enums.network.UrlType;
+import org.kopingenieria.model.enums.network.connection.UrlType;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.function.Supplier;
 
 
-public class Connection implements ConnectionValidator {
+public class OpcUaConnectionValidator implements ConnectionValidator {
     /**
      * Logger instance used for logging messages in the {@code Connection} class.
      * This provides a mechanism to track, debug, and report application's operational
      * information and potential issues throughout the validation and connection logic.
      */
-    private static final Logger logger = LogManager.getLogger(Connection.class);
+    private static final Logger logger = LogManager.getLogger(OpcUaConnectionValidator.class);
     /**
      * Validates whether the provided OPC UA client's session is active.
      * This method checks the client's session state and ensures it is completed successfully.

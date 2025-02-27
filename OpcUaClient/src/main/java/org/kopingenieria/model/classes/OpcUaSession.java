@@ -2,16 +2,15 @@ package org.kopingenieria.model.classes;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.kopingenieria.model.enums.network.SessionStatus;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "opcua_sessions")

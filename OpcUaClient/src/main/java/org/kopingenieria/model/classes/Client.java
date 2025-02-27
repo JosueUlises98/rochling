@@ -1,8 +1,10 @@
 package org.kopingenieria.model.classes;
 
+import lombok.experimental.SuperBuilder;
+
+@SuperBuilder
 public abstract class Client {
-    protected Configuration<?> configuration;
-    protected Connection<?> connection;
-    protected AuthenticationRequest authentication;
-    protected AuthenticationResponse authenticationResponse;
+   protected Configuration config;
+   protected Suscription suscription;
+   protected MonitoreoEventos monitoreoEventos;
 }

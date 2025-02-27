@@ -3,7 +3,7 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
-import org.kopingenieria.model.enums.opcua.SecurityPolicy;
+import org.kopingenieria.model.enums.opcua.communication.SecurityPolicy;
 
 @Embeddable
 @Getter

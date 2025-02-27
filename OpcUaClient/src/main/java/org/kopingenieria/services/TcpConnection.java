@@ -2,9 +2,9 @@ package org.kopingenieria.services;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kopingenieria.model.enums.network.UrlType;
+import org.kopingenieria.model.enums.network.connection.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.client.opcua.Connection;
+import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;
 import java.util.Properties;
 
 public class TcpConnection extends ConnectionService {
@@ -77,14 +77,14 @@ public class TcpConnection extends ConnectionService {
      */
     private static final int INITIAL_RETRY;
     /**
-     * Represents an instance of {@link Connection} used to perform validation operations related
+     * Represents an instance of {@link OpcUaConnectionValidator} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      *
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
      */
-    private Connection validatorConection;
+    private OpcUaConnectionValidator validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
      *
@@ -116,7 +116,7 @@ public class TcpConnection extends ConnectionService {
      */
     public TcpConnection() {
         super();
-        this.validatorConection=new Connection();
+        this.validatorConection=new OpcUaConnectionValidator();
     }
 
 

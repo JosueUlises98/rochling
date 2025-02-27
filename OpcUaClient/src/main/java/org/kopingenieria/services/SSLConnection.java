@@ -7,9 +7,9 @@ import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.SSLConnectionException;
 import org.kopingenieria.model.classes.SSLConfigurations;
-import org.kopingenieria.model.enums.network.UrlType;
+import org.kopingenieria.model.enums.network.connection.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
-import org.kopingenieria.validators.client.opcua.Connection;
+import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;
 
 import javax.net.ssl.*;
 import javax.net.ssl.SSLSession;
@@ -99,14 +99,14 @@ public class SSLConnection extends ConnectionService {
      */
     private static final int INITIAL_RETRY;
     /**
-     * Represents an instance of {@link Connection} used to perform validation operations related
+     * Represents an instance of {@link OpcUaConnectionValidator} used to perform validation operations related
      * to OPC UA client configurations and server connectivity within the {@code ConexionClienteService}.
      * <p>
      * This field acts as a utility for ensuring the integrity and preconditions of the operations
      * performed, covering aspects such as validating server endpoints, checking client availability,
      * and facilitating preparatory validation prior to establishing a connection.
      */
-    private Connection validatorConection;
+    private OpcUaConnectionValidator validatorConection;
     /**
      * Represents the server endpoint URL for establishing TCP connections.
      * <p>

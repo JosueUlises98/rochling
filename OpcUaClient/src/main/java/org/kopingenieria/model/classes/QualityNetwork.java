@@ -3,7 +3,7 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
-import org.kopingenieria.model.enums.network.ConnectionStatus;
+import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
 import org.kopingenieria.model.enums.ssh.MonitoringMode;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class QualityConnection {
+public class QualityNetwork {
 
     // Configuración de monitoreo común
     @Column(name = "sampling_interval")

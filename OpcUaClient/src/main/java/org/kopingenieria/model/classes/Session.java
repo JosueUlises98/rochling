@@ -4,21 +4,22 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.network.ProtocolType;
-import org.kopingenieria.model.enums.network.SessionStatus;
+import org.kopingenieria.model.enums.network.connection.ProtocolType;
+import org.kopingenieria.model.enums.network.communication.SessionStatus;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public abstract sealed class Session permits TCPSession,TLSSession,SSHSession,OpcUaSession {
+public abstract sealed class Session implements Serializable permits TCPSession,TLSSession,SSHSession,OpcUaSession {
 
-    protected String sessionId; // A unique identifier for the session
-    protected String clientAddress; // The client's network address
-    protected int port; // The port used for the session
-    protected Boolean isSecure; // Indicates if the session is secure
-    protected ProtocolType protocolType; // The type of protocol (opcua, tcp, ssh, tls)
+    protected String sessionId;
+    protected String clientAddress;
+    protected Integer port;
+    protected Boolean isSecure;
+    protected ProtocolType protocolType;
     protected SessionStatus status;
     protected Connection connectionDetails;
     protected LocalDateTime lastActivity;

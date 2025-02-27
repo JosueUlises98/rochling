@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.opcua.MessageSecurityMode;
-import org.kopingenieria.model.enums.opcua.SecurityPolicy;
+import org.kopingenieria.model.enums.opcua.communication.MessageSecurityMode;
+import org.kopingenieria.model.enums.opcua.communication.SecurityPolicy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @EqualsAndHashCode(callSuper = true)

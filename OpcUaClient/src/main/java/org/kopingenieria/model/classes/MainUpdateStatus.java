@@ -1,6 +1,6 @@
 package org.kopingenieria.model.classes;
 
-import org.kopingenieria.model.enums.network.ConnectionStatus;
+import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
 
 public class MainUpdateStatus {
     public static void main(String[] args) {

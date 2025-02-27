@@ -15,27 +15,21 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "ssh_configurations")
+@Table(name = "tcp_configurations")
 @EntityListeners(AuditingEntityListener.class)
-public final class SSHConfiguration extends Configuration {
+public final class TCPConfiguration extends Configuration{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Atributos de conexión SSH
+    // Atributos de conexión TCP
     @Column(name = "connection",nullable = false)
-    private SSHConnection connection;
+    private TCPConnection connection;
 
-    //Atributos de seguridad SSH
-    @Column(name = "authentication",nullable = false)
-    private SSHAuthentication authentication;
-    @Column(name = "encryption",nullable = false)
-    private SSHEncryption encryption;
-
-    // Atributos de sesión SSH
+    // Atributos de sesión TCP
     @Column(name = "session",nullable = false)
-    private TLSSession session;
+    private TCPSession session;
 
     // Atributos de suscripción OPCUA
     @Column(name = "subscription")
@@ -51,13 +45,11 @@ public final class SSHConfiguration extends Configuration {
 
     @Override
     public String toString() {
-        return "SSHConfiguration{" +
+        return "TCPConfiguration{" +
                 ",name=' " + name + '\'' +
                 ",description=' " + description + '\'' +
                 ",enabled=' " + enabled + '\'' +
                 ", connection=" + connection +
-                ", authentication=" + authentication +
-                ", encryption=" + encryption +
                 ", session=" + session +
                 ", subscription=" + subscription +
                 ", monitoringEvent=" + monitoringEvent +

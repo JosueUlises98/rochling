@@ -3,10 +3,8 @@ package org.kopingenieria.model.classes;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+
+import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,6 +41,7 @@ public class OpcUaSessionSerializable extends OpcUaSerializable{
     private Map<String, String> metadata;
 
     @JsonIgnore
+    @XmlTransient
     private transient volatile Object lockObject;
 
     // Constructor de copia para garantizar la inmutabilidad

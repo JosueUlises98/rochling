@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -14,6 +15,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tls_authentications")
 @EntityListeners(AuditingEntityListener.class)
 public final class TLSAuthentication extends Authentication{
+
+    @Serial
+    private static final long serialVersionUID = 789L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,10 +39,8 @@ public final class TLSAuthentication extends Authentication{
     @Override
     public String toString() {
         return "TLSAuthentication{" +
-                "none='" + none + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", certificate='" + certificate + '\'' +
+                ",request=" + request +
+                ",response=" + response +
                 ", clientAuthRequired=" + clientAuthRequired +
                 ", hostnameVerification=" + hostnameVerification +
                 ", ocspEnabled=" + ocspEnabled +

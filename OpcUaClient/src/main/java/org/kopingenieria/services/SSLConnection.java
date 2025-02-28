@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.ConnectionException;
 import org.kopingenieria.exceptions.SSLConnectionException;
 import org.kopingenieria.model.classes.SSLConfigurations;
-import org.kopingenieria.model.enums.network.connection.UrlType;
+import org.kopingenieria.model.enums.client.network.connection.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;
 

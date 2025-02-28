@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
@@ -18,6 +20,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "ssh_configurations")
 @EntityListeners(AuditingEntityListener.class)
 public final class SSHConfiguration extends Configuration {
+
+    @Serial
+    private static final long serialVersionUID = 125L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

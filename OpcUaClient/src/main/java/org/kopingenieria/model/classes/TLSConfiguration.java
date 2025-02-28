@@ -3,8 +3,9 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.tls.TlsVersion;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -15,6 +16,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tls_configurations")
 @EntityListeners(AuditingEntityListener.class)
 public final class TLSConfiguration extends Configuration {
+
+    @Serial
+    private static final long serialVersionUID = 124L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

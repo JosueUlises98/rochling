@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -18,6 +19,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tcp_configurations")
 @EntityListeners(AuditingEntityListener.class)
 public final class TCPConfiguration extends Configuration{
+
+    @Serial
+    private static final long serialVersionUID = 123L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

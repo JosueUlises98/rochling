@@ -1,19 +1,22 @@
 package org.kopingenieria.model.classes;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
-import org.kopingenieria.model.enums.ssh.MonitoringMode;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.client.ssh.MonitoringMode;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class QualityNetwork {
+public class QualityNetwork implements Serializable {
 
     // Configuración de monitoreo común
     @Column(name = "sampling_interval")
@@ -128,11 +131,11 @@ public class QualityNetwork {
     @Column(name = "keep_alive_interval")
     private Integer keepAliveInterval;
 
-    @Column(name = "keep_alive_count_max")
+    @NotNull(message = "El campo keepalivecountmax no puede ser nulo")
     private Integer keepAliveCountMax;
 
     // Estados y banderas
-    @Column(nullable = false)
+    @NotNull(message = "El campo enabled no puede ser nulo")
     private Boolean enabled;
 
     // Métricas

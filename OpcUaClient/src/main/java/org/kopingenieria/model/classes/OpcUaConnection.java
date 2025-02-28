@@ -7,8 +7,10 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionStatus;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -19,6 +21,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "opcua_connections")
 @EntityListeners(AuditingEntityListener.class)
 public final class OpcUaConnection extends Connection{
+
+    @Serial
+    private static final long serialVersionUID = 147L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

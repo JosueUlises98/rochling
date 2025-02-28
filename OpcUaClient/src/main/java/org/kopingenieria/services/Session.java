@@ -1,7 +1,7 @@
 package org.kopingenieria.services;
 
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.model.enums.network.connection.UrlType;
+import org.kopingenieria.model.enums.client.network.connection.UrlType;
 
 public interface Session {
     /**

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
@@ -13,6 +15,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "ssh_sessions")
 @EntityListeners(AuditingEntityListener.class)
 public final class SSHSession extends Session{
+
+    @Serial
+    private static final long serialVersionUID = 4L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

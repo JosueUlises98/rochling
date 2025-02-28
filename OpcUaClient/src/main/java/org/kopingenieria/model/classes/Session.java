@@ -4,8 +4,10 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.network.connection.ProtocolType;
-import org.kopingenieria.model.enums.network.communication.SessionStatus;
+import org.kopingenieria.model.enums.client.network.connection.ProtocolType;
+import org.kopingenieria.model.enums.client.network.communication.SessionStatus;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -15,6 +17,10 @@ import java.time.LocalDateTime;
 @SuperBuilder
 public abstract sealed class Session implements Serializable permits TCPSession,TLSSession,SSHSession,OpcUaSession {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    //Atributos base
     protected String sessionId;
     protected String clientAddress;
     protected Integer port;

@@ -6,8 +6,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.ssh.SshAuthenticationType;
+import org.kopingenieria.model.enums.client.ssh.SshAuthenticationType;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.io.Serial;
 
 
 @EqualsAndHashCode(callSuper = true)
@@ -19,6 +20,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "ssh_authentications")
 @EntityListeners(AuditingEntityListener.class)
 public final class SSHAuthentication extends Authentication {
+
+    @Serial
+    private static final long serialVersionUID = 179L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +44,8 @@ public final class SSHAuthentication extends Authentication {
     @Override
     public String toString() {
         return "SSHAuthentication{" +
-                ", none='" + none + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", certificate='" + certificate + '\'' +
+                ",request=" + request +
+                ",response=" + response +
                 ", authenticationType=" + authenticationType +
                 ", privateKeyPath='" + privateKeyPath + '\'' +
                 ", privateKeyPassphrase='" + privateKeyPassphrase + '\'' +

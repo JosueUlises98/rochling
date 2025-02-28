@@ -1,6 +1,6 @@
 package org.kopingenieria.services;
 
-import org.kopingenieria.model.enums.network.connection.UrlType;
+import org.kopingenieria.model.enums.client.network.connection.UrlType;
 
 public class OpcuaConnectionProcess extends ConnectionProcess {
 

@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionStatus;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -16,6 +18,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "ssh_connections")
 @EntityListeners(AuditingEntityListener.class)
 public final class SSHConnection extends Connection {
+
+    @Serial
+    private static final long serialVersionUID = 963L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

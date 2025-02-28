@@ -2,7 +2,7 @@ package org.kopingenieria.services;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kopingenieria.model.enums.network.connection.UrlType;
+import org.kopingenieria.model.enums.client.network.connection.UrlType;
 import org.kopingenieria.tools.ConfigurationLoader;
 import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;
 import java.util.Properties;

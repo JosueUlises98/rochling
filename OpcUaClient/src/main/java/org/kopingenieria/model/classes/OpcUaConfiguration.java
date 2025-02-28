@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
 import java.util.logging.Logger;
 
 
@@ -17,6 +18,9 @@ import java.util.logging.Logger;
 @Table(name = "opcua_configurations")
 @EntityListeners(AuditingEntityListener.class)
 public final class OpcUaConfiguration extends Configuration {
+
+    @Serial
+    private static final long serialVersionUID = 125L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

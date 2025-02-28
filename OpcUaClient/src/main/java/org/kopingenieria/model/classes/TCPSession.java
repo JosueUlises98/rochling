@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -17,6 +18,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tcp_sessions")
 @EntityListeners(AuditingEntityListener.class)
 public final class TCPSession extends Session {
+
+    @Serial
+    private static final long serialVersionUID = 2L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

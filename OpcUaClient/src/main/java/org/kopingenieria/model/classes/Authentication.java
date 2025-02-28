@@ -4,16 +4,15 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.io.Serializable;
 
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public abstract sealed class Authentication permits TLSAuthentication,SSHAuthentication,OpcUaAuthentication  {
+public abstract sealed class Authentication implements Serializable permits TLSAuthentication,SSHAuthentication,OpcUaAuthentication  {
 
-    protected String none;
-    protected String username;
-    protected String password;
-    protected String certificate;
-
+    //Atributos base
+    protected AuthenticationRequest request;
+    protected AuthenticationResponse response;
 }

@@ -7,9 +7,11 @@ import lombok.experimental.SuperBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
-import org.kopingenieria.model.enums.network.connection.ConnectionType;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionType;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
@@ -21,14 +23,18 @@ import java.util.Set;
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract sealed class Connection permits TCPConnection, TLSConnection, SSHConnection, OpcUaConnection{
+public abstract sealed class Connection implements Serializable permits TCPConnection, TLSConnection, SSHConnection, OpcUaConnection{
+
+    @Serial
+    private static final long serialVersionUID = 194L;
 
     private static final Logger logger = LogManager.getLogger(Connection.class);
+
     private static final String INVALID_TRANSITION_MESSAGE = "Invalid transition from %s to %s";
 
     protected String name;
     protected String hostname;
-    protected int port;
+    protected Integer port;
     protected String method;
     protected ConnectionType type;
     protected ConnectionStatus status;
@@ -106,7 +112,6 @@ public abstract sealed class Connection permits TCPConnection, TLSConnection, SS
         handler.handle(qualityConnection);
     }
 
-    
 }
 
 

@@ -3,9 +3,11 @@ package org.kopingenieria.model.classes;
 import jakarta.persistence.*;
 import lombok.*;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
-import org.kopingenieria.model.enums.network.connection.ConnectionStatus;
-import org.kopingenieria.model.enums.tls.TlsVersion;
+import org.kopingenieria.model.enums.client.network.connection.ConnectionStatus;
+import org.kopingenieria.model.enums.client.tls.TlsVersion;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -16,6 +18,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tls_connections")
 @EntityListeners(AuditingEntityListener.class)
 public final class TLSConnection extends Connection {
+
+    @Serial
+    private static final long serialVersionUID = 417L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

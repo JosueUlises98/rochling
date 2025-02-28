@@ -6,9 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.kopingenieria.model.enums.opcua.communication.MessageSecurityMode;
-import org.kopingenieria.model.enums.opcua.communication.SecurityPolicy;
+import org.kopingenieria.model.enums.client.opcua.communication.MessageSecurityMode;
+import org.kopingenieria.model.enums.client.opcua.communication.SecurityPolicy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.io.Serial;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -19,6 +21,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "opcua_authentications")
 @EntityListeners(AuditingEntityListener.class)
 public final class OpcUaAuthentication extends Authentication {
+
+    @Serial
+    private static final long serialVersionUID = 321L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,10 +56,8 @@ public final class OpcUaAuthentication extends Authentication {
     @Override
     public String toString() {
         return "OpcUaAuthentication{" +
-                "none='" + none + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", certificate='" + certificate + '\'' +
+                ",request=" + request +
+                ",response=" + response +
                 ", securityPolicy=" + securityPolicy +
                 ", messageSecurityMode=" + messageSecurityMode +
                 ", certificatePath='" + certificatePath + '\'' +

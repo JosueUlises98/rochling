@@ -1,7 +1,7 @@
 package org.kopingenieria.repository;
 
 import org.kopingenieria.model.classes.Communication;
-import org.kopingenieria.model.enums.network.connection.ProtocolType;
+import org.kopingenieria.model.enums.client.network.connection.ProtocolType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;

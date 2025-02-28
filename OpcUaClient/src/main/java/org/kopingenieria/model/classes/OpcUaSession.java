@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -16,6 +17,9 @@ import java.util.List;
 @Table(name = "opcua_sessions")
 @EntityListeners(AuditingEntityListener.class)
 public final class OpcUaSession extends Session {
+
+    @Serial
+    private static final long serialVersionUID = 5L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

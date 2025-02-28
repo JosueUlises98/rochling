@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serial;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -14,6 +16,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "tls_sessions")
 @EntityListeners(AuditingEntityListener.class)
 public final class TLSSession extends Session {
+
+    @Serial
+    private static final long serialVersionUID = 3L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

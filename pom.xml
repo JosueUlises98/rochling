@@ -10,11 +10,10 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>Traceability</module>
-        <module>OpcUaClient</module>
-        <module>SapIntegration</module>
-        <module>EurekaServer</module>
-        <module>Users</module>
+        <module>infraestructure</module>
+        <module>common</module>
+        <module>monitoring</module>
+        <module>services</module>
     </modules>
 
     <properties>

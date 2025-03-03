@@ -3,14 +3,48 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/EurekaServer/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/EurekaServer/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/OpcUaClient/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/OpcUaClient/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/SapIntegration/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/SapIntegration/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/Traceability/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/Traceability/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/Users/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/Users/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/logging/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/logging/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/security/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/security/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/utils/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common/utils/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Config/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Config/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Discovery/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Discovery/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/alerts/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/alerts/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/dashboard/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/dashboard/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/metrics/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/metrics/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/monitoring/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/OPCUA/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/OPCUA/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SAP/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SAP/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SHELL/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SHELL/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SSH/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/SSH/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TCP/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TCP/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TLS/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TLS/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TRACEABILITY/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/TRACEABILITY/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/USERS/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/USERS/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
   </component>

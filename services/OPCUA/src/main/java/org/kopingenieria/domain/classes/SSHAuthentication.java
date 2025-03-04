@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import org.kopingenieria.domain.enums.client.ssh.SshAuthenticationType;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.io.Serial;
+import java.io.Serializable;
 
 
 @EqualsAndHashCode(callSuper = true)
@@ -19,7 +20,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @Table(name = "ssh_authentications")
 @EntityListeners(AuditingEntityListener.class)
-public final class SSHAuthentication extends Authentication {
+public final class SSHAuthentication implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 179L;

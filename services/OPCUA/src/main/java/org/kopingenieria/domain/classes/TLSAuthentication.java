@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.io.Serial;
+import java.io.Serializable;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -14,7 +15,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @Table(name = "tls_authentications")
 @EntityListeners(AuditingEntityListener.class)
-public final class TLSAuthentication extends Authentication{
+public final class TLSAuthentication implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 789L;

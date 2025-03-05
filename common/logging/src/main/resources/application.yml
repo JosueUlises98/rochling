@@ -1,0 +1,13 @@
+logging:
+  custom:
+    enabled: true
+    level: INFO
+    include-payload: true
+    include-headers: true
+    exclude-patterns:
+      - /actuator/**
+      - /health
+    max-payload-length: 10000
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level
+     %logger{36} - %X{className}:%X{methodName} - %msg%n"

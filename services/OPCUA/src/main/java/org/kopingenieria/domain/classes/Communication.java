@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.kopingenieria.domain.classes.auditable.Auditable;
+import org.kopingenieria.domain.classes.auditable.NosqlAuditable;
 import org.kopingenieria.domain.enums.client.network.communication.CompressedPayload;
 import org.kopingenieria.domain.enums.client.network.communication.Direction;
 import org.kopingenieria.domain.enums.client.network.connection.ProtocolType;
@@ -65,6 +65,6 @@ public class Communication implements Serializable {
 
     @Field("audit_info")
     @NotNull( message = "El campo 'audit_info' no puede ser nulo")
-    private Auditable auditable;
+    private NosqlAuditable auditable;
 
 }

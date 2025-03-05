@@ -51,7 +51,7 @@ public final class OpcUaConnection extends Connection{
                 ", method='" + method + '\'' +
                 ", type=" + type +
                 ", status=" + status +
-                ", qualityConnection=" + qualityConnection +
+                ",healthcheck=" + quality +
                 ", endpointUrl='" + endpointUrl + '\'' +
                 ", applicationName='" + applicationName + '\'' +
                 ", applicationUri='" + applicationUri + '\'' +

@@ -9,6 +9,5 @@ public class MainClient {
     private static final Logger logger = LogManager.getLogger(MainClient.class);
 
     public static void main(String[] args) {
-
     }
 }

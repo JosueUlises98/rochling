@@ -1,6 +1,5 @@
 package org.kopingenieria.controller;
 
-import org.kopingenieria.domain.classes.serialization.out.serializables.OutSerializable;
 import org.kopingenieria.services.OutSerializerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,8 +1,10 @@
 package org.kopingenieria.domain.classes;
 
-import lombok.experimental.SuperBuilder;
+import lombok.Builder;
+import lombok.Data;
 
-@SuperBuilder
+@Data
+@Builder
 public abstract class Client {
    protected Configuration config;
    protected Suscription suscription;

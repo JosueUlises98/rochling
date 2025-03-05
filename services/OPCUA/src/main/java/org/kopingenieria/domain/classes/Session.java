@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public abstract sealed class Session implements Serializable permits TCPSession,TLSSession,SSHSession,OpcUaSession {
+public abstract sealed class Session implements Serializable permits OpcUaSession {
 
     @Serial
     private static final long serialVersionUID = 1L;

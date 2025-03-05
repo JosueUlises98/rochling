@@ -1,13 +1,17 @@
 package org.kopingenieria.domain.classes;
 
+import jakarta.persistence.EntityListeners;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.kopingenieria.domain.classes.auditable.Auditable;
 import org.kopingenieria.domain.enums.client.network.communication.CompressedPayload;
 import org.kopingenieria.domain.enums.client.network.communication.Direction;
 import org.kopingenieria.domain.enums.client.network.connection.ProtocolType;
 import org.springframework.data.annotation.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -22,6 +26,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Communication implements Serializable {
 
     @Serial
@@ -31,9 +36,11 @@ public class Communication implements Serializable {
     private String id;
 
     @Indexed
+    @Field("session_id")
     private String sessionId;
 
     @Indexed
+    @Field("client_id")
     private String clientId;
 
     @Field("protocol_type")
@@ -56,17 +63,8 @@ public class Communication implements Serializable {
     @Version
     private Long version;
 
-    @CreatedBy
-    private String createdBy;
-
-    @LastModifiedBy
-    private String lastModifiedBy;
-
-    @CreatedDate
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    private LocalDateTime lastModifiedDate;
-
+    @Field("audit_info")
+    @NotNull( message = "El campo 'audit_info' no puede ser nulo")
+    private Auditable auditable;
 
 }

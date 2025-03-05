@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
-public abstract sealed class Encryption permits TLSEncryption,SSHEncryption,OpcUaEncryption  {
+public abstract sealed class Encryption permits OpcUaEncryption {
     //Atributos base
     protected int keyLength;
     protected String algorithmName;

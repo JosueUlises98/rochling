@@ -5,8 +5,6 @@ import jakarta.annotation.PreDestroy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.ConnectionException;
-import org.kopingenieria.exceptions.SSLConnectionException;
-import org.kopingenieria.domain.classes.SSLConfigurations;
 import org.kopingenieria.domain.enums.client.network.connection.UrlType;
 import org.kopingenieria.util.ConfigurationLoader;
 import org.kopingenieria.validators.client.opcua.OpcUaConnectionValidator;

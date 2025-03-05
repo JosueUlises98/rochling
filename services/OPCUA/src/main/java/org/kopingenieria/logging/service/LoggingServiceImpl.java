@@ -21,15 +21,11 @@ public class LoggingServiceImpl implements LoggingService {
         this.notificationService = notificationService;
     }
 
-    public void log(LogEvent event) {
+    public void log(LogEvent event, Object[] keys, Object[] values) {
 
         // Agregar metadatos adicionales (ej. usuario, entorno, etc.)
         Map<String, String> metadata = new HashMap<>();
-        metadata.put("application", "opcua-client");
-        metadata.put("environment", "production");
-        metadata.put("user", "admin");
-        metadata.put("version", "1.0.0");
-        metadata.put("timestamp", event.getTimestamp());
+        metadata.put(keys[0].toString(), values[0].toString());
         event.setMetadata(metadata);
 
         //Registro a consola

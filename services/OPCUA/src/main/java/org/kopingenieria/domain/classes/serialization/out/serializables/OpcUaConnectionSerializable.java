@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.kopingenieria.domain.classes.Connection;
+import org.kopingenieria.domain.classes.OpcUaConnection;
+
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -28,7 +30,7 @@ public class OpcUaConnectionSerializable extends OpcUaSerializable {
     @XmlElement(name = "connection")
     @NotNull(message = "La conexion OPC UA no puede ser nula")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private Connection connection;
+    private OpcUaConnection connection;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")
@@ -91,8 +93,4 @@ public class OpcUaConnectionSerializable extends OpcUaSerializable {
                 ", metadataSize=" + (metadata != null ? metadata.size() : 0) +
                 '}';
     }
-
-
-
-
 }

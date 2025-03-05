@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import org.kopingenieria.exceptions.InvalidConnectionStateTransitionException;
 import org.kopingenieria.domain.enums.client.network.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.client.network.connection.ConnectionType;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -19,11 +18,11 @@ import java.util.Optional;
 import java.util.Set;
 
 
-@SuperBuilder(toBuilder = true)
+@SuperBuilder
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract sealed class Connection implements Serializable permits TCPConnection, TLSConnection, SSHConnection, OpcUaConnection{
+public abstract sealed class Connection implements Serializable permits OpcUaConnection{
 
     @Serial
     private static final long serialVersionUID = 194L;
@@ -38,7 +37,7 @@ public abstract sealed class Connection implements Serializable permits TCPConne
     protected String method;
     protected ConnectionType type;
     protected ConnectionStatus status;
-    protected QualityNetwork qualityConnection;
+    protected HealthCheck quality;
 
     {
         status = ConnectionStatus.UNKNOWN;
@@ -92,7 +91,7 @@ public abstract sealed class Connection implements Serializable permits TCPConne
 
     protected void updateStatus(ConnectionStatus newStatus) throws InvalidConnectionStateTransitionException {
         Objects.requireNonNull(newStatus, "New status cannot be null");
-        Objects.requireNonNull(qualityConnection, "QualityConnection cannot be null");
+        Objects.requireNonNull(quality, "QualityConnection cannot be null");
         logger.debug("Attempting status transition from {} to {}", this.status, newStatus);
         validateTransition(this.status, newStatus);
         updateConnectionStatus(newStatus);
@@ -109,7 +108,7 @@ public abstract sealed class Connection implements Serializable permits TCPConne
                 newStatus,
                 (quality) -> logger.warn("No specific handler for status: {}", newStatus)
         );
-        handler.handle(qualityConnection);
+        handler.handle(quality);
     }
 
 }

@@ -1,12 +1,12 @@
 package org.kopingenieria.services;
 
+import org.kopingenieria.domain.classes.serialization.out.serializables.OpcUaSerializable;
 import org.kopingenieria.exceptions.SerializationException;
-import org.kopingenieria.domain.classes.serialization.out.serializables.OutSerializable;
 import org.kopingenieria.domain.classes.serialization.out.serializators.JsonSerializer;
 import org.springframework.stereotype.Service;
 
 @Service(value ="OutSerializerService")
-public class OutSerializerService<T extends OutSerializable> {
+public class OutSerializerService<T extends OpcUaSerializable> {
 
     private final JsonSerializer<T>jsonSerializer;
 

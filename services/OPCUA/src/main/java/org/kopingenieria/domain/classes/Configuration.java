@@ -11,7 +11,7 @@ import java.io.Serializable;
 @MappedSuperclass
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract sealed class Configuration implements Serializable permits TCPConfiguration,TLSConfiguration,SSHConfiguration,OpcUaConfiguration {
+public abstract sealed class Configuration implements Serializable permits OpcUaConfiguration {
 
     // Atributos comunes base
     protected String name;

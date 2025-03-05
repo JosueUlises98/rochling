@@ -9,4 +9,5 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class OpcUaClient extends Client {
 
+
 }

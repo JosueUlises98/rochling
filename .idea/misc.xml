@@ -17,6 +17,8 @@
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/EurekaServer/pom.xml" />
+        <option value="$PROJECT_DIR$/common/utils/pom.xml" />
+        <option value="$PROJECT_DIR$/services/REPORTS/pom.xml" />
         <option value="$PROJECT_DIR$/services/TLS/pom.xml" />
       </set>
     </option>

@@ -1,0 +1,102 @@
+{
+  "index_patterns": ["logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "index.lifecycle.name": "logs-policy",
+      "index.lifecycle.rollover_alias": "logs",
+      "analysis": {
+        "analyzer": {
+          "path_analyzer": {
+            "tokenizer": "path_hierarchy"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "timestamp": {
+          "type": "date"
+        },
+        "level": {
+          "type": "keyword"
+        },
+        "type": {
+          "type": "keyword"
+        },
+        "className": {
+          "type": "keyword"
+        },
+        "methodName": {
+          "type": "keyword"
+        },
+        "description": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "httpMethod": {
+          "type": "keyword"
+        },
+        "endpoint": {
+          "type": "text",
+          "analyzer": "path_analyzer"
+        },
+        "statusCode": {
+          "type": "integer"
+        },
+        "executionTimeMs": {
+          "type": "long"
+        },
+        "errorMessage": {
+          "type": "text"
+        },
+        "stackTrace": {
+          "type": "text",
+          "index": false
+        },
+        "traceId": {
+          "type": "keyword"
+        },
+        "applicationName": {
+          "type": "keyword"
+        },
+        "hostName": {
+          "type": "keyword"
+        },
+        "threadName": {
+          "type": "keyword"
+        },
+        "metrics": {
+          "type": "object",
+          "dynamic": true
+        },
+        "additionalInfo": {
+          "type": "object",
+          "dynamic": true
+        },
+        "headers": {
+          "type": "object",
+          "enabled": false
+        },
+        "queryParams": {
+          "type": "object",
+          "enabled": false
+        }
+      }
+    },
+    "aliases": {
+      "logs": {}
+    }
+  },
+  "priority": 100,
+  "_meta": {
+    "description": "Template for log entries",
+    "version": "1.0"
+  }
+}

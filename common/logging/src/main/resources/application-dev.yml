@@ -1,0 +1,8 @@
+logging:
+  service:
+    elasticsearch:
+      hosts: localhost:9200
+    debug-mode: true
+    file-fallback:
+      enabled: true
+      path: ./logs/dev

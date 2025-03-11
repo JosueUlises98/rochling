@@ -1,0 +1,8 @@
+logging:
+  service:
+    elasticsearch:
+      hosts: ${ELASTICSEARCH_HOSTS}
+    debug-mode: false
+    file-fallback:
+      enabled: true
+      path: /var/logs/logging

@@ -2,6 +2,11 @@ package org.kopingenieria.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kopingenieria.exception.LogWriteFailureEvent;
+import org.kopingenieria.model.LogEntry;
+import org.kopingenieria.processor.BulkLogProcessor;
+import org.kopingenieria.util.LogEntryEnricher;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -9,7 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LoggingService {
 
-    private final ElasticsearchLogWriter elasticsearchWriter;
+    private final ElasticSearchLogWriter elasticsearchWriter;
     private final FileLogWriter fileWriter;
     private final LogEntryEnricher logEntryEnricher;
     private final BulkLogProcessor bulkLogProcessor;
@@ -37,7 +42,7 @@ public class LoggingService {
         log.warn("Error writing to Elasticsearch, falling back to file storage", e);
         try {
             fileWriter.write(logEntry);
-            eventPublisher.publishEvent(new LogWriteFailureEvent(logEntry, e));
+            eventPublisher.publishEvent(new LogWriteFailureEvent(logEntry.getErrorMessage(), e));
         } catch (Exception ex) {
             log.error("Critical: Failed to write log entry to fallback storage", ex);
         }

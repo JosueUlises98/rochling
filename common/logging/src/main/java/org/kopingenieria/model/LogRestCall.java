@@ -12,4 +12,6 @@ public @interface LogRestCall {
     boolean maskSensitiveData() default true;
     String[] sensitiveHeaders() default {"Authorization", "Cookie"};
     boolean logMultipartFiles() default false;
+    boolean includeQueryParams() default true;
+    LogLevel level() default LogLevel.INFO;
 }

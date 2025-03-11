@@ -1,7 +1,11 @@
 package org.kopingenieria.util;
 
+import org.springframework.stereotype.Component;
+import java.util.UUID;
+
 @Component
 public class TraceContextProvider {
+
     private final ThreadLocal<String> traceIdHolder = new ThreadLocal<>();
 
     public String getCurrentTraceId() {

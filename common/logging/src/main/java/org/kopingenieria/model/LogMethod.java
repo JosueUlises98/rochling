@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface LogOperation {
+public @interface LogMethod {
     String description() default "";
     String operation() default "";
     LogLevel level() default LogLevel.INFO;

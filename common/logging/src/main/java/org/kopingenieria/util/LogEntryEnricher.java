@@ -1,9 +1,18 @@
 package org.kopingenieria.util;
 
+import lombok.AllArgsConstructor;
+import org.kopingenieria.model.LogEntry;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
+@AllArgsConstructor
 public class LogEntryEnricher {
+
     private final TraceContextProvider traceContextProvider;
 
     @Value("${spring.application.name}")

@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch.core.BulkRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kopingenieria.config.LoggingConfig;
 import org.kopingenieria.exception.LogWriteException;
 import org.kopingenieria.model.LogEntry;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class ElasticSearchLogWriter {
 
     private final ElasticsearchClient elasticsearchClient;
     private final ObjectMapper objectMapper;
-    private final ElasticsearchProperties config;
+    private final LoggingConfig.Elasticsearch config;
 
     public void write(LogEntry logEntry) {
         try {
@@ -46,7 +47,6 @@ public class ElasticSearchLogWriter {
                         )
                 );
             }
-
             elasticsearchClient.bulk(bulkRequest.build());
         } catch (Exception e) {
             throw new LogWriteException("Failed to write bulk to Elasticsearch", e);
@@ -54,8 +54,10 @@ public class ElasticSearchLogWriter {
     }
 
     private String createIndexName() {
-        return config.getIndexPrefix() +
-                "-" +
-                LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String dateSuffix = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+        String prefix = config.getIndexPrefix() != null && !config.getIndexPrefix().isEmpty()
+                ? config.getIndexPrefix()
+                : "default-index";
+        return String.format("%s-%s", prefix, dateSuffix);
     }
 }

@@ -13,4 +13,6 @@ public @interface LogDatabase {
     boolean trackConnections() default true;
     boolean maskSensitiveData() default true;
     String[] sensitiveFields() default {};
+    boolean includeResult() default true;
+    LogLevel level() default LogLevel.INFO;
 }

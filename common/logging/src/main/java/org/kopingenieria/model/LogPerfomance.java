@@ -12,4 +12,5 @@ public @interface LogPerfomance {
     String metricName() default "";
     boolean trackMemory() default false;
     boolean trackCPU() default false;
+    LogLevel level() default LogLevel.INFO;
 }

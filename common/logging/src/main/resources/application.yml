@@ -1,13 +1,18 @@
 logging:
-  custom:
-    enabled: true
-    level: INFO
-    include-payload: true
-    include-headers: true
-    exclude-patterns:
-      - /actuator/**
-      - /health
-    max-payload-length: 10000
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level
-     %logger{36} - %X{className}:%X{methodName} - %msg%n"
+  service:
+    name: logging
+    version: 1.0.0
+    elasticsearch:
+      hosts: ${ELASTICSEARCH_HOSTS:localhost:9200}
+      index-prefix: logs
+    bulk-processing:
+      batch-size: 1000
+      flush-interval: 5000
+    retention:
+      days: 30
+    masking:
+      enabled: true
+      patterns:
+        - password
+        - creditCard
+        - ssn

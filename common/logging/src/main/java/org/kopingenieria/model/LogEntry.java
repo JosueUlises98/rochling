@@ -11,8 +11,6 @@ import java.util.Map;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class LogEntry {
 
     private String id;
@@ -23,6 +21,7 @@ public class LogEntry {
     private String description;
 
     // Campos específicos para METHOD_ENTRY/METHOD_EXIT
+    private boolean includeParams;
     private Object[] arguments;
     private Object result;
 
@@ -52,6 +51,7 @@ public class LogEntry {
 
     // Campos SYSTEM_EVENT
     private String eventName;
+    private String eventPhase;
     private Map<String, Object> eventDetails;
 
     // Campos comunes

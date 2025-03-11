@@ -171,7 +171,6 @@ public final class OpcUaServerClass {
             return thread;
         });
     }
-
     /**
      * Configures and initializes the OpcUaServerConfig object for the application.
      * The configuration includes application name, endpoint configuration, and server build information.
@@ -200,7 +199,6 @@ public final class OpcUaServerClass {
                 .setBuildInfo(buildInfo)
                 .build();
     }
-
     /**
      * Builds a timestamp representing the current date and time.
      *
@@ -209,7 +207,6 @@ public final class OpcUaServerClass {
     private static DateTime buildTimestamp() {
         return DateTime.now();
     }
-
     /**
      * Starts the OPC UA server asynchronously using an executor service.
      * This method initiates the startup process for the server and logs
@@ -234,7 +231,6 @@ public final class OpcUaServerClass {
             }
         });
     }
-
     /**
      * Stops the OPC UA server and releases associated resources.
      * <p>
@@ -266,7 +262,6 @@ public final class OpcUaServerClass {
             logger.error("Error stopping the OPC UA Server: ", e);
         }
     }
-
     /**
      * Retrieves the current configuration of the OPC UA server.
      *
@@ -275,7 +270,6 @@ public final class OpcUaServerClass {
     private OpcUaServerConfig getServerConfig() {
         return server.getConfig();
     }
-
     /**
      * Initiates the data simulation process by scheduling regular updates
      * to simulate changes in node values for the OPC UA server.
@@ -301,7 +295,6 @@ public final class OpcUaServerClass {
     private void startDataSimulation() {
         executor.scheduleAtFixedRate(namespace::updateSimulatedValues, 0, 1, TimeUnit.SECONDS);
     }
-
     /**
      * Modifies the value of an existing node in the namespace.
      * Attempts to locate a node by its name and update its value with the specified new value.
@@ -315,7 +308,6 @@ public final class OpcUaServerClass {
     public boolean modifyNode(String nodeName, Object newValue) {
         return namespace.modifyExistingNode(nodeName, newValue);
     }
-
     /**
      * Deletes a node from the namespace based on the specified name.
      * This operation removes the node from the node registry and its associated manager.
@@ -326,7 +318,6 @@ public final class OpcUaServerClass {
     public boolean deleteNode(String nodeName) {
         return namespace.deleteNode(nodeName);
     }
-
     /**
      * Retrieves the instance of the OPC UA Server.
      *
@@ -335,7 +326,6 @@ public final class OpcUaServerClass {
     public OpcUaServer getServer() {
         return server;
     }
-
     /**
      * Displays the application's startup banner in the log output.
      * <p>
@@ -363,7 +353,6 @@ public final class OpcUaServerClass {
                 """;
         logger.info("\n{}", banner);
     }
-
     /**
      * Logs the information of all currently connected OPC UA clients on the server.
      *

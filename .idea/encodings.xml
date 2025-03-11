@@ -20,6 +20,7 @@
     <file url="file://$PROJECT_DIR$/infraestructure/Discovery/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/infraestructure/Gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/infraestructure/Gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/infraestructure/Kafka/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/infraestructure/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/infraestructure/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/monitoring/alerts/src/main/java" charset="UTF-8" />

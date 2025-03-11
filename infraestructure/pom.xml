@@ -18,6 +18,7 @@
         <module>Config</module>
         <module>Discovery</module>
         <module>Gateway</module>
+        <module>Kafka</module>
     </modules>
 
     <dependencies>

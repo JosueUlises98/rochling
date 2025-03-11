@@ -17,8 +17,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>infraestructure</module>
         <module>common</module>
+        <module>infraestructure</module>
         <module>monitoring</module>
         <module>services</module>
     </modules>

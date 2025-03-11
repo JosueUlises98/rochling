@@ -17,6 +17,8 @@
     <properties>
         <logback-elasticsearch-appender.version>1.6</logback-elasticsearch-appender.version>
         <logstash.version>8.0</logstash.version>
+        <elasticclients.version>8.12.0</elasticclients.version>
+        <httpclient.version>4.5.13</httpclient.version>
     </properties>
 
     <dependencies>
@@ -69,12 +71,12 @@
         <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
-            <version>8.12.0</version>
+            <version>${elasticclients.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
+            <version>${httpclient.version}</version>
         </dependency>
     </dependencies>
 </project>

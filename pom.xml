@@ -19,7 +19,6 @@
     <modules>
         <module>common</module>
         <module>infraestructure</module>
-        <module>monitoring</module>
         <module>services</module>
     </modules>
 
@@ -161,30 +160,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>Gateway</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <!-- =================== -->
-            <!-- MÓDULOS MONITORING       -->
-            <!-- =================== -->
-            <!-- Monitoring - Sistema de monitoreo y observabilidad -->
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>monitoring</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>alerts</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>dashboard</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>metrics</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- =================== -->

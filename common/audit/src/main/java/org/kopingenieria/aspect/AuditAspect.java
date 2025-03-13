@@ -1,73 +1,151 @@
 package org.kopingenieria.aspect;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.kopingenieria.model.AuditEvent;
-import org.kopingenieria.model.AuditableOperation;
-import org.kopingenieria.repository.AuditEventRepository;
-import org.slf4j.MDC;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.kopingenieria.model.AuditEntryType;
+import org.kopingenieria.model.annotation.Auditable;
+import org.kopingenieria.model.dto.AuditEventDTO;
+import org.kopingenieria.model.entity.AuditEvent;
+import org.kopingenieria.service.AuditService;
+import org.kopingenieria.util.AuditUtils;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import java.lang.reflect.Method;
+import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.UUID;
+
 
 @Aspect
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class AuditAspect {
 
-    private final AuditEventRepository auditEventRepository;
-    private final AuditEventPublisher eventPublisher;
-    private final SecurityContextHolder securityContext;
-    private final ObjectMapper objectMapper;
+    private final AuditService auditService;
+    private static final String SENSITIVE_DATA_PLACEHOLDER = "[DATOS SENSIBLES]";
 
-    @Around("@annotation(auditableOperation)")
-    public Object auditOperation(ProceedingJoinPoint joinPoint,
-                                 AuditableOperation auditableOperation) throws Throwable {
+    @Pointcut("@annotation(org.kopingenieria.annotation.Auditable)")
+    public void auditableMethod() {}
+
+    @Around("auditableMethod()")
+    public Object auditOperation(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
-        String methodName = joinPoint.getSignature().getName();
-
-        AuditEventBuilder builder = AuditEvent.builder()
-                .eventType(auditableOperation.type().name())
-                .component(joinPoint.getTarget().getClass().getSimpleName())
-                .action(methodName)
-                .userId(securityContext.getCurrentUser().getId())
-                .timestamp(LocalDateTime.now())
-                .traceId(MDC.get("traceId"))
-                .ipAddress(RequestContextHolder.getCurrentRequest().getRemoteAddr());
+        Object result = null;
+        Throwable error = null;
 
         try {
-            // Capturar parámetros si es necesario
-            if (auditableOperation.includeParams()) {
-                String params = captureMethodParameters(joinPoint);
-                builder.details("Parameters: " + params);
-            }
-
-            // Ejecutar método
-            Object result = joinPoint.proceed();
-
-            // Capturar resultado si es necesario
-            if (auditableOperation.includeResult() && result != null) {
-                builder.outcome("SUCCESS")
-                        .details(objectMapper.writeValueAsString(result));
-            }
-
+            result = joinPoint.proceed();
             return result;
-
-        } catch (Exception e) {
-            builder.outcome("ERROR")
-                    .details("Error: " + e.getMessage());
-            throw e;
+        } catch (Throwable t) {
+            error = t;
+            throw t;
         } finally {
-            builder.executionTime(System.currentTimeMillis() - startTime);
-            AuditEvent auditEvent = builder.build();
-
-            // Persistir y publicar evento
-            auditEventRepository.save(auditEvent);
-            eventPublisher.publishAuditEvent(auditEvent);
+            registerAuditEvent(joinPoint, result, error, System.currentTimeMillis() - startTime);
         }
+    }
+
+    private void registerAuditEvent(ProceedingJoinPoint joinPoint, Object result,
+                                    Throwable error, long executionTime) {
+        try {
+            Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
+            Auditable auditable = method.getAnnotation(Auditable.class);
+
+            AuditEventDTO event = AuditEventDTO.builder()
+                    .eventtype(error != null ? "ERROR" : "SUCCESS")
+                    .component(joinPoint.getTarget().getClass().getSimpleName())
+                    .action(method.getName())
+                    .userid(getCurrentUser())
+                    .timestamp(LocalDateTime.now())
+                    .details(buildDetails(joinPoint, auditable, result, error))
+                    .outcome(error != null ? "FAILURE" : "SUCCESS")
+                    .traceid(UUID.randomUUID().toString())
+                    .executiontime(executionTime)
+                    .build();
+
+            auditService.registerAsyncEvent(event);
+        } catch (Exception ignored) {}
+    }
+
+    private String getCurrentUser() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName)
+                .orElse("SYSTEM");
+    }
+
+    private String buildDetails(ProceedingJoinPoint joinPoint, Auditable auditable,
+                                Object result, Throwable error) {
+        StringBuilder details = new StringBuilder()
+                .append("Class: ").append(joinPoint.getTarget().getClass().getName())
+                .append("\nMethod: ").append(joinPoint.getSignature().getName());
+
+        if (auditable.includeParams() && joinPoint.getArgs().length > 0) {
+            details.append("\nParameters: ").append(serializeParameters(joinPoint.getArgs()));
+        }
+
+        if (error != null) {
+            details.append("\nError: ").append(serializeError(error));
+        } else if (auditable.includeResult()) {
+            details.append("\nResult: ").append(serializeResult(result));
+        }
+
+        return details.toString();
+    }
+
+    private String serializeParameters(Object[] args) {
+        if (args == null || args.length == 0) return "none";
+
+        StringBuilder params = new StringBuilder();
+        for (Object arg : args) {
+            if (arg == null) {
+                params.append("null, ");
+            } else if (isSensitiveType(arg)) {
+                params.append(SENSITIVE_DATA_PLACEHOLDER).append(", ");
+            } else {
+                params.append(arg.toString()).append(", ");
+            }
+        }
+
+        String result = params.toString();
+        return result.endsWith(", ") ? result.substring(0, result.length() - 2) : result;
+    }
+
+    private String serializeResult(Object result) {
+        if (result == null) return "void";
+        return isSensitiveType(result) ? SENSITIVE_DATA_PLACEHOLDER : result.toString();
+    }
+
+    private String serializeError(Throwable error) {
+        return String.format("%s: %s", error.getClass().getSimpleName(), error.getMessage());
+    }
+
+    private boolean isSensitiveType(Object obj) {
+        if (obj == null) return false;
+
+        String className = obj.getClass().getName().toLowerCase();
+        return className.contains("password") ||
+                className.contains("credential") ||
+                className.contains("secret") ||
+                className.contains("token") ||
+                className.contains("key");
+    }
+
+    private boolean isSensitiveField(String fieldName) {
+        if (fieldName == null) return false;
+
+        String lowerFieldName = fieldName.toLowerCase();
+        return lowerFieldName.contains("password") ||
+                lowerFieldName.contains("credential") ||
+                lowerFieldName.contains("secret") ||
+                lowerFieldName.contains("token") ||
+                lowerFieldName.contains("key");
     }
 }

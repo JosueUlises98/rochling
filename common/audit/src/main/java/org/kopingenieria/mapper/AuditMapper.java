@@ -1,5 +1,6 @@
 package org.kopingenieria.mapper;
 
+import org.kopingenieria.exceptions.MappingException;
 import org.kopingenieria.model.entity.AuditEvent;
 import org.kopingenieria.model.dto.AuditEventDTO;
 import org.mapstruct.Mapper;
@@ -10,8 +11,8 @@ public interface AuditMapper {
 
     AuditMapper INSTANCE = Mappers.getMapper(AuditMapper.class);
 
-    AuditEventDTO toDto(AuditEvent auditEvent);
+    AuditEventDTO toDto(AuditEvent auditEvent)throws MappingException;
 
-    AuditEvent toEntity(AuditEventDTO auditEventDTO);
+    AuditEvent toEntity(AuditEventDTO auditEventDTO)throws MappingException;
 
 }

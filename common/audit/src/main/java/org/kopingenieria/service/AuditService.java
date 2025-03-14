@@ -1,9 +1,13 @@
 package org.kopingenieria.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.kopingenieria.exceptions.AuditException;
 import org.kopingenieria.exceptions.AuditPersistenceException;
+import org.kopingenieria.exceptions.MappingException;
 import org.kopingenieria.mapper.AuditMapper;
+import org.kopingenieria.model.AuditEntryType;
 import org.kopingenieria.model.LogLevel;
 import org.kopingenieria.model.LogSystemEvent;
 import org.kopingenieria.model.dto.AuditEventDTO;
@@ -13,12 +17,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class AuditService {
 
@@ -27,72 +35,117 @@ public class AuditService {
 
     @Async("auditExecutor")
     @Transactional
-    @LogSystemEvent(event = "Audit",description = "Async Audit event", level = LogLevel.DEBUG)
+    @LogSystemEvent(event = "Audit", description = "Async Audit event", level = LogLevel.DEBUG)
     public void registerAsyncEvent(AuditEventDTO eventDTO) throws AuditPersistenceException {
         try {
             repository.save(mapper.toEntity(eventDTO));
         } catch (Exception e) {
-            throw new AuditPersistenceException("Error persisting audit event", e);
+            throw new AuditPersistenceException("Invalid event data provided for saving.", e);
         }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Find user",description = "Find user by id", level = LogLevel.DEBUG)
-    public List<AuditEventDTO> findByUser(String userId) {
-        return repository.findByUsername(userId).stream()
-                .map(mapper::toDto)
-                .toList();
+    @LogSystemEvent(event = "Find user", description = "Find user by id", level = LogLevel.DEBUG)
+    public List<AuditEventDTO> findByUser(String userId) throws AuditPersistenceException {
+        try {
+            return repository.findByUsername(userId).stream()
+                    .map(auditEvent -> {
+                        try {
+                            return mapper.toDto(auditEvent);
+                        } catch (MappingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error finding audit events for user: " + userId, e);
+        }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Find events",description = "Find events by date range", level = LogLevel.DEBUG)
-    public Page<AuditEventDTO> findEvents(String userId, LocalDateTime startDate,
-                                          LocalDateTime endDate, Pageable pageable) {
-        return repository.findAuditEvents(userId, startDate, endDate, pageable)
-                .map(mapper::toDto);
+    @LogSystemEvent(event = "Find events", description = "Find events by date range", level = LogLevel.DEBUG)
+    public Page<AuditEventDTO> findEvents(String userId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) throws AuditPersistenceException {
+        try {
+            return repository.findAuditEvents(userId, startDate, endDate, pageable)
+                    .map(auditEvent -> {
+                        try {
+                            return mapper.toDto(auditEvent);
+                        } catch (MappingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error finding events for the specified date range.", e);
+        }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Find event",description = "Find event by id", level = LogLevel.DEBUG)
+    @LogSystemEvent(event = "Find event", description = "Find event by id", level = LogLevel.DEBUG)
     public Optional<AuditEventDTO> findById(String id) {
-        return repository.findById(id).map(mapper::toDto);
+        return repository.findById(id).map(auditEvent -> {
+            try {
+                return mapper.toDto(auditEvent);
+            } catch (MappingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Search events",description = "Search events by date range", level = LogLevel.DEBUG)
-    public Page<AuditEventDTO> searchEvents(String userId, String eventType,
-                                            String component, LocalDateTime startDate, LocalDateTime endDate,
-                                            Pageable pageable) {
-        return repository.searchEvents(userId, eventType, component, startDate,
-                endDate, pageable).map(mapper::toDto);
+    @LogSystemEvent(event = "Search events", description = "Search events by filters", level = LogLevel.DEBUG)
+    public Page<AuditEventDTO> searchEvents(String userId, AuditEntryType eventType, String component, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) throws AuditPersistenceException {
+        try {
+            return repository.searchEvents(userId, eventType, component, startDate, endDate, pageable)
+                    .map(auditEvent -> {
+                        try {
+                            return mapper.toDto(auditEvent);
+                        } catch (MappingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error searching audit events with the specified filters.", e);
+        }
     }
 
     @Async("auditExecutor")
     @Transactional
-    @LogSystemEvent(event = "Delete old events",description = "Delete old events", level = LogLevel.DEBUG)
+    @LogSystemEvent(event = "Delete old events", description = "Delete old events", level = LogLevel.DEBUG)
     public void deleteOldEvents(LocalDateTime beforeDate) throws AuditPersistenceException {
         try {
             repository.deleteByTimestampBefore(beforeDate);
-        } catch (Exception e) {
-            throw new AuditPersistenceException("Error deleting old audit events", e);
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Invalid date provided for deletion: " + beforeDate, e);
         }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Count events",description = "Count events by type", level = LogLevel.DEBUG)
-    public long countEventsByType(String eventType) {
-        return repository.countByEventType(eventType);
+    @LogSystemEvent(event = "Count events", description = "Count events by type", level = LogLevel.DEBUG)
+    public long countEventsByType(AuditEntryType eventType) throws AuditPersistenceException {
+        try {
+            return repository.countByEventType(eventType);
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error counting events by type: " + eventType, e);
+        }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Count events",description = "Count events by user", level = LogLevel.DEBUG)
-    public long countEventsByUser(String userId) {
-        return repository.countByUserId(userId);
+    @LogSystemEvent(event = "Count events", description = "Count events by user", level = LogLevel.DEBUG)
+    public long countEventsByUser(String userId) throws AuditPersistenceException {
+        try {
+            return repository.countByUserId(userId);
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error counting events for user: " + userId, e);
+        }
     }
 
     @Transactional(readOnly = true)
-    @LogSystemEvent(event = "Count events",description = "Count events by date range", level = LogLevel.DEBUG)
-    public long countEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return repository.countByTimestampBetween(startDate, endDate);
+    @LogSystemEvent(event = "Count events", description = "Count events by date range", level = LogLevel.DEBUG)
+    public long countEventsByDateRange(LocalDateTime startDate, LocalDateTime endDate) throws AuditPersistenceException {
+        try {
+            return repository.countByTimestampBetween(startDate, endDate);
+        } catch (AuditException e) {
+            throw new AuditPersistenceException("Error counting events for the specified date range.", e);
+        }
     }
 }

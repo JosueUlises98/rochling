@@ -2,17 +2,20 @@ package org.kopingenieria.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kopingenieria.exceptions.AuditPersistenceException;
 import org.kopingenieria.model.AuditEntryType;
-import org.kopingenieria.model.annotation.Auditable;
+import org.kopingenieria.model.LogException;
+import org.kopingenieria.model.LogLevel;
+import org.kopingenieria.model.LogRestCall;
 import org.kopingenieria.model.dto.AuditEventDTO;
 import org.kopingenieria.service.AuditService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,66 +26,72 @@ public class AuditController {
 
     private final AuditService auditService;
 
+    @LogRestCall(event = "Register Event", description = "Registers a new audit event", level = LogLevel.DEBUG)
+    @LogException(message = "Error while registering event", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "registerEvent")
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Auditable(type = AuditEntryType.CREATE, includeParams = true)
     public ResponseEntity<Void> registerEvent(@Valid @RequestBody AuditEventDTO eventDTO) throws AuditPersistenceException {
-        auditService.registerAsyncEvent(eventDTO);
+            auditService.registerAsyncEvent(eventDTO);
         return ResponseEntity.accepted().build();
     }
 
+    @LogRestCall(event = "Find Events By User", description = "Fetches audit events by user ID", level = LogLevel.DEBUG)
+    @LogException(message = "Error while fetching events by user", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "findByUser")
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.username")
-    public ResponseEntity<List<AuditEventDTO>> findByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(auditService.findByUser(userId));
+    public ResponseEntity<List<AuditEventDTO>> findByUser(@PathVariable String userId) throws AuditPersistenceException {
+            return ResponseEntity.ok(auditService.findByUser(userId));
     }
 
+    @LogRestCall(event = "Search Events", description = "Searches audit events with filters", level = LogLevel.DEBUG)
+    @LogException(message = "Error while searching events", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "searchEvents")
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<AuditEventDTO>> searchEvents(
             @RequestParam(required = false) String userId,
-            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false) AuditEntryType eventType,
             @RequestParam(required = false) String component,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            Pageable pageable) {
-        return ResponseEntity.ok(auditService.searchEvents(userId, eventType, component,
-                startDate, endDate, pageable));
+            Pageable pageable) throws AuditPersistenceException {
+            return ResponseEntity.ok(auditService.searchEvents(userId, eventType, component,
+                    startDate, endDate, pageable));
     }
 
+    @LogRestCall(event = "Find Event By ID", description = "Fetches audit event by its ID", level = LogLevel.DEBUG)
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AuditEventDTO> findById(@PathVariable String id) {
-        return auditService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+            return auditService.findById(id)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
     }
 
+    @LogRestCall(event = "Delete Old Events", description = "Deletes events before a specific date", level = LogLevel.DEBUG)
+    @LogException(message = "Error while deleting old events", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "deleteOldEvents")
     @DeleteMapping("/cleanup")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteOldEvents(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime beforeDate) throws AuditPersistenceException {
-        auditService.deleteOldEvents(beforeDate);
+            auditService.deleteOldEvents(beforeDate);
         return ResponseEntity.accepted().build();
     }
 
+    @LogRestCall(event = "Count Events By Type", description = "Counts audit events by their type", level = LogLevel.DEBUG)
+    @LogException(message = "Error while counting events by type", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "countByEventType")
     @GetMapping("/stats/type/{eventType}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Long> countByEventType(@PathVariable String eventType) {
-        return ResponseEntity.ok(auditService.countEventsByType(eventType));
+    public ResponseEntity<Long> countByEventType(@PathVariable AuditEntryType eventType) throws AuditPersistenceException {
+            return ResponseEntity.ok(auditService.countEventsByType(eventType));
     }
 
+    @LogRestCall(event = "Count Events By User", description = "Counts audit events for a user", level = LogLevel.DEBUG)
+    @LogException(message = "Error while counting events by user", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "countByUser")
     @GetMapping("/stats/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Long> countByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(auditService.countEventsByUser(userId));
+    public ResponseEntity<Long> countByUser(@PathVariable String userId) throws AuditPersistenceException {
+            return ResponseEntity.ok(auditService.countEventsByUser(userId));
     }
 
+    @LogRestCall(event = "Count Events By Date Range", description = "Counts audit events within a date range", level = LogLevel.DEBUG)
+    @LogException(message = "Error while counting events by date range", level = LogLevel.ERROR, exceptions = {AuditPersistenceException.class}, method = "countByDateRange")
     @GetMapping("/stats/date-range")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> countByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        return ResponseEntity.ok(auditService.countEventsByDateRange(startDate, endDate));
-    }
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) throws AuditPersistenceException {
+            return ResponseEntity.ok(auditService.countEventsByDateRange(startDate, endDate));
+        }
 }

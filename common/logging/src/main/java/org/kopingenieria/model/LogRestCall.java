@@ -6,6 +6,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface LogRestCall {
+    String event() default "";
     String description() default "";
     boolean includeHeaders() default true;
     boolean includeBody() default true;

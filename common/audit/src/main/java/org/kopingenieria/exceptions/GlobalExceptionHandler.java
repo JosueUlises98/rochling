@@ -24,4 +24,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()));
     }
+
+    @ExceptionHandler(AuditReadException.class)
+    public ResponseEntity<ProblemDetail> handleAuditReadException(
+            AuditReadException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MappingException.class)
+    public ResponseEntity<ProblemDetail> handleMappingException(
+            MappingException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()));
+    }
+
 }

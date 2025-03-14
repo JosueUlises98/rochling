@@ -1,8 +1,11 @@
 package org.kopingenieria.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
+import org.kopingenieria.model.AuditEntryType;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -14,38 +17,47 @@ public class AuditEvent {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false)
-    private String eventType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_type", nullable = false)
+    private AuditEntryType eventType;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String component;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String action;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false, length = 50)
     private String userId;
 
-    @Column(nullable = false)
-    private String currentuser;
+    @Column(name = "current_user", length = 50)
+    private String currentUser;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    @Column(length = 4000)
+    @Column(length = 500)
     private String details;
 
-    @Column(length = 255)
+    @Column(length = 20)
+    @Pattern(regexp = "SUCCESS|FAILURE")
     private String outcome;
 
-    @Column(name = "trace_id")
+    @Column(name = "trace_id", length = 36)
     private String traceId;
 
-    @Column(name = "ip_address")
+    @Column(name = "ip_address", length = 45)
+    @Pattern(regexp = "^(\\d{1,3}\\.){3}\\d{1,3}$")
     private String ipAddress;
 
     @Column(name = "execution_time")
     private Long executionTime;
+
+    @Column(name = "class_name", length = 100)
+    private String className;
+
+    @Column(name = "method_name", length = 100)
+    private String methodName;
 
     @Version
     private Long version;

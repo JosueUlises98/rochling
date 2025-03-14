@@ -7,6 +7,8 @@ server:
 spring:
   application:
     name: audit
+    version: 1.0.0
+    title: Audit Service
 
   datasource:
     url: jdbc:mysql://localhost:3306/audit_db?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true
@@ -69,9 +71,24 @@ logging:
     com.zaxxer.hikari: DEBUG
 
 audit:
+  async-enabled: true
+  thread-pool:
+    core-size: 2
+    max-size: 4
+    queue-capacity: 100
+    keep-alive-seconds: 60
+    thread-name-prefix: "Audit-"
+    allow-core-thread-timeout: true
+    wait-for-tasks-to-complete-on-shutdown: true
+    await-termination-seconds: 60
+
   retention:
     days: 90
-  async:
-    core-pool-size: 2
-    max-pool-size: 5
-    queue-capacity: 500
+    enabled: true
+    cleanup-cron: "0 0 1 * * ?"
+
+  cache:
+    enabled: true
+    cache-name: "auditEvents"
+    time-to-live-seconds: 3600
+    max-elements: 1000

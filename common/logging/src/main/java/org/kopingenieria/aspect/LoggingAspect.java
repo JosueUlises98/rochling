@@ -226,7 +226,7 @@ public class LoggingAspect {
         }
     }
 
-    @AfterThrowing(pointcut = "within(@org.springframework.stereotype.Service *)", throwing = "ex")
+    @AfterThrowing(pointcut = "@annotation(LogException)", throwing = "ex")
     public void logError(JoinPoint joinPoint, Exception ex) {
         LogEntry errorLog = LogEntry.builder()
                 .type(LogEntryType.ERROR)

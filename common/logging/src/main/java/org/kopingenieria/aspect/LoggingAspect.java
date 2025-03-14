@@ -11,7 +11,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.kopingenieria.model.*;
 import org.kopingenieria.service.LoggingService;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;

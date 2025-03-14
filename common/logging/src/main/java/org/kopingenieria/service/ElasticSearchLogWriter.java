@@ -5,9 +5,10 @@ import co.elastic.clients.elasticsearch.core.BulkRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kopingenieria.config.LoggingConfig;
+import org.kopingenieria.config.InfraestructureConfig;
 import org.kopingenieria.exception.LogWriteException;
 import org.kopingenieria.model.LogEntry;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +21,7 @@ public class ElasticSearchLogWriter {
 
     private final ElasticsearchClient elasticsearchClient;
     private final ObjectMapper objectMapper;
-    private final LoggingConfig.Elasticsearch config;
+    private final InfraestructureConfig.Elasticsearch config;
 
     public void write(LogEntry logEntry) {
         try {

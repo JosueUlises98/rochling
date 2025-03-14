@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="appName" source="spring.application.name"/>
+    <springProperty scope="context" name="basePath" source="app.file-config.base-path"/>
+    <springProperty scope="context" name="logPattern" source="app.file-config.log-pattern"/>
+
+    <!-- Appender de Consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${logPattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender de Archivo -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${basePath}/${appName}.log</file>
+        <encoder>
+            <pattern>${logPattern}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${basePath}/archived/${appName}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender de Elasticsearch -->
+    <appender name="ELASTIC" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
+        <url>http://localhost:9200</url>
+        <index>kop-logs-dev</index>
+        <type>logs</type>
+        <loggerName>es-logger</loggerName>
+        <errorLoggerName>es-error-logger</errorLoggerName>
+        <connectTimeout>30000</connectTimeout>
+        <readTimeout>30000</readTimeout>
+        <maxQueueSize>500</maxQueueSize>
+    </appender>
+
+    <!-- Configuración de niveles de logging -->
+    <logger name="org.kopingenieria" level="TRACE"/>
+    <logger name="org.springframework" level="DEBUG"/>
+    <logger name="org.hibernate" level="DEBUG"/>
+
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="ELASTIC"/>
+    </root>
+</configuration>

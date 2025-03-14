@@ -3,13 +3,12 @@ package org.kopingenieria.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kopingenieria.config.LoggingConfig;
+import org.kopingenieria.config.InfraestructureConfig;
 import org.kopingenieria.exception.LogWriteException;
 import org.kopingenieria.model.LogEntry;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
@@ -21,12 +20,12 @@ import java.time.format.DateTimeFormatter;
 public class FileLogWriter {
 
     private final ObjectMapper objectMapper;
-    private final LoggingConfig.File config;
+    private final InfraestructureConfig.FileConfig config;
 
     public void write(LogEntry logEntry) {
         try {
             String fileName = createFileName();
-            File logFile = new File(config.getDirectory(), fileName);
+            File logFile = new File(config.getBasePath(), fileName);
 
             if (!logFile.getParentFile().exists()) {
                 boolean mkdirs = logFile.getParentFile().mkdirs();
@@ -40,7 +39,7 @@ public class FileLogWriter {
                     throw new LogWriteException("Failed to create log file");
                 }
             }
-            String logLine = config.isJson() ?
+            String logLine = config.getIsJson() ?
                     objectMapper.writeValueAsString(logEntry) :
                     formatLogEntry(logEntry);
 
@@ -58,10 +57,7 @@ public class FileLogWriter {
 
     private String createFileName() {
         return "application-" +
-                LocalDate.now().format(DateTimeFormatter.ofPattern(
-                        config.getDatePattern()
-                )) +
-                (config.isJson() ? ".json" : ".log");
+                LocalDate.now().format(DateTimeFormatter.ofPattern(config.getNamePattern()));
     }
 
     private void checkRotation(File logFile) {

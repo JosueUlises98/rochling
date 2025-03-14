@@ -19,6 +19,10 @@ public class LogEntry {
     private String className;
     private String methodName;
     private String description;
+    private String batchId;
+    private String correlationId;
+    private String source;
+    private String message;
 
     // Campos específicos para METHOD_ENTRY/METHOD_EXIT
     private boolean includeParams;

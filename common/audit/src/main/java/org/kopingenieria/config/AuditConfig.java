@@ -21,7 +21,6 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-@EnableRetry
 @EnableScheduling
 @EnableAspectJAutoProxy
 @EnableTransactionManagement

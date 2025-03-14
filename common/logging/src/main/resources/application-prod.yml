@@ -1,8 +1,148 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+app:
+  elasticsearch:
+    index-prefix: kop-logs-prod
+    hosts: ${ELASTIC_HOSTS}
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
+    bulk-size: 2000
+    flush-interval: 5
+    ssl-enabled: true
+    number-of-shards: 3
+    number-of-replicas: 2
+    retry:
+      max-attempts: 5
+      initial-interval: 1000
+      multiplier: 2.0
+      max-interval: 30000
+  file-config:
+    base-path: /var/log/kopingenieria/prod
+    max-file-size: 100
+    max-history: 30
+    compress-backups: true
+    root-level: WARN
+    application-level: INFO
+  security:
+    enable-audit: true
+    audit-log-path: /var/log/kopingenieria/prod/audit
+    mask-sensitive-data: true
+  performance:
+    enable-metrics: true
+    buffer-size: 16384
+    queue-size: 1024
+    async-logging: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    max-threads: 200
+    accept-count: 100
+    max-connections: 10000
+  compression:
+    enabled: true
+    min-response-size: 1024
+  http2:
+    enabled: true
+  ssl:
+    enabled: true
+    key-store: ${SSL_KEYSTORE_PATH}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      elastic:
+        enabled: true
+        step: 1m
+        index: metrics-prod
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 100
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30000
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 1000
+        limit-refresh-period: 1s
+        timeout-duration: 500ms
+
 logging:
-  service:
-    elasticsearch:
-      hosts: ${ELASTICSEARCH_HOSTS}
-    debug-mode: false
-    file-fallback:
-      enabled: true
-      path: /var/logs/logging
+  level:
+    root: WARN
+    org.kopingenieria: INFO
+    org.springframework: WARN
+    org.hibernate: ERROR
+
+cache:
+  caffeine:
+    spec: maximumSize=10000,expireAfterWrite=1h
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: Authorization,Content-Type
+  exposed-headers: X-Total-Count
+  allow-credentials: true
+  max-age: 3600
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 86400000
+    refresh-token:
+      expiration: 604800000
+
+monitoring:
+  newrelic:
+    enabled: true
+    license-key: ${NEW_RELIC_LICENSE_KEY}
+  datadog:
+    enabled: true
+    api-key: ${DATADOG_API_KEY}
+
+cdn:
+  enabled: true
+  base-url: ${CDN_BASE_URL}
+  access-key: ${CDN_ACCESS_KEY}
+  secret-key: ${CDN_SECRET_KEY}
+
+redis:
+  host: ${REDIS_HOST}
+  port: ${REDIS_PORT}
+  password: ${REDIS_PASSWORD}
+  timeout: 2000
+  database: 0

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="appName" source="spring.application.name"/>
+    <springProperty scope="context" name="basePath" source="app.file-config.base-path"/>
+    <springProperty scope="context" name="logPattern" source="app.file-config.log-pattern"/>
+    <springProperty scope="context" name="elasticHosts" source="app.elasticsearch.hosts"/>
+    <springProperty scope="context" name="elasticUsername" source="app.elasticsearch.username"/>
+    <springProperty scope="context" name="elasticPassword" source="app.elasticsearch.password"/>
+
+    <!-- Appender de Consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${logPattern}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Appender de Archivo con Async -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${basePath}/${appName}.log</file>
+        <encoder>
+            <pattern>${logPattern}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${basePath}/archived/${appName}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Async Appender para archivo -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+        <queueSize>1024</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+    </appender>
+
+    <!-- Appender de Elasticsearch -->
+    <appender name="ELASTIC" class="com.internetitem.logback.elasticsearch.ElasticsearchAppender">
+        <url>${elasticHosts}</url>
+        <index>kop-logs-prod</index>
+        <authentication class="com.internetitem.logback.elasticsearch.config.BasicAuthentication">
+            <username>${elasticUsername}</username>
+            <password>${elasticPassword}</password>
+        </authentication>
+        <type>logs</type>
+        <loggerName>es-logger</loggerName>
+        <errorLoggerName>es-error-logger</errorLoggerName>
+        <connectTimeout>30000</connectTimeout>
+        <readTimeout>30000</readTimeout>
+        <maxQueueSize>2000</maxQueueSize>
+        <ssl>true</ssl>
+    </appender>
+
+    <!-- Configuración de niveles de logging -->
+    <logger name="org.kopingenieria" level="INFO"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="ERROR"/>
+
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_FILE"/>
+        <appender-ref ref="ELASTIC"/>
+    </root>
+</configuration>

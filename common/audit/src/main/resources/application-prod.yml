@@ -1,13 +1,7 @@
-# application-prod.yml
-server:
-  port: ${SERVER_PORT:8084}
-  servlet:
-    context-path: /api/v1
-
 spring:
-  application:
-    name: audit-service
-
+  config:
+    activate:
+      on-profile: prod
   datasource:
     url: jdbc:mysql://${DB_HOST:audit-mysql.kopingenieria.com}:${DB_PORT:3306}/${DB_NAME:audit_db}?useSSL=true&serverTimezone=America/Lima&requireSSL=true&verifyServerCertificate=true&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:audit_user}
@@ -21,48 +15,23 @@ spring:
       max-lifetime: 900000
       connection-timeout: 20000
       connection-test-query: SELECT 1 FROM DUAL
-
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: false
-    hibernate:
-      ddl-auto: validate
     properties:
       hibernate:
         format_sql: false
         generate_statistics: false
         dialect: org.hibernate.dialect.MySQLDialect
         jdbc:
-          time_zone: America/Lima
+          time_zone: America/Mexico_City
 
-  flyway:
+server:
+  ssl:
     enabled: true
-    locations: classpath:db/migration
-    baseline-on-migrate: true
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: when-authorized
-    prometheus:
-      enabled: true
-  metrics:
-    tags:
-      application: ${spring.application.name}
-    export:
-      prometheus:
-        enabled: true
-  info:
-    env:
-      enabled: true
-    java:
-      enabled: true
-    os:
-      enabled: true
+    key-store: ${SSL_KEYSTORE_PATH}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS}
 
 logging:
   level:
@@ -83,25 +52,49 @@ logging:
       total-size-cap: 3GB
       clean-history-on-start: false
 
-audit:
-  async-enabled: true
-  thread-pool:
-    core-size: 2
-    max-size: 4
-    queue-capacity: 100
-    keep-alive-seconds: 60
-    thread-name-prefix: "Audit-"
-    allow-core-thread-timeout: true
-    wait-for-tasks-to-complete-on-shutdown: true
-    await-termination-seconds: 60
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    prometheus:
+      enabled: true
 
-  retention:
-    days: 90
-    enabled: true
-    cleanup-cron: "0 0 1 * * ?"
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: Authorization,Content-Type
+  exposed-headers: X-Total-Count
+  allow-credentials: true
+  max-age: 3600
 
-  cache:
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 86400000
+    refresh-token:
+      expiration: 604800000
+
+monitoring:
+  newrelic:
     enabled: true
-    cache-name: "auditEvents"
-    time-to-live-seconds: 3600
-    max-elements: 1000
+    license-key: ${NEW_RELIC_LICENSE_KEY}
+  datadog:
+    enabled: true
+    api-key: ${DATADOG_API_KEY}
+
+cdn:
+  enabled: true
+  base-url: ${CDN_BASE_URL}
+  access-key: ${CDN_ACCESS_KEY}
+  secret-key: ${CDN_SECRET_KEY}
+
+redis:
+  host: ${REDIS_HOST}
+  port: ${REDIS_PORT}
+  password: ${REDIS_PASSWORD}
+  timeout: 2000
+  database: 0

@@ -1,47 +1,33 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: none
-  devtools:
-    restart:
-      enabled: false
-    livereload:
-      enabled: false
+  config:
+    activate:
+      on-profile: prod
 
 app:
   elasticsearch:
-    index-prefix: kop-logs-prod
-    hosts: ${ELASTIC_HOSTS}
-    username: ${ELASTIC_USERNAME}
-    password: ${ELASTIC_PASSWORD}
+    index-prefix: ${ELASTICSEARCH_INDEX_PREFIX}
+    hosts: ${ELASTICSEARCH_HOSTS}
+    password: ${ELASTICSEARCH_PASSWORD}
     bulk-size: 2000
     flush-interval: 5
     ssl-enabled: true
-    number-of-shards: 3
-    number-of-replicas: 2
+    number-of-shards: ${ELASTICSEARCH_SHARDS}
+    number-of-replicas: ${ELASTICSEARCH_REPLICAS}
     retry:
       max-attempts: 5
       initial-interval: 1000
       multiplier: 2.0
       max-interval: 30000
   file-config:
-    base-path: /var/log/kopingenieria/prod
-    max-file-size: 100
-    max-history: 30
+    base-path: ${LOG_BASE_DIR}
+    max-file-size: ${LOG_MAX_FILE_SIZE}
+    max-history: ${LOG_MAX_HISTORY}
     compress-backups: true
-    root-level: WARN
+    root-level: ${LOG_LEVEL}
     application-level: INFO
   security:
     enable-audit: true
-    audit-log-path: /var/log/kopingenieria/prod/audit
+    audit-log-path: ${LOG_BASE_DIR}/audit
     mask-sensitive-data: true
   performance:
     enable-metrics: true
@@ -50,16 +36,13 @@ app:
     async-logging: true
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT}
+  servlet:
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH}
   tomcat:
-    max-threads: 200
-    accept-count: 100
-    max-connections: 10000
-  compression:
-    enabled: true
-    min-response-size: 1024
-  http2:
-    enabled: true
+    max-threads: ${SERVER_TOMCAT_MAX_THREADS}
+    min-spare-threads: ${SERVER_TOMCAT_MIN_SPARE_THREADS}
+    max-http-header-size: ${MAX_HTTP_HEADER_SIZE}
   ssl:
     enabled: true
     key-store: ${SSL_KEYSTORE_PATH}
@@ -78,6 +61,8 @@ management:
       probes:
         enabled: true
   metrics:
+    tags:
+      application: ${SERVICE_NAME}
     export:
       prometheus:
         enabled: true
@@ -102,14 +87,28 @@ resilience4j:
 
 logging:
   level:
-    root: WARN
-    org.kopingenieria: INFO
+    root: ${LOG_LEVEL}
+    ${SERVICE_GROUP}: INFO
     org.springframework: WARN
-    org.hibernate: ERROR
+  pattern:
+    console: ${LOG_PATTERN}
+    file: ${LOG_PATTERN}
+  logback:
+    rollingpolicy:
+      max-history: ${LOG_MAX_HISTORY}
+      max-file-size: ${LOG_MAX_FILE_SIZE}
+      total-size-cap: ${LOG_TOTAL_SIZE_CAP}
 
 cache:
   caffeine:
     spec: maximumSize=10000,expireAfterWrite=1h
+
+info:
+  app:
+    name: ${SERVICE_NAME}
+    version: ${SERVICE_VERSION}
+    description: ${SERVICE_DESCRIPTION}
+    group: ${SERVICE_GROUP}
 
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}

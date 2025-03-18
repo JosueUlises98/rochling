@@ -21,6 +21,7 @@
         <option value="$PROJECT_DIR$/monitoring/pom.xml" />
         <option value="$PROJECT_DIR$/services/REPORTS/pom.xml" />
         <option value="$PROJECT_DIR$/services/TLS/pom.xml" />
+        <option value="$PROJECT_DIR$/services/USERS/pom.xml" />
       </set>
     </option>
   </component>

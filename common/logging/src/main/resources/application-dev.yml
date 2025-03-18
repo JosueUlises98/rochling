@@ -1,15 +1,7 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/kopdb_dev
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
+  config:
+    activate:
+      on-profile: ${SPRING_PROFILES_ACTIVE}
   devtools:
     restart:
       enabled: true
@@ -20,20 +12,19 @@ spring:
 
 app:
   elasticsearch:
-    index-prefix: kop-logs-dev
-    hosts:
-      - http://localhost:9200
+    index-prefix: ${ELASTICSEARCH_INDEX_PREFIX}-${SPRING_PROFILES_ACTIVE}
+    hosts: ${ELASTICSEARCH_HOSTS}
     bulk-size: 500
     flush-interval: 1
     ssl-enabled: false
-    number-of-shards: 1
-    number-of-replicas: 0
+    number-of-shards: ${ELASTICSEARCH_SHARDS}
+    number-of-replicas: ${ELASTICSEARCH_REPLICAS}
   file-config:
-    base-path: /var/log/kopingenieria/dev
-    max-file-size: 10
-    max-history: 3
+    base-path: ${LOG_BASE_DIR}
+    max-file-size: ${LOG_MAX_FILE_SIZE}
+    max-history: ${LOG_MAX_HISTORY}
     compress-backups: false
-    root-level: DEBUG
+    root-level: ${LOG_LEVEL}
     application-level: TRACE
   security:
     enable-audit: false
@@ -44,29 +35,11 @@ app:
     queue-size: 256
     async-logging: false
 
-server:
-  port: 8080
-  error:
-    include-stacktrace: always
-    include-message: always
-
-management:
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-
 logging:
   level:
-    root: DEBUG
-    org.kopingenieria: TRACE
+    root: ${LOG_LEVEL}
+    ${SERVICE_GROUP}: TRACE
     org.springframework: DEBUG
-    org.hibernate: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql: TRACE
 
 cors:
   allowed-origins: "*"

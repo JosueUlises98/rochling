@@ -242,22 +242,6 @@ public class InfraestructureConfig {
         configureSystem();
     }
 
-    @SneakyThrows
-    @Bean
-    public ElasticsearchClient elasticsearchClient() {
-        RestClientBuilder builder = RestClient.builder(
-                Arrays.toString(elasticsearch.getHosts().stream()
-                        .map(HttpHost::create)
-                        .toArray(HttpHost[]::new))
-        );
-        return new ElasticsearchClient(
-                new RestClientTransport(
-                        builder.build(),
-                        new JacksonJsonpMapper(objectMapper())
-                )
-        );
-    }
-
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper()

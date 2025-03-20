@@ -6,12 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.kopingenieria.logging.exception.LogWriteException;
 import org.kopingenieria.logging.exception.LogWriteFailureEvent;
 import org.kopingenieria.logging.model.*;
-import org.kopingenieria.domain.*;
-import org.logging.model.*;
 import org.kopingenieria.logging.service.LoggingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

@@ -1,10 +1,7 @@
 package org.kopingenieria.api.validator;
 
 import lombok.RequiredArgsConstructor;
-import org.kopingenieria.api.request.OpcUaAuthenticationRequest;
-import org.kopingenieria.api.request.OpcUaConnectionRequest;
-import org.kopingenieria.api.request.OpcUaSessionRequest;
-import org.kopingenieria.api.request.SubscriptionRequest;
+import org.kopingenieria.api.request.*;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.exception.ValidationRequestException;
@@ -148,6 +145,102 @@ public class RequestValidator {
         throwIfErrors(errors, "suscripción OPC UA");
     }
 
+    @LogMethod(
+            description = "Validación de parámetros de configuración OPC UA",
+            operation = "VALIDATE_PARAMETERS",
+            level = LogLevel.INFO
+    )
+    @LogException(
+            message = "Error en validación de parámetros OPC UA",
+            method = "VALIDATE_PARAMETERS_ERROR",
+            level = LogLevel.ERROR,
+            stackTrace = {""}
+    )
+    @Auditable(
+            value = "PARAMETERS_VALIDATION",
+            type = AuditEntryType.OPERATION,
+            description = "Validación de parámetros generales OPC UA"
+    )
+    public void validateParameters(OpcUaConfigRequest request) throws ValidationRequestException {
+        List<String> errors = new ArrayList<>();
+        validateNotNull(request, "request de configuración", errors);
+
+        if (request != null) {
+            // Validación de campos obligatorios
+            if (request.getName() == null || request.getName().trim().isEmpty()) {
+                errors.add("El nombre de la configuración no puede estar vacío");
+            }
+
+            if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
+                errors.add("La descripción no puede estar vacía");
+            }
+
+            if (request.getEnabled() == null) {
+                errors.add("El estado habilitado/deshabilitado es obligatorio");
+            }
+
+            // Validación de listas
+            validateSubscriptionsList(request.getSubscriptions(), errors);
+            validateMonitoringEventsList(request.getMonitoringEvents(), errors);
+
+            // Validación de configuración industrial
+            validateIndustrialConfiguration(request.getIndustrialConfiguration(), errors);
+        }
+
+        throwIfErrors(errors, "parámetros de configuración OPC UA");
+    }
+
+    private void validateSubscriptionsList(List<SubscriptionRequest> subscriptions, List<String> errors) {
+        if (subscriptions == null) {
+            errors.add("La lista de suscripciones no puede ser nula");
+        } else if (subscriptions.isEmpty()) {
+            errors.add("Debe haber al menos una suscripción");
+        } else {
+            for (int i = 0; i < subscriptions.size(); i++) {
+                if (subscriptions.get(i) == null) {
+                    errors.add("La suscripción en el índice " + i + " no puede ser nula");
+                }
+            }
+        }
+    }
+
+    private void validateMonitoringEventsList(List<MonitoringEventRequest> events, List<String> errors) {
+        if (events == null) {
+            errors.add("La lista de eventos de monitoreo no puede ser nula");
+        } else if (events.isEmpty()) {
+            errors.add("Debe haber al menos un evento de monitoreo");
+        } else {
+            for (int i = 0; i < events.size(); i++) {
+                if (events.get(i) == null) {
+                    errors.add("El evento de monitoreo en el índice " + i + " no puede ser nulo");
+                }
+            }
+        }
+    }
+
+    private void validateIndustrialConfiguration(OpcUaConfigRequest.IndustrialConfigurationRequest config, List<String> errors) {
+        if (config == null) {
+            errors.add("La configuración industrial no puede ser nula");
+            return;
+        }
+
+        if (config.getIndustrialZone() == null || config.getIndustrialZone().trim().isEmpty()) {
+            errors.add("La zona industrial no puede estar vacía");
+        }
+
+        if (config.getEquipmentId() == null || config.getEquipmentId().trim().isEmpty()) {
+            errors.add("El ID del equipo no puede estar vacío");
+        }
+
+        if (config.getAreaId() == null || config.getAreaId().trim().isEmpty()) {
+            errors.add("El ID del área no puede estar vacío");
+        }
+
+        if (config.getProcessId() == null || config.getProcessId().trim().isEmpty()) {
+            errors.add("El ID del proceso no puede estar vacío");
+        }
+    }
+
     private void validateNotNull(Object value, String fieldName, List<String> errors) {
         if (value == null) {
             errors.add(String.format("El %s no puede ser nulo", fieldName));
@@ -187,7 +280,6 @@ public class RequestValidator {
             errors.add(String.format("El archivo de %s debe tener una extensión válida %s",
                     fileType, validExtensions));
         }
-
         File file = new File(path);
         if (!file.exists()) {
             errors.add(String.format("El archivo de %s no existe en la ruta especificada", fileType));
@@ -214,11 +306,9 @@ public class RequestValidator {
             errors.add("La URL del endpoint no puede estar vacía");
             return;
         }
-
         if (!URL_PATTERN.matcher(url).matches()) {
             errors.add("La URL del endpoint tiene un formato inválido");
         }
-
         validatePort(url, errors);
     }
 

@@ -222,7 +222,7 @@ public class OpcuaConnection extends ConnectionService {
             // Usamos CompletableFuture y desempaquetamos posibles excepciones
             return CompletableFuture.supplyAsync(() -> {
                         // Validar que la sesión está activa y que la URL es válida
-                        if (!(validatorConection.sesionActiva(opcUaClient) && validatorConection.validateLocalHost(targeturl.getUrl()))) {
+                        if (!(validatorConection.validateActiveSession(opcUaClient) && validatorConection.validateLocalHost(targeturl.getUrl()))) {
                             logger.warn("La sesión OPC UA no está activa");
                             throw new CompletionException(new ConnectionException("La sesión OPC UA no está activa o la URL es inválida."));
                         }
@@ -651,6 +651,8 @@ public class OpcuaConnection extends ConnectionService {
 
     @Override
     public void close() throws Exception {
-
+        if (opcUaClient != null) {
+            opcUaClient.disconnect();
+        }
     }
 }

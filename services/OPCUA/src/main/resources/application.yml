@@ -1,0 +1,63 @@
+opcua:
+  name: ${OPCUA_NAME:OPC UA Configuration}
+  description: ${OPCUA_DESCRIPTION:Configuración principal del cliente OPC UA}
+  enabled: ${OPCUA_ENABLED:true}
+  version: ${OPCUA_VERSION:1}
+
+  connection:
+    endpoint-url: ${OPCUA_ENDPOINT_URL:opc.tcp://localhost:4840}
+    application-name: ${OPCUA_APP_NAME:KopIngenieria OPC UA Client}
+    application-uri: ${OPCUA_APP_URI:urn:kopingenieria:client}
+    product-uri: ${OPCUA_PRODUCT_URI:urn:kopingenieria:client:product}
+    request-timeout: ${OPCUA_REQUEST_TIMEOUT:5000}
+    channel-lifetime: ${OPCUA_CHANNEL_LIFETIME:300000}
+
+  authentication:
+    username: ${OPCUA_AUTH_USERNAME:}
+    password: ${OPCUA_AUTH_PASSWORD:}
+    security-policy: ${OPCUA_SECURITY_POLICY:Basic256Sha256}
+    security-mode: ${OPCUA_SECURITY_MODE:SignAndEncrypt}
+    certificate-path: ${OPCUA_CERT_PATH:certificates/client.der}
+    private-key-path: ${OPCUA_KEY_PATH:certificates/client.pem}
+    anonymous: ${OPCUA_AUTH_ANONYMOUS:false}
+
+  encryption:
+    security-policy: ${OPCUA_ENCRYPTION_SECURITY_POLICY:Basic256Sha256}
+    message-mode: ${OPCUA_ENCRYPTION_MESSAGE_MODE:SignAndEncrypt}
+    algorithm: ${OPCUA_ENCRYPTION_ALGORITHM:AES}
+    key-size: ${OPCUA_ENCRYPTION_KEY_SIZE:256}
+    certificate-type: ${OPCUA_ENCRYPTION_CERT_TYPE:DER}
+    validate-certificate: ${OPCUA_ENCRYPTION_VALIDATE_CERT:true}
+
+  session:
+    session-name: ${OPCUA_SESSION_NAME:KopIngenieria Session}
+    session-timeout: ${OPCUA_SESSION_TIMEOUT:60000}
+    max-response-message-size: ${OPCUA_SESSION_MAX_RESPONSE_SIZE:65535}
+    max-request-message-size: ${OPCUA_SESSION_MAX_REQUEST_SIZE:65535}
+    publishing-enabled: ${OPCUA_SESSION_PUBLISHING_ENABLED:true}
+
+  subscriptions:
+    - name: ${OPCUA_SUB_NAME:Subscription1}
+      publishing-interval: ${OPCUA_SUB_PUBLISHING_INTERVAL:1000.0}
+      lifetime-count: ${OPCUA_SUB_LIFETIME_COUNT:1000}
+      max-keep-alive-count: ${OPCUA_SUB_MAX_KEEPALIVE_COUNT:500}
+      max-notifications-per-publish: ${OPCUA_SUB_MAX_NOTIFICATIONS:1000}
+      priority: ${OPCUA_SUB_PRIORITY:1}
+      publishing-enabled: ${OPCUA_SUB_PUBLISHING_ENABLED:true}
+
+  monitoring-events:
+    - node-id: ${OPCUA_MONITOR_NODE_ID:ns=2;s=Device1.Tag1}
+      browse-path: ${OPCUA_MONITOR_BROWSE_PATH:Channel1.Device1.Tag1}
+      display-name: ${OPCUA_MONITOR_DISPLAY_NAME:Temperature Sensor 1}
+      sampling-interval: ${OPCUA_MONITOR_SAMPLING_INTERVAL:1000.0}
+      queue-size: ${OPCUA_MONITOR_QUEUE_SIZE:1}
+      discard-oldest: ${OPCUA_MONITOR_DISCARD_OLDEST:true}
+      monitoring-mode: ${OPCUA_MONITOR_MODE:Reporting}
+      data-type: ${OPCUA_MONITOR_DATA_TYPE:Double}
+      trigger-type: ${OPCUA_MONITOR_TRIGGER_TYPE:StatusValue}
+
+  industrial-configuration:
+    industrial-zone: ${OPCUA_INDUSTRIAL_ZONE:ZONE_001}
+    equipment-id: ${OPCUA_EQUIPMENT_ID:EQ_001}
+    area-id: ${OPCUA_AREA_ID:AREA_001}
+    process-id: ${OPCUA_PROCESS_ID:PROC_001}

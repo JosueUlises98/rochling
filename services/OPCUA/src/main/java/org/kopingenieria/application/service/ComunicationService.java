@@ -170,42 +170,10 @@ public abstract class ComunicationService implements Comunication {
             if (nodesResponse.getTypeId().isNull()){
                 logger.info("Eliminacion exitosa del nodo {}", nodeId);
             }else {
-                throw new UaException(123,);
+                throw new UaException(StatusCode.BAD,"Error durante la eliminacion");
             }
         } catch (Exception e) {
             logger.error("Error al eliminar el nodo '{}': {}", nodeId, e.getMessage());
-        }
-    }
-    /**
-     * Subscribes to a specific node on the OPC-UA server for monitoring and updates.
-     * The method establishes a monitored item subscription for the given node ID,
-     * enabling the system to receive updates whenever the value of the node changes.
-     *
-     * @param nodeId The ID of the node to which the subscription should be created.
-     *               This identifies the specific node in the OPC-UA server's address space.
-     * @param options A map of additional options for the subscription. This may include
-     *                parameters such as monitoring intervals, subscription settings,
-     *                or other context-specific options.
-     */
-    @Override
-    public void suscripcion(NodeId nodeId, Map<String, Object> options) {
-        try {
-            if (session == null || session.getSessionId() == null) {
-                throw new UaException(StatusCodes.Bad_ServerNotConnected);
-            }
-            session.getSubscriptionManager()
-                    .createSubscription(1000.0) // Intervalo de monitoreo (ms)
-                    .thenCompose(subscription ->
-                            subscription.createMonitoredItems(
-                                            TimestampsToReturn.Both,
-                                            Collections.singletonList(new MonitoredItemCreateRequest(
-                                                    new ReadValueId(nodeId, AttributeId.Value.uid(), null, null),
-                                                    MonitoringMode.Reporting,
-                                                    null)))
-                                    .thenAccept(monitoredItems -> monitoredItems.forEach(item -> item.setValueConsumer((mi, value) ->
-                                            logger.info("Actualización en el nodo {}: {}", nodeId, value.getValue())))));
-        } catch (Exception e) {
-            logger.error("Error al suscribirse al nodo {}: {}", nodeId, e.getMessage());
         }
     }
 }

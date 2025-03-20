@@ -1,12 +1,11 @@
 package org.kopingenieria.validators;
 
-import org.apache.commons.lang.StringUtils;
+import io.micrometer.common.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.connection.UrlType;
-
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.function.Supplier;

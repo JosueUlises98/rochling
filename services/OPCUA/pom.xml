@@ -16,143 +16,79 @@
 
     <properties>
         <resilience4j.version>2.1.0</resilience4j.version>
+        <sdk-client.version>0.6.15</sdk-client.version>
+        <sdk-server.version>0.6.15</sdk-server.version>
+        <jackson-databind.version>2.15.2</jackson-databind.version>
+        <itextpdf-kernel.version>7.2.5</itextpdf-kernel.version>
+        <itextpdf-layout.version>7.2.5</itextpdf-layout.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <jaxb-impl.version>2.3.1</jaxb-impl.version>
+        <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
+        <mongo-java-driver.version>3.12.11</mongo-java-driver.version>
+        <commons-io.version>2.14.0</commons-io.version>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>audit</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>
-            <version>0.6.15</version>
+            <version>${sdk-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-server</artifactId>
-            <version>0.6.15</version>
+            <version>${sdk-server.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.15.2</version>
+            <version>${jackson-databind.version}</version>
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>kernel</artifactId>
-            <version>7.2.5</version>
+            <version>${itextpdf-kernel.version}</version>
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>layout</artifactId>
-            <version>7.2.5</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>9.2.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-netflix-eureka-client -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>4.2.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>3.9.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <version>3.4.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>3.4.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-            <version>3.4.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/grafana -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>grafana</artifactId>
-            <version>2.30.8</version>
+            <version>${itextpdf-layout.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
+            <version>${jaxb-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
-            <version>2.3.1</version>
+            <version>${jaxb-impl.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.1</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.36</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.16</version>
-        </dependency>
-        <!-- Alerting -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-            <version>3.3.4</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.slack.api/slack-app-backend -->
-        <dependency>
-            <groupId>com.slack.api</groupId>
-            <artifactId>slack-app-backend</artifactId>
-            <version>1.45.3</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.sun.mail/javax.mail -->
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.twilio.sdk/twilio -->
-        <dependency>
-            <groupId>com.twilio.sdk</groupId>
-            <artifactId>twilio</artifactId>
-            <version>10.6.9</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-            <version>3.3.3</version>
+            <version>${jaxb-runtime.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.12.11</version>
+            <version>${mongo-java-driver.version}</version>
         </dependency>
         <!-- Para compresión GZIP (si usas la funcionalidad de compresión) -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.14.0</version>
+            <version>${commons-io.version}</version>
         </dependency>
     </dependencies>
 </project>

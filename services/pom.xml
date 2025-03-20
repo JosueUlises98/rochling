@@ -20,10 +20,6 @@
         <module>SSH</module>
         <module>TCP</module>
         <module>TRACEABILITY</module>
-        <module>USERS</module>
         <module>SAP</module>
     </modules>
-
-
-
 </project>

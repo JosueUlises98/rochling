@@ -2,7 +2,7 @@ package org.kopingenieria.application.db.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.kopingenieria.api.request.AuthenticationRequest;
+import org.kopingenieria.api.request.OpcUaAuthenticationRequest;
 import org.kopingenieria.api.response.AuthenticationResponse;
 import org.kopingenieria.domain.enums.communication.MessageSecurityMode;
 import org.kopingenieria.domain.enums.connection.SecurityPolicy;
@@ -27,7 +27,7 @@ public final class OpcUaAuthentication extends Authentication {
     private Long id;
 
     @Column(name = "security_policy")
-    private AuthenticationRequest request;
+    private OpcUaAuthenticationRequest request;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "security_policy")

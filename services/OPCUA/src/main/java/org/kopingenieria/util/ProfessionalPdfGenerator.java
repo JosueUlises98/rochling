@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class ProfessionalPdfGenerator {
 
-    private String outputFilePath;
+    private final String outputFilePath;
 
     public ProfessionalPdfGenerator(String outputFilePath) {
         this.outputFilePath = outputFilePath;

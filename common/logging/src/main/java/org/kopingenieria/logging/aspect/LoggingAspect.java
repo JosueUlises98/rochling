@@ -9,7 +9,7 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.kopingenieria.logging.model.*;
-import org.kopingenieria.model.*;
+import org.kopingenieria.domain.*;
 import org.logging.model.*;
 import org.kopingenieria.logging.service.LoggingService;
 import org.springframework.stereotype.Component;

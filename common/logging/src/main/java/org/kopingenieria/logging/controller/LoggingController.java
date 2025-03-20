@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kopingenieria.logging.exception.LogWriteException;
 import org.kopingenieria.logging.exception.LogWriteFailureEvent;
 import org.kopingenieria.logging.model.*;
-import org.kopingenieria.model.*;
+import org.kopingenieria.domain.*;
 import org.logging.model.*;
 import org.kopingenieria.logging.service.LoggingService;
 import org.springframework.http.ResponseEntity;

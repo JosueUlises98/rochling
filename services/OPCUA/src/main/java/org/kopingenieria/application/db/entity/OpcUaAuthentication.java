@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.kopingenieria.api.request.OpcUaAuthenticationRequest;
 import org.kopingenieria.api.response.AuthenticationResponse;
-import org.kopingenieria.domain.enums.communication.MessageSecurityMode;
-import org.kopingenieria.domain.enums.connection.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.io.Serial;
 

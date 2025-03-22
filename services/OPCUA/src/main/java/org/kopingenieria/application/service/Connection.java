@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
  * - ping(): Verifies the health and status of the current connection to ensure connectivity.
  *   Throws an exception if connectivity cannot be verified.
  */
-public interface Connection {
+public interface Connection extends AutoCloseable {
     /**
      * Establishes a connection to an external system or resource asynchronously.
      *

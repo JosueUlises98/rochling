@@ -1,4 +1,4 @@
-package org.kopingenieria.domain.enums.connection;
+package org.kopingenieria.domain.enums.security;
 
 public enum SecurityPolicy {
     NONE,

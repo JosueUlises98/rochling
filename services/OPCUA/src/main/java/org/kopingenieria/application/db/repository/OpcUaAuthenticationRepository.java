@@ -1,8 +1,8 @@
 package org.kopingenieria.application.db.repository;
 
 import org.kopingenieria.application.db.entity.OpcUaAuthentication;
-import org.kopingenieria.domain.enums.communication.MessageSecurityMode;
-import org.kopingenieria.domain.enums.connection.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;

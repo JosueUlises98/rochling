@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.kopingenieria.domain.enums.communication.MessageSecurityMode;
-import org.kopingenieria.domain.enums.connection.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 
 @Data
 @Builder

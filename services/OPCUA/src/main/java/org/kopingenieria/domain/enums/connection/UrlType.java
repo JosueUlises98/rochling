@@ -34,7 +34,7 @@ public enum UrlType {
     public static class OpcUa {
         public static final String LOCAL = "opc.tcp://localhost:4840";
         public static final String REMOTE = "opc.tcp://servidor.ejemplo.com:4840";
-        public static final String SECURE = "opc.tcp://secure.ejemplo.com:4843";
+        public static final String SECURE = "opc.tcp://secure.ejemplo.com:4840";
 
         private OpcUa() {}
     }

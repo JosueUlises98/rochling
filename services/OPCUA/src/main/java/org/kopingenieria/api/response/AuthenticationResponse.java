@@ -3,8 +3,8 @@ package org.kopingenieria.api.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
-import org.kopingenieria.domain.enums.communication.MessageSecurityMode;
-import org.kopingenieria.domain.enums.connection.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 
 import java.time.LocalDateTime;
 

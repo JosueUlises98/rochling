@@ -12,14 +12,13 @@ import org.kopingenieria.exception.OpcUaPingException;
 import org.kopingenieria.exception.OpcUaReconnectionException;
 import org.kopingenieria.util.ConfigurationLoader;
 import org.kopingenieria.validators.OpcUaConnectionValidator;
-
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class OpcuaConnection extends ConnectionService {
+public class OpcuaConnection implements Connection {
     /**
      * Logger instance used for logging informational, warning, and error messages
      * related to the operations of the PlcConnect class.

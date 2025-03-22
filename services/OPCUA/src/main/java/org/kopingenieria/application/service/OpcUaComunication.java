@@ -3,28 +3,22 @@ package org.kopingenieria.application.service;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.OpcUaSession;
-import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.StatusCodes;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.DeleteNodesItem;
 import org.eclipse.milo.opcua.stack.core.types.structured.DeleteNodesResponse;
-import org.eclipse.milo.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
-import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class ComunicationService implements Comunication {
+public class OpcUaComunication implements Comunication {
     /**
      * Logger instance used for logging operations throughout the ComunicacionClienteService class.
      *
@@ -36,7 +30,7 @@ public abstract class ComunicationService implements Comunication {
      * throughout the lifecycle of the class, promoting efficient memory usage and consistency
      * across all logging operations.
      */
-    private static final Logger logger = LoggerFactory.getLogger(ComunicationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpcUaComunication.class);
     /**
      * Represents an instance of the ConexionClienteService used to manage
      * client communication and interactions within the service.
@@ -67,7 +61,7 @@ public abstract class ComunicationService implements Comunication {
      * @param opcuaserver the OPC UA server handling server-side operations
      * @param opcuaclient the OPC UA client used for client-side interactions
      */
-    public ComunicationService(OpcUaSession session,OpcUaClient opcuaclient) {
+    public OpcUaComunication(OpcUaSession session, OpcUaClient opcuaclient) {
         this.session=session;
         this.opcuaclient = opcuaclient;
     }
@@ -175,5 +169,9 @@ public abstract class ComunicationService implements Comunication {
         } catch (Exception e) {
             logger.error("Error al eliminar el nodo '{}': {}", nodeId, e.getMessage());
         }
+    }
+
+    @Override
+    public void suscripcion(NodeId nodeId, Map<String, Object> options) {
     }
 }

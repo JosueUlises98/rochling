@@ -1,4 +1,4 @@
-package org.kopingenieria.domain.enums.communication;
+package org.kopingenieria.domain.enums.security;
 
 public enum MessageSecurityMode {
     NONE,

@@ -2,6 +2,7 @@ package org.kopingenieria.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +42,7 @@ public class OpcUaConfiguration {
     private IndustrialConfiguration industrialConfiguration;
 
     @Data
+    @Builder
     public static class Connection {
         private String endpointUrl;
         private String applicationName;
@@ -51,6 +53,7 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class Authentication {
         private String username;
         private String password;
@@ -62,6 +65,7 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class Encryption {
         private String securityPolicy;
         private String messageMode;
@@ -72,6 +76,7 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class Session {
         private String sessionName;
         private Integer sessionTimeout;
@@ -81,6 +86,7 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class Subscription {
         private String name;
         private Double publishingInterval;
@@ -92,6 +98,7 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class MonitoringEvent {
         private String nodeId;
         private String browsePath;
@@ -105,10 +112,13 @@ public class OpcUaConfiguration {
     }
 
     @Data
+    @Builder
     public static class IndustrialConfiguration {
         private String industrialZone;
         private String equipmentId;
         private String areaId;
         private String processId;
+        private String operatorName;
+        private String operatorId;
     }
 }

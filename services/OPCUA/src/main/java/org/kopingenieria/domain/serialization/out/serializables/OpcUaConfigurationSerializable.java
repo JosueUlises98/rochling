@@ -3,8 +3,7 @@ package org.kopingenieria.domain.serialization.out.serializables;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.application.db.entity.OpcUaConfiguration;
-
+import org.kopingenieria.domain.model.ConfigurationOpcUa;
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class OpcUaConfigurationSerializable extends OpcUaSerializable {
     @XmlElement(name = "configuration")
     @NotNull(message = "La configuracion no puede ser nulo")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private OpcUaConfiguration opcuaConfiguration;
+    private ConfigurationOpcUa opcuaConfiguration;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

@@ -1,24 +1,25 @@
 package org.kopingenieria.validators;
 
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import java.util.concurrent.CompletableFuture;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.ApplicationType;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.UserTokenType;
 import org.eclipse.milo.opcua.stack.core.types.structured.ApplicationDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.UserTokenPolicy;
-import org.springframework.beans.factory.annotation.Value;
+import org.kopingenieria.application.service.opcua.OpcuaConnection;
+import org.kopingenieria.exception.OpcUaConfigurationException;
+
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateFactory;
 import java.io.ByteArrayInputStream;
@@ -29,18 +30,11 @@ import java.util.regex.Pattern;
 
 public class OpcUaAuthenticationValidator implements AuthenticationValidator {
 
-    private static final Logger logger = LogManager.getLogger(OpcUaAuthenticationValidator.class);
-
-    @Value("${opcua.server.endpoint}")
-    private String opcUaEndpoint;
-
-    @Value("${opcua.session.timeout}")
-    private long sessionTimeoutMinutes;
-
     private final Pattern passwordPattern;
+    private final OpcuaConnection initialConnection;
 
-    public OpcUaAuthenticationValidator() {
-        // Patrón para validar complejidad de contraseña
+    public OpcUaAuthenticationValidator() throws OpcUaConfigurationException {
+        initialConnection=new OpcuaConnection();
         this.passwordPattern = Pattern.compile(
                 "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
         );
@@ -49,41 +43,17 @@ public class OpcUaAuthenticationValidator implements AuthenticationValidator {
     @Override
     public boolean validateUserCredentials(String username, String password) {
         try {
-            logger.debug("Validando credenciales para usuario: {}", username);
-
-            // Configurar los parámetros de autenticación
-            UsernameProvider identityProvider = new UsernameProvider(username, password);
-
-            // Crear configuración del cliente
-            OpcUaClientConfig config = OpcUaClientConfig.builder()
-                    .setIdentityProvider(identityProvider)
-                    .setEndpoint(createSecureEndpointWithUserNameAndPassword(opcUaEndpoint))
-                    .setRequestTimeout(Unsigned.uint(5000))
-                    .build();
-
             // Intentar conectar al servidor usando las credenciales
 
-            CompletableFuture<OpcUaClient> connect = CompletableFuture.supplyAsync(() -> {
-                try {
-                    OpcUaClient opcUaClient = OpcUaClient.create(config);
-                    opcUaClient.connect();
-                    return opcUaClient;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            // Esperar la respuesta y verificar la conexión
-            OpcUaClient connectedClient = connect.get();
-            boolean isConnected = !connectedClient.getSession().resultNow().isEmpty();
+            boolean connectedClient = initialConnection.connect().get();
 
-            if (isConnected) {
-                connectedClient.disconnect().get();
+            if (connectedClient) {
+                initialConnection.disconnect().get();
             }
 
-            return isConnected;
+            return connectedClient;
 
         } catch (Exception e) {
-            logger.error("Error al validar credenciales: {}", e.getMessage());
             return false;
         }
     }
@@ -91,27 +61,16 @@ public class OpcUaAuthenticationValidator implements AuthenticationValidator {
     @Override
     public boolean validateClientCertificate(String certificate) {
         try {
-            logger.debug("Validando certificado del cliente");
-
-            // Decodificar certificado de Base64
-            byte[] certBytes = Base64.getDecoder().decode(certificate);
-            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-            X509Certificate x509Cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
-
-            // Configurar parámetros de seguridad para validación de certificado
-            OpcUaClientConfig config = OpcUaClientConfig.builder()
-                    .setCertificate(x509Cert)
-                    .setEndpoint(createSecureEndpointWihCertificate(opcUaEndpoint, x509Cert))
-                    .build();
-
             CompletableFuture<OpcUaClient> connect = CompletableFuture.supplyAsync(() -> {
-                try {
-                    OpcUaClient opcUaClient = OpcUaClient.create(config);
-                    opcUaClient.connect();
-                    return opcUaClient;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                    // Intentar conectar al servidor usando las credenciales
+
+                    boolean connectedClient = initialConnection.connect().get();
+
+                    if (connectedClient) {
+                        initialConnection.disconnect().get();
+                    }
+
+                    return connectedClient;
             });
             // Si la conexión es exitosa, el certificado es válido
             OpcUaClient connectedClient = connect.get();
@@ -124,7 +83,6 @@ public class OpcUaAuthenticationValidator implements AuthenticationValidator {
             return isValid;
 
         } catch (Exception e) {
-            logger.error("Error al validar certificado: {}", e.getMessage());
             return false;
         }
     }

@@ -3,8 +3,7 @@ package org.kopingenieria.domain.serialization.out.serializables;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.application.db.entity.OpcUaAuthentication;
-
+import org.kopingenieria.domain.model.AuthenticationConfiguration;
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class OpcUaAuthenticationSerializable extends OpcUaSerializable {
     @XmlElement(name = "authentication")
     @NotNull(message = "La solicitud de autenticacion OPC UA no puede ser nula")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private OpcUaAuthentication authentication;
+    private AuthenticationConfiguration authentication;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

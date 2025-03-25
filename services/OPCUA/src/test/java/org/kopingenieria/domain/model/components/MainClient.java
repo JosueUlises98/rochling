@@ -2,7 +2,7 @@ package org.kopingenieria.domain.model.components;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.kopingenieria.application.service.OpcuaConnection;
+import org.kopingenieria.application.service.opcua.OpcuaConnection;
 import org.kopingenieria.domain.enums.connection.UrlType;
 import org.kopingenieria.exception.ConnectionException;
 import java.util.concurrent.CompletableFuture;

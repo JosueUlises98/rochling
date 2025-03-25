@@ -16,9 +16,6 @@
 
     <modules>
         <module>OPCUA</module>
-        <module>SHELL</module>
-        <module>SSH</module>
-        <module>TCP</module>
         <module>TRACEABILITY</module>
         <module>SAP</module>
     </modules>

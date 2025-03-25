@@ -40,10 +40,6 @@ public class OpcUaConfigRequest {
     @Size(min = 1, message = "Debe haber al menos una suscripción")
     private List<@NotNull(message = "La suscripción no puede ser nula") SubscriptionRequest> subscriptions;
 
-    @NotNull(message = "La lista de eventos de monitoreo no puede ser nula")
-    @Size(min = 1, message = "Debe haber al menos un evento de monitoreo")
-    private List<@NotNull(message = "El evento de monitoreo no puede ser nulo") MonitoringEventRequest> monitoringEvents;
-
     @NotNull(message = "La configuración industrial es obligatoria")
     private IndustrialConfigurationRequest industrialConfiguration;
 
@@ -60,5 +56,9 @@ public class OpcUaConfigRequest {
         private String areaId;
         @NotNull(message = "Process ID cannot be null")
         private String processId;
+        @NotNull(message = "Operator name cannot be null")
+        private String operatorName;
+        @NotNull(message = "Operator ID cannot be null")
+        private String operatorId;
     }
 }

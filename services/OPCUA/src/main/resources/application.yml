@@ -1,5 +1,5 @@
 opcua:
-  name: ${OPCUA_NAME:OPC UA Configuration}
+  filename: ${OPCUA_NAME:OPC UA Configuration}
   description: ${OPCUA_DESCRIPTION:Configuración principal del cliente OPC UA}
   enabled: ${OPCUA_ENABLED:true}
   version: ${OPCUA_VERSION:1}
@@ -13,13 +13,13 @@ opcua:
     channelLifetime: ${OPCUA_CHANNEL_LIFETIME:300000}
 
   authentication:
-    username: ${OPCUA_AUTH_USERNAME:}
-    password: ${OPCUA_AUTH_PASSWORD:}
+    identityProvider: ${OPCUA_IDENTITY_PROVIDER:ANONYMOUS}
+    userName: ${OPCUA_USERNAME:USER}
+    password: ${OPCUA_PASSWORD:PASSWORD}
     securityPolicy: ${OPCUA_SECURITY_POLICY:Basic256Sha256}
     securityMode: ${OPCUA_SECURITY_MODE:SignAndEncrypt}
     certificatePath: ${OPCUA_CERT_PATH:certificates/client.der}
     privateKeyPath: ${OPCUA_KEY_PATH:certificates/client.pem}
-    anonymous: ${OPCUA_AUTH_ANONYMOUS:false}
 
   encryption:
     securityPolicy: ${OPCUA_ENCRYPTION_SECURITY_POLICY:Basic256Sha256}
@@ -44,17 +44,6 @@ opcua:
       maxNotificationsPerPublish: ${OPCUA_SUB_MAX_NOTIFICATIONS:1000}
       priority: ${OPCUA_SUB_PRIORITY:1}
       publishingEnabled: ${OPCUA_SUB_PUBLISHING_ENABLED:true}
-
-  monitoring-events:
-    - nodeId: ${OPCUA_MONITOR_NODE_ID:ns=2;s=Device1.Tag1}
-      browsePath: ${OPCUA_MONITOR_BROWSE_PATH:Channel1.Device1.Tag1}
-      displayName: ${OPCUA_MONITOR_DISPLAY_NAME:Temperature Sensor 1}
-      samplingInterval: ${OPCUA_MONITOR_SAMPLING_INTERVAL:1000.0}
-      queueSize: ${OPCUA_MONITOR_QUEUE_SIZE:1}
-      discardOldest: ${OPCUA_MONITOR_DISCARD_OLDEST:true}
-      monitoringMode: ${OPCUA_MONITOR_MODE:Reporting}
-      dataType: ${OPCUA_MONITOR_DATA_TYPE:Double}
-      triggerType: ${OPCUA_MONITOR_TRIGGER_TYPE:StatusValue}
 
   industrial-configuration:
     industrialZone: ${OPCUA_INDUSTRIAL_ZONE:ZONE_001}

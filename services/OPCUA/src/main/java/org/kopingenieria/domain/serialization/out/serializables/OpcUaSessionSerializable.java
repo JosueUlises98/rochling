@@ -3,8 +3,7 @@ package org.kopingenieria.domain.serialization.out.serializables;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.application.db.entity.OpcUaSession;
-
+import org.kopingenieria.domain.model.SessionConfiguration;
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class OpcUaSessionSerializable extends OpcUaSerializable {
     @XmlElement(name = "session")
     @NotNull(message = "La sesión OPC UA no puede ser nula")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private OpcUaSession session;
+    private SessionConfiguration session;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

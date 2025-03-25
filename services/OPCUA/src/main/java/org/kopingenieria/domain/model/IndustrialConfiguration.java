@@ -1,19 +1,22 @@
 package org.kopingenieria.domain.model;
 
-import jakarta.validation.constraints.NotNull;
+
 import lombok.Builder;
 import lombok.Data;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Data
 @Builder
-public class IndustrialConfiguration {
+public class IndustrialConfiguration implements Serializable {
 
-    @NotNull(message = "Industrial zone cannot be null")
+    @Serial
+    private static final long serialVersionUID = 6L;
+
     private String industrialZone;
-    @NotNull(message = "Equipment ID cannot be null")
     private String equipmentId;
-    @NotNull(message = "Area ID cannot be null")
     private String areaId;
-    @NotNull(message = "Process ID cannot be null")
     private String processId;
+    private String operatorName;
+    private String operatorId;
 }

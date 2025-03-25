@@ -4,10 +4,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.kopingenieria.domain.enums.connection.ConnectionType;
+import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.security.IdentityProvider;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
+import java.util.Objects;
 
 @Configuration
 @ConfigurationProperties(prefix = "opcua")
@@ -16,7 +26,7 @@ import java.util.List;
 public class OpcUaConfiguration {
 
     @NotBlank(message = "El nombre de la configuración es obligatorio")
-    private String name;
+    private String filename;
     @NotBlank(message = "La descripcion es obligatoria")
     private String description;
     @NotNull(message = "El estado habilitado/deshabilitado es obligatorio")
@@ -35,8 +45,8 @@ public class OpcUaConfiguration {
     @NotNull(message = "La sesión es obligatoria")
     private Session session;
 
+    @NotNull(message = "La lista de suscripciones no puede ser nula")
     private List<Subscription> subscriptions;
-    private List<MonitoringEvent> monitoringEvents;
 
     @NotNull(message = "La configuración industrial es obligatoria")
     private IndustrialConfiguration industrialConfiguration;
@@ -48,67 +58,85 @@ public class OpcUaConfiguration {
         private String applicationName;
         private String applicationUri;
         private String productUri;
-        private Integer requestTimeout;
-        private Integer channelLifetime;
+        private ConnectionType type;
+        private Timeouts timeout;
     }
 
     @Data
     @Builder
     public static class Authentication {
-        private String username;
+        private IdentityProvider identityProvider;
+        private String userName;
         private String password;
-        private String securityPolicy;
-        private String securityMode;
+        private SecurityPolicy securityPolicy;
+        private MessageSecurityMode messageSecurityMode;
         private String certificatePath;
         private String privateKeyPath;
-        private Boolean anonymous;
+        private String trustListPath;
+        private String issuerListPath;
+        private String revocationListPath;
+
+        public Boolean isAnonymous(){
+           Objects.requireNonNull(identityProvider);
+           return identityProvider.equals(IdentityProvider.ANONYMOUS);
+        }
+        public Boolean isUsername(){
+           Objects.requireNonNull(identityProvider);
+           return identityProvider.equals(IdentityProvider.USERNAME);
+        }
+        public Boolean isX509Certificate(){
+            Objects.requireNonNull(identityProvider);
+            return identityProvider.equals(IdentityProvider.X509IDENTITY);
+        }
+        public Boolean isComposite(){
+            Objects.requireNonNull(identityProvider);
+            return identityProvider.equals(IdentityProvider.COMPOSITE);
+        }
     }
 
     @Data
     @Builder
     public static class Encryption {
         private String securityPolicy;
-        private String messageMode;
-        private String algorithm;
-        private Integer keySize;
-        private String certificateType;
-        private Boolean validateCertificate;
+        private String messageSecurityMode;
+        private byte[] clientCertificate;
+        private byte[] privateKey;
+        private List<byte[]> trustedCertificates;
+        private String keyLength;
+        private String algorithmName;
+        private String protocolVersion;
     }
 
     @Data
     @Builder
     public static class Session {
         private String sessionName;
-        private Integer sessionTimeout;
-        private Integer maxResponseMessageSize;
-        private Integer maxRequestMessageSize;
-        private Boolean publishingEnabled;
+        private String serverUri;
+        private Long maxResponseMessageSize;
+        private String securityMode;
+        private String securityPolicyUri;
+        private String clientCertificate;
+        private String serverCertificate;
+        private List<String> localeIds;
+        private Integer maxChunkCount;
+        private Long timeout;
     }
 
     @Data
     @Builder
     public static class Subscription {
-        private String name;
-        private Double publishingInterval;
-        private Integer lifetimeCount;
-        private Integer maxKeepAliveCount;
-        private Integer maxNotificationsPerPublish;
-        private Integer priority;
-        private Boolean publishingEnabled;
-    }
-
-    @Data
-    @Builder
-    public static class MonitoringEvent {
         private String nodeId;
-        private String browsePath;
-        private String displayName;
+        private Double publishingInterval;
+        private UInteger lifetimeCount;
+        private UInteger maxKeepAliveCount;
+        private UInteger maxNotificationsPerPublish;
+        private Boolean publishingEnabled;
+        private UByte priority;
         private Double samplingInterval;
-        private Integer queueSize;
+        private UInteger queueSize;
         private Boolean discardOldest;
-        private String monitoringMode;
-        private String dataType;
-        private String triggerType;
+        private MonitoringMode monitoringMode;
+        private TimestampsToReturn timestampsToReturn;
     }
 
     @Data

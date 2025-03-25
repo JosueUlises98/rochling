@@ -3,8 +3,7 @@ package org.kopingenieria.domain.serialization.out.serializables;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.application.db.entity.OpcUaEncryption;
-
+import org.kopingenieria.domain.model.EncryptionConfiguration;
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -29,7 +28,7 @@ public class OpcUaEncryptionSerializable extends OpcUaSerializable {
     @XmlElement(name = "encryption")
     @NotNull(message = "La encriptacion no puede ser nula o vacia")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private OpcUaEncryption encryption;
+    private EncryptionConfiguration encryption;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

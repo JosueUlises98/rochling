@@ -67,15 +67,14 @@ public class OpcUaConfigurationValidator {
             throw new ConfigurationException("La configuración de autenticación no puede ser nula");
         }
         // Validación del modo de autenticación
-        if (auth.getAnonymous() == null) {
-            throw new ConfigurationException("Debe especificar si la autenticación es anónima");
+        if (auth.getIdentityProvider() == null) {
+            throw new ConfigurationException("Debe especificar un identity provider");
         }
         // Validación de credenciales
-        if (!Boolean.TRUE.equals(auth.getAnonymous())) {
-            if (!StringUtils.hasText(auth.getUsername())) {
+            if (!StringUtils.hasText(auth.getUserName())) {
                 throw new ConfigurationException("El nombre de usuario es obligatorio para autenticación no anónima");
             }
-            if (auth.getUsername().length() > 50) {
+            if (auth.getUserName().length() > 50) {
                 throw new ConfigurationException("El nombre de usuario no puede exceder 50 caracteres");
             }
             if (!StringUtils.hasText(auth.getPassword())) {
@@ -84,7 +83,6 @@ public class OpcUaConfigurationValidator {
             if (auth.getPassword().length() < 8) {
                 throw new ConfigurationException("La contraseña debe tener al menos 8 caracteres");
             }
-        }
         // Validación de políticas de seguridad
         if (!StringUtils.hasText(auth.getSecurityPolicy())) {
             throw new ConfigurationException("La política de seguridad es obligatoria");
@@ -229,66 +227,6 @@ public class OpcUaConfigurationValidator {
                 }
                 if (sub.getPublishingEnabled() == null) {
                     throw new ConfigurationException("El estado de publicación de la suscripción debe estar definido");
-                }
-            }
-        }
-    }
-
-    @LogSystemEvent(description = "Validacion de monitoreo de eventos opcua", event = "Validacion de monitoreo de eventos",level = LogLevel.DEBUG)
-    public void validateMonitoringEvents(OpcUaConfiguration config) throws ConfigurationException {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        List<OpcUaConfiguration.MonitoringEvent> events = config.getMonitoringEvents();
-        if (events != null && !events.isEmpty()) {
-            for (OpcUaConfiguration.MonitoringEvent event : events) {
-                // Validación de identificadores
-                if (!StringUtils.hasText(event.getNodeId())) {
-                    throw new ConfigurationException("El ID del nodo es obligatorio");
-                }
-                if (!isValidNodeId(event.getNodeId())) {
-                    throw new ConfigurationException("ID de nodo no válido: " + event.getNodeId());
-                }
-                if (StringUtils.hasText(event.getBrowsePath())) {
-                    if (!isValidBrowsePath(event.getBrowsePath())) {
-                        throw new ConfigurationException("Ruta de navegación no válida: " + event.getBrowsePath());
-                    }
-                }
-                // Validación del nombre de visualización
-                if (!StringUtils.hasText(event.getDisplayName())) {
-                    throw new ConfigurationException("El nombre de visualización es obligatorio");
-                }
-                if (event.getDisplayName().length() > 100) {
-                    throw new ConfigurationException("El nombre de visualización no puede exceder 100 caracteres");
-                }
-                // Validación de intervalos
-                if (event.getSamplingInterval() != null) {
-                    if (event.getSamplingInterval() < 0 || event.getSamplingInterval() > 3600000) {
-                        throw new ConfigurationException("El intervalo de muestreo debe estar entre 0ms y 3600000ms");
-                    }
-                }
-                // Validación de cola
-                if (event.getQueueSize() != null) {
-                    if (event.getQueueSize() < 1 || event.getQueueSize() > 10000) {
-                        throw new ConfigurationException("El tamaño de cola debe estar entre 1 y 10000");
-                    }
-                }
-                // Validación de modo de monitoreo
-                if (!StringUtils.hasText(event.getMonitoringMode())) {
-                    throw new ConfigurationException("El modo de monitoreo es obligatorio");
-                }
-                if (!isValidMonitoringMode(event.getMonitoringMode())) {
-                    throw new ConfigurationException("Modo de monitoreo no válido: " + event.getMonitoringMode());
-                }
-                // Validación de tipo de datos
-                if (StringUtils.hasText(event.getDataType())) {
-                    if (!isValidDataType(event.getDataType())) {
-                        throw new ConfigurationException("Tipo de datos no válido: " + event.getDataType());
-                    }
-                }
-                // Validación de tipo de disparador
-                if (StringUtils.hasText(event.getTriggerType())) {
-                    if (!isValidTriggerType(event.getTriggerType())) {
-                        throw new ConfigurationException("Tipo de disparador no válido: " + event.getTriggerType());
-                    }
                 }
             }
         }

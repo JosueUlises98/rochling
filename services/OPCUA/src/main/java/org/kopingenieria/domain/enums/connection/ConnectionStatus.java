@@ -10,5 +10,7 @@ public enum ConnectionStatus implements Serializable {
     ERROR,
     RECONNECTING,
     DISCONNECTING,
-    UNKNOWN
+    UNKNOWN,
+    NO_RESPONSE,
+    RECONNECTION_FAILED
 }

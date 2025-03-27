@@ -6,13 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.kopingenieria.application.validators.OpcUaConfigurationValidator;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.OpcUaConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
@@ -20,10 +21,10 @@ import org.kopingenieria.exception.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
-import org.kopingenieria.validators.OpcUaConfigurationValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -516,7 +517,7 @@ public class OpcUaConfigFile {
                 .clientCertificate(props.getProperty("opcua.encryption.clientCertificate").getBytes())
                 .privateKey(props.getProperty("opcua.encryption.privateKey").getBytes())
                 .trustedCertificates(Collections.singletonList(props.getProperty("opcua.encryption.trustedCertificates").getBytes()))
-                .keyLength(props.getProperty("opcua.encryption.keyLength"))
+                .keyLength(Integer.valueOf(props.getProperty("opcua.encryption.keyLength")))
                 .algorithmName(props.getProperty("opcua.encryption.algorithmName"))
                 .protocolVersion(props.getProperty("opcua.encryption.protocolVersion"))
                 .build();
@@ -532,9 +533,9 @@ public class OpcUaConfigFile {
                 .securityPolicyUri(props.getProperty("opcua.session.securityPolicyUri"))
                 .clientCertificate(props.getProperty("opcua.session.clientCertificate"))
                 .serverCertificate(props.getProperty("opcua.session.serverCertificate"))
-                .localeIds(Collections.singletonList(props.getProperty("opcua.session.localeIds")))
+                .localeIds(Arrays.asList(props.getProperty("opcua.session.localeIds").split(",")))
                 .maxChunkCount(Integer.valueOf(props.getProperty("opcua.session.maxChunkCount")))
-                .timeout(Long.valueOf(props.getProperty("opcua.session.timeout")))
+                .timeout(Timeouts.valueOf(props.getProperty("opcua.session.timeout")))
                 .build();
     }
 
@@ -591,6 +592,7 @@ public class OpcUaConfigFile {
         String value = props.getProperty(key);
         return value != null ? Boolean.valueOf(value) : null;
     }
+
     private UByte getUByteProperty(Properties props, String key) {
         String value = props.getProperty(key);
         return value != null ? UByte.valueOf(value) : null;

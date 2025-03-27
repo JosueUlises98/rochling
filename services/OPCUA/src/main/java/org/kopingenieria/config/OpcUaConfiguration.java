@@ -6,10 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
@@ -75,6 +75,7 @@ public class OpcUaConfiguration {
         private String trustListPath;
         private String issuerListPath;
         private String revocationListPath;
+        private String securityPolicyUri;
 
         public Boolean isAnonymous(){
            Objects.requireNonNull(identityProvider);
@@ -102,9 +103,10 @@ public class OpcUaConfiguration {
         private byte[] clientCertificate;
         private byte[] privateKey;
         private List<byte[]> trustedCertificates;
-        private String keyLength;
+        private Integer keyLength;
         private String algorithmName;
         private String protocolVersion;
+        private String type;
     }
 
     @Data
@@ -119,7 +121,7 @@ public class OpcUaConfiguration {
         private String serverCertificate;
         private List<String> localeIds;
         private Integer maxChunkCount;
-        private Long timeout;
+        private Timeouts timeout;
     }
 
     @Data

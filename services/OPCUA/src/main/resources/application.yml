@@ -10,7 +10,6 @@ opcua:
     applicationUri: ${OPCUA_APP_URI:urn:kopingenieria:client}
     productUri: ${OPCUA_PRODUCT_URI:urn:kopingenieria:client:product}
     requestTimeout: ${OPCUA_REQUEST_TIMEOUT:5000}
-    channelLifetime: ${OPCUA_CHANNEL_LIFETIME:300000}
 
   authentication:
     identityProvider: ${OPCUA_IDENTITY_PROVIDER:ANONYMOUS}

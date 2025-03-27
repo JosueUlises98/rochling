@@ -1,5 +1,6 @@
 package org.kopingenieria.application.service.opcua;
 
+import org.kopingenieria.api.response.OpcUaConnectionResponse;
 import org.kopingenieria.domain.enums.connection.UrlType;
 
 import java.util.concurrent.CompletableFuture;
@@ -35,14 +36,14 @@ public interface Connection extends AutoCloseable {
      *
      * @return A CompletableFuture that, when completed, returns true if the connection
      *        */
-    CompletableFuture<Boolean> connect()throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> connect()throws Exception;
     /**
      * Establishes a connection to an external system or resource asynchronously
      * using the specified URL.
      *
      * @param url The {@link UrlType} representing the endpoint to connect to.
      * @return A CompletableFuture that, when completed,*/
-    CompletableFuture<Boolean> connect(UrlType url)throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> connect(UrlType url)throws Exception;
     /**
      * Terminates the connection to an external system or resource asynchronously.
      *
@@ -50,19 +51,19 @@ public interface Connection extends AutoCloseable {
      *         was successful, or false if the disconnection attempt failed.
      * @throws Exception if an error occurs during the disconnection process.
      */
-    CompletableFuture<Boolean> disconnect()throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> disconnect()throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously using a backoff strategy.
      * This method retries the connection with incremental delays, aiming to achieve a stable connection
      * while managing resource usage efficiently during repeated connection attempts.
      *
      * @param url The {@link UrlType} representing the target endpoint for the recon*/
-    CompletableFuture<Boolean> backoffreconnection(UrlType url)throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> backoffreconnection(UrlType url)throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously
      * using a backoff strategy. This approach ensures a systematic retry mechanism
      * with delays to manage*/
-    CompletableFuture<Boolean> backoffreconnection()throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> backoffreconnection()throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously using a linear retry strategy.
      * This method tries to establish a connection to the specified URL with consistent intervals between retries.
@@ -72,7 +73,7 @@ public interface Connection extends AutoCloseable {
      *         attempt was successful, or false if the reconnection failed.
      * @throws Exception if an error occurs during the reconnection process.
      */
-    CompletableFuture<Boolean>linearreconnection(UrlType url)throws Exception;
+    CompletableFuture<OpcUaConnectionResponse>linearreconnection(UrlType url)throws Exception;
     /**
      * Attempts to reconnect to an external system or resource asynchronously
      * using a linear retry strategy. This method retries the reconnection process
@@ -83,7 +84,7 @@ public interface Connection extends AutoCloseable {
      *         attempt was successful, or false if the reconnection failed.
      * @throws Exception if an error occurs during the reconnection process.
      */
-    CompletableFuture<Boolean>linearreconnection()throws Exception;
+    CompletableFuture<OpcUaConnectionResponse>linearreconnection()throws Exception;
     /**
      * Sends a ping message to check the availability of the external system or resource
      * to which the connection has been established.
@@ -92,5 +93,5 @@ public interface Connection extends AutoCloseable {
      *         and the system is reachable, or false if the ping failed or the system is unavailable.
      * @throws Exception if an error occurs while attempting to ping the external system or resource.
      */
-    CompletableFuture<Boolean> ping()throws Exception;
+    CompletableFuture<OpcUaConnectionResponse> ping()throws Exception;
 }

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class RequestValidator {
 
 
-    private void validateAuthenticationParameters(OpcUaAuthenticationRequest request, List<String> errors) {
+    public void validateAuthenticationParameters(OpcUaAuthenticationRequest request, List<String> errors) {
         // Validar proveedor de identidad
         if (request.getIdentityProvider() != null) {
             validateIdentityProvider(request.getIdentityProvider(), errors);
@@ -52,7 +52,7 @@ public class RequestValidator {
         validateCertificateConfiguration(request, errors);
     }
 
-    private void validateConnectionParameters(OpcUaConnectionRequest request, List<String> errors) {
+    public void validateConnectionParameters(OpcUaConnectionRequest request, List<String> errors) {
         // Validar endpoint URL
         if (request.getEndpointUrl() != null) {
             validateEndpointUrl(request.getEndpointUrl(), errors);
@@ -79,7 +79,7 @@ public class RequestValidator {
         }
     }
 
-    private void validateEncryptionParameters(OpcUaEncryptionRequest request, List<String> errors) {
+    public void validateEncryptionParameters(OpcUaEncryptionRequest request, List<String> errors) {
         // Validar política de seguridad
         if (request.getSecurityPolicy() != null) {
             validateEncryptionSecurityPolicy(request.getSecurityPolicy(), errors);
@@ -123,7 +123,7 @@ public class RequestValidator {
         }
     }
 
-    private void validateSessionParameters(OpcUaSessionRequest request, List<String> errors) {
+    public void validateSessionParameters(OpcUaSessionRequest request, List<String> errors) {
         // Validar nombre de sesión
         if (request.getSessionName() != null) {
             validateSessionName(request.getSessionName(), errors);
@@ -168,7 +168,7 @@ public class RequestValidator {
         }
     }
 
-    private void validateSubscriptionParameters(SubscriptionRequest request, List<String> errors) {
+    public void validateSubscriptionParameters(SubscriptionRequest request, List<String> errors) {
         // Validar nodeId
         if (request.getNodeId() != null) {
             validateNodeId(request.getNodeId(), errors);
@@ -187,7 +187,7 @@ public class RequestValidator {
         validateMonitoringSettings(request, errors);
     }
 
-    private void validateConfigurationParameters(OpcUaConfigRequest request, List<String> errors) {
+    public void validateConfigurationParameters(OpcUaConfigRequest request, List<String> errors) {
         // Validar campos básicos
         validateBasicFields(request, errors);
 
@@ -766,6 +766,11 @@ public class RequestValidator {
         // Validar configuración de sesión
         if (request.getSession() != null) {
             validateSessionParameters(request.getSession(), errors);
+        }
+
+        //Validar configuracion de suscripciones
+        if (request.getSubscriptions() != null){
+            validateSubscriptionsList(request.getSubscriptions(), errors);
         }
     }
 

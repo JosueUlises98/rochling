@@ -26,16 +26,14 @@ import org.kopingenieria.application.service.files.OpcUaConfigFile;
 import org.kopingenieria.exception.OpcUaConfigurationException;
 import org.kopingenieria.util.CertificateLoader;
 import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -44,7 +42,7 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 @Getter
 public class OpcUaConfiguration implements Configuration {
 
-    private Map<OpcUaClient,List<UaSubscription>>mapSubscriptions;
+    private Map<OpcUaClient, List<UaSubscription>> mapSubscriptions;
 
     @Override
     public OpcUaClient createDefaultOpcUaClient() throws OpcUaConfigurationException, IOException {
@@ -76,7 +74,7 @@ public class OpcUaConfiguration implements Configuration {
             config.setCertificateValidator(certificateValidator);
 
             // Sección de sesión
-            config.setSessionName(()->"DefaultSession")
+            config.setSessionName(() -> "DefaultSession")
                     .setSessionTimeout(UInteger.valueOf(60000))
                     .setMaxResponseMessageSize(UInteger.valueOf(65536))
                     .setMaxPendingPublishRequests(UInteger.valueOf(10));
@@ -101,8 +99,8 @@ public class OpcUaConfiguration implements Configuration {
     public OpcUaClient createUserOpcUaClient() throws OpcUaConfigurationException {
         try {
             org.kopingenieria.config.OpcUaConfiguration userConfig;
-            OpcUaConfigFile configFile = new OpcUaConfigFile(new ObjectMapper(),new Properties(),new org.kopingenieria.config.OpcUaConfiguration());
-             userConfig = configFile.loadConfiguration(configFile.extractExistingFilename());
+            OpcUaConfigFile configFile = new OpcUaConfigFile(new ObjectMapper(), new Properties(), new org.kopingenieria.config.OpcUaConfiguration());
+            userConfig = configFile.loadConfiguration(configFile.extractExistingFilename());
 
             // Creamos el builder de configuración
             OpcUaClientConfigBuilder config = new OpcUaClientConfigBuilder();
@@ -111,7 +109,7 @@ public class OpcUaConfiguration implements Configuration {
             EndpointDescription endpoint = EndpointDescription.builder()
                     .endpointUrl(userConfig.getConnection().getEndpointUrl())
                     .securityPolicyUri(SecurityPolicy.valueOf(
-                            String.valueOf(userConfig.getAuthentication().getSecurityPolicy())
+                            String.valueOf(userConfig.getAuthentication().getSecurityPolicyUri())
                     ).getUri())
                     .securityMode(MessageSecurityMode.valueOf(userConfig.getEncryption().getMessageSecurityMode()))
                     .build();
@@ -148,20 +146,23 @@ public class OpcUaConfiguration implements Configuration {
             }
 
             // 3. Configuración de Encriptación
-            //La configuracion de encriptacion se define en la seccion de conexion en el endpoint.
+            X509Certificate x509Certificate = CertificateLoader.loadX509Certificate(Arrays.toString(userConfig.getEncryption().getClientCertificate()));
+            DefaultClientCertificateValidator certificateValidator =
+                    new DefaultClientCertificateValidator(new DefaultTrustListManager(new File(userConfig.getAuthentication().getTrustListPath())));
+            config.setCertificateValidator(certificateValidator);
+            config.setCertificate(x509Certificate);
 
             // 5. Configuración de sesión
-            config.setSessionName(()->userConfig.getSession().getSessionName())
-                    .setSessionTimeout(UInteger.valueOf(userConfig.getSession().getTimeout()))
+            config.setSessionName(() -> userConfig.getSession().getSessionName())
+                    .setSessionTimeout(UInteger.valueOf(String.valueOf(userConfig.getSession().getTimeout())))
                     .setMaxResponseMessageSize(UInteger.valueOf(
                             userConfig.getSession().getMaxResponseMessageSize()))
                     .setSessionLocaleIds(userConfig.getSession().getLocaleIds().toArray(new String[0]));
 
-            // Crear el cliente
             // Sección de suscripciones
             OpcUaClient client = OpcUaClient.create(config.build());
             List<UaSubscription> subscriptions = new ArrayList<>();
-            mapSubscriptions = Map.of(client,subscriptions);
+            mapSubscriptions = Map.of(client, subscriptions);
 
             // Configurar todas las suscripciones definidas
             for (org.kopingenieria.config.OpcUaConfiguration.Subscription subscriptionConfig : userConfig.getSubscriptions()) {
@@ -185,7 +186,7 @@ public class OpcUaConfiguration implements Configuration {
 
         // Configurar el modo de monitoreo
         subscription.setMonitoringMode(
-                subscriptionConfig.getMonitoringMode(),
+                MonitoringMode.valueOf(subscriptionConfig.getMonitoringMode().name()),
                 List.of()
         );
 

@@ -7,7 +7,9 @@ public enum Timeouts {
     CONNECTION(30, TimeUnit.SECONDS),
     SESSION(15, TimeUnit.SECONDS),
     RECONNECTION(10, TimeUnit.SECONDS),
-    DISCONNECTION(5, TimeUnit.SECONDS);
+    DISCONNECTION(5, TimeUnit.SECONDS),
+    REQUEST(10, TimeUnit.SECONDS),
+    PING(10, TimeUnit.SECONDS);
 
     private final Integer duration;
     private final TimeUnit unit;

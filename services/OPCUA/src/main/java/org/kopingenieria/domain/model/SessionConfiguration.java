@@ -13,6 +13,7 @@ public class SessionConfiguration implements Serializable {
     @Serial
     private static final long serialVersionUID = 4L;
 
+    private String sessionId;
     private String sessionName;
     private String serverUri;
     private Long maxResponseMessageSize;
@@ -23,5 +24,6 @@ public class SessionConfiguration implements Serializable {
     private List<String> localeIds;
     private Integer maxChunkCount;
     private Long timeout;
+    private String clientIp;
 
 }

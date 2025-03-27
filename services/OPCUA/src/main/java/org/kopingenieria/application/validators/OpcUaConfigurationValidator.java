@@ -1,6 +1,11 @@
-package org.kopingenieria.validators;
+package org.kopingenieria.application.validators;
 
+import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.config.OpcUaConfiguration;
+import org.kopingenieria.domain.enums.connection.ConnectionType;
+import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.exception.ConfigurationException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
@@ -8,6 +13,7 @@ import org.springframework.util.StringUtils;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -46,16 +52,19 @@ public class OpcUaConfigurationValidator {
         if (StringUtils.hasText(conn.getProductUri()) && !isValidUri(conn.getProductUri())) {
             throw new ConfigurationException("URI de producto inválido: " + conn.getProductUri());
         }
-        // Validación de timeouts
-        if (conn.getRequestTimeout() != null) {
-            if (conn.getRequestTimeout() < 1000 || conn.getRequestTimeout() > 120000) {
-                throw new ConfigurationException("El timeout de petición debe estar entre 1000ms y 120000ms");
-            }
+        //Validacion de ConectionType
+        if (!StringUtils.hasText(String.valueOf(conn.getType()))) {
+            throw new ConfigurationException("El URI de la aplicación es obligatorio");
         }
-        if (conn.getChannelLifetime() != null) {
-            if (conn.getChannelLifetime() < 10000 || conn.getChannelLifetime() > 600000) {
-                throw new ConfigurationException("El tiempo de vida del canal debe estar entre 10000ms y 600000ms");
-            }
+        if (!isValidConnectionType(conn.getType())) {
+            throw new ConfigurationException("URI de aplicación inválido: " + conn.getApplicationUri());
+        }
+        // Validación de timeouts
+        if (!StringUtils.hasText(String.valueOf(conn.getTimeout()))) {
+            throw new ConfigurationException("El tiempo de espera es obligatorio");
+        }
+        if (!isValidConnectionTimeout(conn.getTimeout())) {
+            throw new ConfigurationException("El tiempo de espera debe estar entre 100ms y 30000ms");
         }
     }
 
@@ -84,17 +93,17 @@ public class OpcUaConfigurationValidator {
                 throw new ConfigurationException("La contraseña debe tener al menos 8 caracteres");
             }
         // Validación de políticas de seguridad
-        if (!StringUtils.hasText(auth.getSecurityPolicy())) {
+        if (!StringUtils.hasText(String.valueOf(auth.getSecurityPolicy()))) {
             throw new ConfigurationException("La política de seguridad es obligatoria");
         }
-        if (!isValidSecurityPolicy(auth.getSecurityPolicy())) {
+        if (!isValidSecurityPolicy(String.valueOf(auth.getSecurityPolicy()))) {
             throw new ConfigurationException("Política de seguridad no válida: " + auth.getSecurityPolicy());
         }
-        if (!StringUtils.hasText(auth.getSecurityMode())) {
+        if (!StringUtils.hasText(String.valueOf(auth.getMessageSecurityMode()))) {
             throw new ConfigurationException("El modo de seguridad es obligatorio");
         }
-        if (!isValidSecurityMode(auth.getSecurityMode())) {
-            throw new ConfigurationException("Modo de seguridad no válido: " + auth.getSecurityMode());
+        if (!isValidSecurityMode(auth.getMessageSecurityMode())) {
+            throw new ConfigurationException("Modo de seguridad no válido: " + auth.getMessageSecurityMode());
         }
         // Validación de certificados
         if (StringUtils.hasText(auth.getCertificatePath())) {
@@ -120,30 +129,32 @@ public class OpcUaConfigurationValidator {
             throw new ConfigurationException("Política de encriptación no válida: " + enc.getSecurityPolicy());
         }
         // Validación del modo de mensaje
-        if (!StringUtils.hasText(enc.getMessageMode())) {
+        if (!StringUtils.hasText(enc.getMessageSecurityMode())) {
             throw new ConfigurationException("El modo de mensaje es obligatorio");
         }
-        if (!isValidMessageMode(enc.getMessageMode())) {
-            throw new ConfigurationException("Modo de mensaje no válido: " + enc.getMessageMode());
+        if (!isValidMessageMode(enc.getMessageSecurityMode())) {
+            throw new ConfigurationException("Modo de mensaje no válido: " + enc.getMessageSecurityMode());
         }
         // Validación del algoritmo
-        if (!StringUtils.hasText(enc.getAlgorithm())) {
+        if (!StringUtils.hasText(enc.getAlgorithmName())) {
             throw new ConfigurationException("El algoritmo de encriptación es obligatorio");
         }
-        if (!isValidEncryptionAlgorithm(enc.getAlgorithm())) {
-            throw new ConfigurationException("Algoritmo de encriptación no válido: " + enc.getAlgorithm());
+        if (!isValidEncryptionAlgorithm(enc.getAlgorithmName())) {
+            throw new ConfigurationException("Algoritmo de encriptación no válido: " + Arrays.toString(enc.getClientCertificate()));
         }
         // Validación del tamaño de llave
-        if (enc.getKeySize() != null) {
-            if (!isValidKeySize(enc.getKeySize(), enc.getAlgorithm())) {
-                throw new ConfigurationException("Tamaño de llave no válido para el algoritmo: " + enc.getKeySize());
-            }
+        if (!StringUtils.hasText(String.valueOf(enc.getKeyLength()))) {
+            throw new ConfigurationException("El algoritmo de encriptación es obligatorio");
+        }
+        if (!isValidKeySize(enc.getKeyLength(),enc.getAlgorithmName())) {
+            throw new ConfigurationException("Tamaño de llave no válido para el algoritmo: " + enc.getAlgorithmName());
         }
         // Validación del tipo de certificado
-        if (StringUtils.hasText(enc.getCertificateType())) {
-            if (!isValidCertificateType(enc.getCertificateType())) {
-                throw new ConfigurationException("Tipo de certificado no válido: " + enc.getCertificateType());
-            }
+        if (!StringUtils.hasText(String.valueOf(enc.getType()))) {
+            throw new ConfigurationException("El tipo de certificado es obligatorio");
+        }
+        if (!isValidCertificateType(enc.getType())) {
+            throw new ConfigurationException("Tipo de certificado no válido: " + enc.getType());
         }
     }
 
@@ -161,25 +172,46 @@ public class OpcUaConfigurationValidator {
         if (session.getSessionName().length() > 100) {
             throw new ConfigurationException("El nombre de sesión no puede exceder 100 caracteres");
         }
-        // Validación de timeouts y tamaños
-        if (session.getSessionTimeout() != null) {
-            if (session.getSessionTimeout() < 10000 || session.getSessionTimeout() > 3600000) {
-                throw new ConfigurationException("El timeout de sesión debe estar entre 10000ms y 3600000ms");
-            }
+        //Validacion de server uri
+        if (!StringUtils.hasText(session.getServerUri())) {
+            throw new ConfigurationException("El URI del servidor es obligatorio");
         }
+        if (isValidUri(session.getServerUri())) {
+            throw new ConfigurationException("La uri del servidor es invalida: " + session.getServerUri());
+        }
+        //Validacion de maxresponsemessagesize
         if (session.getMaxResponseMessageSize() != null) {
             if (session.getMaxResponseMessageSize() < 8192 || session.getMaxResponseMessageSize() > 16777216) {
                 throw new ConfigurationException("El tamaño máximo de mensaje de respuesta debe estar entre 8KB y 16MB");
             }
         }
-        if (session.getMaxRequestMessageSize() != null) {
-            if (session.getMaxRequestMessageSize() < 8192 || session.getMaxRequestMessageSize() > 16777216) {
-                throw new ConfigurationException("El tamaño máximo de mensaje de petición debe estar entre 8KB y 16MB");
-            }
+        //Validacion de securityMode
+        if (!StringUtils.hasText(String.valueOf(session.getSecurityMode()))) {
+            throw new ConfigurationException("El modo de seguridad es obligatorio");
         }
-        // Validación de publicación
-        if (session.getPublishingEnabled() == null) {
-            throw new ConfigurationException("El estado de publicación debe estar definido");
+        if (!isValidSecurityMode(MessageSecurityMode.valueOf(session.getSecurityMode()))) {
+            throw new ConfigurationException("Modo de seguridad invalido: " + session.getSecurityMode());
+        }
+        //Validacion de securityPolicyUri
+        if (!StringUtils.hasText(session.getSecurityPolicyUri())) {
+            throw new ConfigurationException("La uri de politica de seguridad es obligatoria");
+        }
+        if (!isValidSecurityPolicy(session.getSecurityPolicyUri())) {
+            throw new ConfigurationException("La uri de politica de seguridad es invalida: " + session.getSecurityPolicyUri());
+        }
+        //Validacion de locales ids
+        if (!StringUtils.hasText(String.valueOf(session.getLocaleIds()))){
+            throw new ConfigurationException("Los identificadores de idioma son obligatorios");
+        }
+        if (!validateLocaleIds(session.getLocaleIds())){
+            throw new ConfigurationException("Los identificadores de idioma son invalidos: " + session.getLocaleIds());
+        }
+        // Validación de timeout
+        if (!StringUtils.hasText(String.valueOf(session.getTimeout()))){
+            throw new ConfigurationException("El tiempo de espera es obligatorio");
+        }
+        if (isValidSessionTimeout(session.getTimeout())){
+            throw new ConfigurationException("Los identificadores de idioma son obligatorios");
         }
     }
 
@@ -189,44 +221,39 @@ public class OpcUaConfigurationValidator {
         List<OpcUaConfiguration.Subscription> subscriptions = config.getSubscriptions();
         if (subscriptions != null && !subscriptions.isEmpty()) {
             for (OpcUaConfiguration.Subscription sub : subscriptions) {
-                // Validación del nombre
-                if (!StringUtils.hasText(sub.getName())) {
+                // Validación del nodeid
+                if (!StringUtils.hasText(sub.getNodeId())) {
                     throw new ConfigurationException("El nombre de la suscripción es obligatorio");
                 }
-                if (sub.getName().length() > 100) {
-                    throw new ConfigurationException("El nombre de suscripción no puede exceder 100 caracteres");
+                if (!isValidNodeId(sub.getNodeId())) {
+                    throw new ConfigurationException("El id de nodo tiene un formato incorrecto: " + sub.getNodeId());
                 }
                 // Validación de intervalos
-                if (sub.getPublishingInterval() != null) {
-                    if (sub.getPublishingInterval() < 0 || sub.getPublishingInterval() > 3600000) {
-                        throw new ConfigurationException("El intervalo de publicación debe estar entre 0ms y 3600000ms");
-                    }
+                if (!StringUtils.hasText(String.valueOf(sub.getPublishingInterval()))) {
+                    throw new ConfigurationException("El intervalo de suscripcion es obligatorio");
                 }
-                // Validación de contadores
-                if (sub.getLifetimeCount() != null) {
-                    if (sub.getLifetimeCount() < 1 || sub.getLifetimeCount() > 10000) {
-                        throw new ConfigurationException("El contador de vida debe estar entre 1 y 10000");
-                    }
+                if (!isValidPublishingInterval(sub.getPublishingInterval())) {
+                    throw new ConfigurationException("El intervalo de suscripcion debe estar entre 1000 y 10000 milisegundos");
                 }
-                if (sub.getMaxKeepAliveCount() != null) {
-                    if (sub.getMaxKeepAliveCount() < 1 || sub.getMaxKeepAliveCount() > 10000) {
-                        throw new ConfigurationException("El contador máximo de keep-alive debe estar entre 1 y 10000");
-                    }
+                if (!StringUtils.hasText(String.valueOf(sub.getSamplingInterval()))) {
+                    throw new ConfigurationException("El intervalo de suscripcion es obligatorio");
                 }
-                // Validación de notificaciones
-                if (sub.getMaxNotificationsPerPublish() != null) {
-                    if (sub.getMaxNotificationsPerPublish() < 1 || sub.getMaxNotificationsPerPublish() > 1000) {
-                        throw new ConfigurationException("El máximo de notificaciones por publicación debe estar entre 1 y 1000");
-                    }
+                if (!isValidSamplingInterval(sub.getSamplingInterval())){
+                    throw new ConfigurationException("El intervalo de suscripcion debe estar entre 1000 y 10000 milisegundos");
                 }
-                // Validación de prioridad
-                if (sub.getPriority() != null) {
-                    if (sub.getPriority() < 0 || sub.getPriority() > 255) {
-                        throw new ConfigurationException("La prioridad debe estar entre 0 y 255");
-                    }
+                //Validacion del modo de monitoreo
+                if (!StringUtils.hasText(String.valueOf(sub.getMonitoringMode()))) {
+                    throw new ConfigurationException("El modo de monitoreo es obligatorio");
                 }
-                if (sub.getPublishingEnabled() == null) {
-                    throw new ConfigurationException("El estado de publicación de la suscripción debe estar definido");
+                if (!isValidMonitoringMode(sub.getMonitoringMode())){
+                    throw new ConfigurationException("El modo de monitoreo debe ser uno de: " + Arrays.toString(MonitoringMode.values()));
+                }
+                //Validacion del timestamp a retornar
+                if (!StringUtils.hasText(String.valueOf(sub.getTimestampsToReturn()))) {
+                    throw new ConfigurationException("El modo de monitoreo es obligatorio");
+                }
+                if (!isValidTimeStampToReturn(sub.getTimestampsToReturn())){
+                    throw new ConfigurationException("El modo de monitoreo debe ser uno de: " + Arrays.toString(MonitoringMode.values()));
                 }
             }
         }
@@ -284,6 +311,18 @@ public class OpcUaConfigurationValidator {
     }
 
     // Métodos auxiliares de validación
+    private boolean isValidConnectionType(ConnectionType type) {
+        Set<ConnectionType> validTypes = Set.of(ConnectionType.OPCUA);
+        return validTypes.contains(type);
+    }
+
+    private boolean isValidConnectionTimeout(Timeouts timeout) {
+        return timeout != null && timeout.toMilliseconds() >= Timeouts.CONNECTION.toMilliseconds() && timeout.toMilliseconds() <= Timeouts.CONNECTION.toMilliseconds();
+    }
+
+    private boolean isValidSessionTimeout(Timeouts timeout) {
+        return timeout != null && timeout.toMilliseconds() >= Timeouts.SESSION.toMilliseconds() && timeout.toMilliseconds() <= Timeouts.SESSION.toMilliseconds();
+    }
 
     private boolean isValidOpcUaUrl(String url) {
         if (url == null) return false;
@@ -319,12 +358,11 @@ public class OpcUaConfigurationValidator {
         return validPolicies.contains(policy);
     }
 
-    private boolean isValidSecurityMode(String mode) {
-        Set<String> validModes = Set.of(
-                "None",
-                "Sign",
-                "SignAndEncrypt"
-        );
+    private boolean isValidSecurityMode(MessageSecurityMode mode) {
+        Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE,
+                MessageSecurityMode.SIGN,
+                MessageSecurityMode.INVALID,
+                MessageSecurityMode.SIGNANDENCRYPT);
         return validModes.contains(mode);
     }
 
@@ -421,15 +459,6 @@ public class OpcUaConfigurationValidator {
         return pattern.matcher(browsePath).matches();
     }
 
-    private boolean isValidMonitoringMode(String mode) {
-        Set<String> validModes = Set.of(
-                "Disabled",
-                "Sampling",
-                "Reporting"
-        );
-        return validModes.contains(mode);
-    }
-
     private boolean isValidDataType(String dataType) {
         Set<String> validTypes = Set.of(
                 "Boolean",
@@ -510,5 +539,36 @@ public class OpcUaConfigurationValidator {
     private boolean isValidOperatorId(String operatorId) {
         if (operatorId == null) return false;
         return operatorId.matches("^OP-\\d{5}$");
+    }
+
+    private boolean validateLocaleIds(List<String> localeIds) {
+        if (localeIds == null || localeIds.isEmpty()) {
+            return false;
+        }
+        for (String locale : localeIds) {
+            if (!isValidLocale(locale)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isValidLocale(String locale) {
+        if (locale == null || locale.isBlank()) return false;
+        Pattern localePattern = Pattern.compile("^[a-z]{2}(-[A-Z]{2})?$");
+        return localePattern.matcher(locale).matches();
+    }
+
+    private boolean isValidPublishingInterval(Double interval) {
+        return interval != null && interval > 0 && interval <= 10000;
+    }
+    private boolean isValidSamplingInterval(Double interval) {
+        return interval != null && interval > 0 && interval <= 10000;
+    }
+    private boolean isValidMonitoringMode(MonitoringMode mode) {
+        return (mode == MonitoringMode.Disabled || mode == MonitoringMode.Sampling || mode == MonitoringMode.Reporting);
+    }
+    private boolean isValidTimeStampToReturn(TimestampsToReturn timeStampsToReturn) {
+        return (timeStampsToReturn == TimestampsToReturn.Both || timeStampsToReturn == TimestampsToReturn.Server || timeStampsToReturn == TimestampsToReturn.Source);
     }
 }

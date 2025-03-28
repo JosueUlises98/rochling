@@ -1,6 +1,11 @@
 package org.kopingenieria.domain.dto;
 
-import org.kopingenieria.application.db.entity.Configuration;
+import org.kopingenieria.domain.model.*;
 
-public record ConfigurationDTO(Configuration configuration) {
+public record ConfigurationDTO(ConnectionConfiguration connection,
+                               EncryptionConfiguration encryption,
+                               IndustrialConfiguration industrial,
+                               AuthenticationConfiguration authentication,
+                               SubscriptionConfiguration subscription,
+                               SessionConfiguration session) {
 }

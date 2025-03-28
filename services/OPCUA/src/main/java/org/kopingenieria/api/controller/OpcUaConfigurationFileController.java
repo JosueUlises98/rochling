@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.kopingenieria.application.service.files.OpcUaConfigFile;
 import org.kopingenieria.config.OpcUaConfiguration;
-import org.kopingenieria.exception.ConfigurationException;
+import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

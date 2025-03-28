@@ -19,13 +19,18 @@ public enum SessionStatus implements Serializable {
     public boolean isActive() {
         return this == ACTIVE;
     }
+
     public boolean isInactive() {
         return this == INACTIVE;
     }
+
     public boolean isExpired() {
         return this == EXPIRED;
     }
-    public boolean isTerminated() {return this == TERMINATED;}
+
+    public boolean isTerminated() {
+        return this == TERMINATED;
+    }
 
     public static SessionStatus fromString(String status) {
         for (SessionStatus s : SessionStatus.values()) {

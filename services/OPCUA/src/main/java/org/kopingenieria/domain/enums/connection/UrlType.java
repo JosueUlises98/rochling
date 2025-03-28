@@ -28,15 +28,17 @@ public enum UrlType {
         public static final String REMOTE = "http://api.ejemplo.com";
         public static final String SECURE = "https://secure.ejemplo.com";
 
-        private Http() {}
+        private Http() {
+        }
     }
 
     public static class OpcUa {
         public static final String LOCAL = "opc.tcp://localhost:4840";
-        public static final String REMOTE = "opc.tcp://servidor.ejemplo.com:4840";
-        public static final String SECURE = "opc.tcp://secure.ejemplo.com:4840";
+        public static final String REMOTE = "opc.tcp://192.168.1.12:4840";
+        public static final String SECURE = "opc.tcp://192.168.1.12:4840";
 
-        private OpcUa() {}
+        private OpcUa() {
+        }
     }
 
     public String getProtocol() {

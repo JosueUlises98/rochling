@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopingenieria.application.service.opcua.OpcuaConnection;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.exception.ConnectionException;
+import org.kopingenieria.exception.exceptions.ConnectionException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 

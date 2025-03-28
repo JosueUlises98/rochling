@@ -17,7 +17,7 @@ import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
-import org.kopingenieria.exception.ConfigurationException;
+import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;

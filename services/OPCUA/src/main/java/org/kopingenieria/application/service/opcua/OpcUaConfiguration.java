@@ -1,9 +1,7 @@
 package org.kopingenieria.application.service.opcua;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
@@ -13,7 +11,6 @@ import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.client.security.DefaultClientCertificateValidator;
@@ -23,16 +20,12 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.structured.MonitoringParameters;
 import org.kopingenieria.application.service.files.OpcUaConfigFile;
-import org.kopingenieria.exception.OpcUaConfigurationException;
-import org.kopingenieria.util.CertificateLoader;
+import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
+import org.kopingenieria.util.security.CertificateManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -42,6 +35,8 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 @Getter
 public class OpcUaConfiguration implements Configuration {
 
+    @Autowired
+    private CertificateManager certificateManager;
     private Map<OpcUaClient, List<UaSubscription>> mapSubscriptions;
 
     @Override
@@ -98,82 +93,100 @@ public class OpcUaConfiguration implements Configuration {
     @Override
     public OpcUaClient createUserOpcUaClient() throws OpcUaConfigurationException {
         try {
-            org.kopingenieria.config.OpcUaConfiguration userConfig;
-            OpcUaConfigFile configFile = new OpcUaConfigFile(new ObjectMapper(), new Properties(), new org.kopingenieria.config.OpcUaConfiguration());
-            userConfig = configFile.loadConfiguration(configFile.extractExistingFilename());
+            // Cargar configuración
+            OpcUaConfigFile configFile = new OpcUaConfigFile(
+                    new ObjectMapper(),
+                    new Properties(),
+                    new org.kopingenieria.config.OpcUaConfiguration()
+            );
+            org.kopingenieria.config.OpcUaConfiguration userConfig =
+                    configFile.loadConfiguration(configFile.extractExistingFilename());
 
-            // Creamos el builder de configuración
+            // Inicializar certificados
+            certificateManager.configurarCertificados(userConfig);
+
+            // Crear builder de configuración
             OpcUaClientConfigBuilder config = new OpcUaClientConfigBuilder();
 
             // 1. Configuración de conexión
-            EndpointDescription endpoint = EndpointDescription.builder()
-                    .endpointUrl(userConfig.getConnection().getEndpointUrl())
-                    .securityPolicyUri(SecurityPolicy.valueOf(
-                            String.valueOf(userConfig.getAuthentication().getSecurityPolicyUri())
-                    ).getUri())
-                    .securityMode(MessageSecurityMode.valueOf(userConfig.getEncryption().getMessageSecurityMode()))
-                    .build();
-            config.setEndpoint(endpoint)
-                    .setApplicationName(LocalizedText.english(userConfig.getConnection().getApplicationName()))
-                    .setApplicationUri(userConfig.getConnection().getApplicationUri())
-                    .setProductUri(userConfig.getConnection().getProductUri())
-                    .setRequestTimeout(UInteger.valueOf(String.valueOf(userConfig.getConnection().getTimeout())));
+            configurarConexion(config, userConfig);
 
             // 2. Configuración de autenticación
-            if (userConfig.getAuthentication().isAnonymous()) {
-                config.setIdentityProvider(new AnonymousProvider());
-            } else if (userConfig.getAuthentication().isUsername()) {
-                config.setIdentityProvider(new UsernameProvider(
-                        userConfig.getAuthentication().getUserName(),
-                        userConfig.getAuthentication().getPassword()
-                ));
-            } else if (userConfig.getAuthentication().isX509Certificate()) {
-                try {
-                    X509Certificate certificate = CertificateLoader.loadX509Certificate(
-                            userConfig.getAuthentication().getCertificatePath()
-                    );
-                    PrivateKey privateKey = CertificateLoader.loadPrivateKey(
-                            userConfig.getAuthentication().getPrivateKeyPath()
-                    );
-                    config.setIdentityProvider(new X509IdentityProvider(certificate, privateKey));
-                } catch (CertificateException e) {
-                    throw new OpcUaConfigurationException("Error al cargar el certificado: " + e.getMessage(), e);
-                } catch (IOException e) {
-                    throw new OpcUaConfigurationException("Error al leer los archivos: " + e.getMessage(), e);
-                } catch (GeneralSecurityException e) {
-                    throw new OpcUaConfigurationException("Error en la clave privada: " + e.getMessage(), e);
-                }
-            }
+            configurarAutenticacion(config, userConfig);
 
-            // 3. Configuración de Encriptación
-            X509Certificate x509Certificate = CertificateLoader.loadX509Certificate(Arrays.toString(userConfig.getEncryption().getClientCertificate()));
-            DefaultClientCertificateValidator certificateValidator =
-                    new DefaultClientCertificateValidator(new DefaultTrustListManager(new File(userConfig.getAuthentication().getTrustListPath())));
-            config.setCertificateValidator(certificateValidator);
-            config.setCertificate(x509Certificate);
+            // 3. Configuración de seguridad
+            certificateManager.aplicarConfiguracionSeguridad(config, userConfig);
 
-            // 5. Configuración de sesión
-            config.setSessionName(() -> userConfig.getSession().getSessionName())
-                    .setSessionTimeout(UInteger.valueOf(String.valueOf(userConfig.getSession().getTimeout())))
-                    .setMaxResponseMessageSize(UInteger.valueOf(
-                            userConfig.getSession().getMaxResponseMessageSize()))
-                    .setSessionLocaleIds(userConfig.getSession().getLocaleIds().toArray(new String[0]));
+            // 4. Configuración de sesión
+            configurarSesion(config, userConfig);
 
-            // Sección de suscripciones
+            // 5. Crear cliente y configurar suscripciones
             OpcUaClient client = OpcUaClient.create(config.build());
-            List<UaSubscription> subscriptions = new ArrayList<>();
-            mapSubscriptions = Map.of(client, subscriptions);
-
-            // Configurar todas las suscripciones definidas
-            for (org.kopingenieria.config.OpcUaConfiguration.Subscription subscriptionConfig : userConfig.getSubscriptions()) {
-                UaSubscription nuevaSuscripcion = configurarSuscripcion(client, subscriptionConfig);
-                subscriptions.add(nuevaSuscripcion);
-                mapSubscriptions.put(client, subscriptions);
-            }
+            configurarSuscripciones(client, userConfig);
 
             return client;
+
         } catch (Exception e) {
-            throw new OpcUaConfigurationException("No se pudo crear el cliente OPC UA personalizado", e);
+            throw new OpcUaConfigurationException("Error creando cliente OPC UA", e);
+        }
+    }
+
+    private void configurarConexion(OpcUaClientConfigBuilder config,
+                                    org.kopingenieria.config.OpcUaConfiguration userConfig) {
+        EndpointDescription endpoint = EndpointDescription.builder()
+                .endpointUrl(userConfig.getConnection().getEndpointUrl())
+                .securityPolicyUri(SecurityPolicy.valueOf(
+                        String.valueOf(userConfig.getAuthentication().getSecurityPolicyUri())
+                ).getUri())
+                .securityMode(MessageSecurityMode.valueOf(
+                        userConfig.getEncryption().getMessageSecurityMode()))
+                .build();
+
+        config.setEndpoint(endpoint)
+                .setApplicationName(LocalizedText.english(
+                        userConfig.getConnection().getApplicationName()))
+                .setApplicationUri(userConfig.getConnection().getApplicationUri())
+                .setProductUri(userConfig.getConnection().getProductUri())
+                .setRequestTimeout(uint(String.valueOf(userConfig.getConnection().getTimeout())));
+    }
+
+    private void configurarAutenticacion(OpcUaClientConfigBuilder config,
+                                         org.kopingenieria.config.OpcUaConfiguration userConfig) {
+        if (userConfig.getAuthentication().isAnonymous()) {
+            config.setIdentityProvider(new AnonymousProvider());
+        } else if (userConfig.getAuthentication().isUsername()) {
+            config.setIdentityProvider(new UsernameProvider(
+                    userConfig.getAuthentication().getUserName(),
+                    userConfig.getAuthentication().getPassword()
+            ));
+        } else if (userConfig.getAuthentication().isX509Certificate()) {
+            config.setIdentityProvider(new X509IdentityProvider(
+                    certificateManager.getClientCertificate(),
+                    certificateManager.getPrivateKey()
+            ));
+        }
+    }
+
+    private void configurarSesion(OpcUaClientConfigBuilder config,
+                                  org.kopingenieria.config.OpcUaConfiguration userConfig) {
+        config.setSessionName(() -> userConfig.getSession().getSessionName())
+                .setSessionTimeout(uint(String.valueOf(userConfig.getSession().getTimeout())))
+                .setMaxResponseMessageSize(uint(
+                        userConfig.getSession().getMaxResponseMessageSize()))
+                .setSessionLocaleIds(
+                        userConfig.getSession().getLocaleIds().toArray(new String[0]));
+    }
+
+    private void configurarSuscripciones(OpcUaClient client,
+                                         org.kopingenieria.config.OpcUaConfiguration userConfig) throws Exception {
+        List<UaSubscription> subscriptions = new ArrayList<>();
+        mapSubscriptions = new HashMap<>();
+        mapSubscriptions.put(client, subscriptions);
+
+        for (org.kopingenieria.config.OpcUaConfiguration.Subscription subscriptionConfig :
+                userConfig.getSubscriptions()) {
+            UaSubscription nuevaSuscripcion = configurarSuscripcion(client, subscriptionConfig);
+            subscriptions.add(nuevaSuscripcion);
         }
     }
 

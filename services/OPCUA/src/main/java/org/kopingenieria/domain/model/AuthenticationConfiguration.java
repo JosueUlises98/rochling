@@ -14,6 +14,7 @@ import java.io.Serializable;
 public class AuthenticationConfiguration implements Serializable {
     @Serial
     private static final long serialVersionUID = 2L;
+
     private IdentityProvider identityProvider;
     private String userName;
     private String password;

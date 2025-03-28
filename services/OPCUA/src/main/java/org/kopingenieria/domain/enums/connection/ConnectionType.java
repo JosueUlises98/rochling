@@ -22,7 +22,7 @@ public enum ConnectionType implements Serializable {
 
     public static ConnectionType findByValue(String value) {
         for (ConnectionType type : ConnectionType.values()) {
-               if (type.value.equals(value)) {
+            if (type.value.equals(value)) {
                 return type;
             }
         }

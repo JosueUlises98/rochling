@@ -76,6 +76,7 @@ public class OpcUaConfiguration {
         private String issuerListPath;
         private String revocationListPath;
         private String securityPolicyUri;
+        private final int expirationWarningDays = 30;
 
         public Boolean isAnonymous(){
            Objects.requireNonNull(identityProvider);

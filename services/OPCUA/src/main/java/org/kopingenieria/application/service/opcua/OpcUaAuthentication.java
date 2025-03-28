@@ -9,7 +9,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.kopingenieria.application.validators.AuthenticationValidator;
 import org.kopingenieria.application.validators.OpcUaAuthenticationValidator;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.exception.OpcUaConfigurationException;
+import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 
 public class OpcUaAuthentication implements Autentication {
 
@@ -21,11 +21,7 @@ public class OpcUaAuthentication implements Autentication {
     private static final AuthenticationValidator AUTHENTICATION_VALIDATOR;
 
     static {
-        try {
-            AUTHENTICATION_VALIDATOR = new OpcUaAuthenticationValidator();
-        } catch (OpcUaConfigurationException e) {
-            throw new RuntimeException(e);
-        }
+        AUTHENTICATION_VALIDATOR = new OpcUaAuthenticationValidator();
     }
 
     public OpcUaAuthentication() throws OpcUaConfigurationException {
@@ -39,6 +35,9 @@ public class OpcUaAuthentication implements Autentication {
         try {
             if (!isSupported(identityProvider)) {
                 throw new SecurityException("Proveedor de identidad no soportado: " + identityProvider);
+            }
+            if (!isValidIndentityProvider()){
+
             }
             // Obtener la configuración de seguridad actual del cliente
             EndpointDescription activeEndpoint = opcUaClient.getConfig().getEndpoint();

@@ -7,8 +7,8 @@ import org.kopingenieria.api.response.OpcUaConnectionResponse;
 import org.kopingenieria.application.monitoring.quality.QualityNetwork;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.exception.*;
 import org.kopingenieria.application.validators.OpcUaConnectionValidator;
+import org.kopingenieria.exception.exceptions.*;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
@@ -235,11 +235,6 @@ public class OpcuaConnection implements Connection {
 
     public OpcUaClient opcUaClient() {
         return opcUaClient;
-    }
-
-    public OpcuaConnection setOpcUaClient(OpcUaClient opcUaClient) {
-        this.opcUaClient = opcUaClient;
-        return this;
     }
 
     public UrlType targeturl() {

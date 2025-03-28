@@ -9,4 +9,6 @@ public interface AuthenticationValidator {
     boolean isSessionTokenValid(String token);
 
     boolean enforcePasswordComplexity(String password);
+
+    boolean isSessionValid(String token,Object... args);
 }

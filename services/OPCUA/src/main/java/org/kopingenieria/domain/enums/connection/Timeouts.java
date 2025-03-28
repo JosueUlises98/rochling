@@ -42,5 +42,5 @@ public enum Timeouts {
     public long toHours() {
         return unit.toHours(duration);
     }
-    
+
 }

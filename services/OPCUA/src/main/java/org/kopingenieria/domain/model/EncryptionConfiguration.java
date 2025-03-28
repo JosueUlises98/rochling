@@ -12,6 +12,7 @@ import java.util.List;
 public class EncryptionConfiguration implements Serializable {
     @Serial
     private static final long serialVersionUID = 3L;
+
     private String securityPolicy;
     private String messageSecurityMode;
     private byte[] clientCertificate;

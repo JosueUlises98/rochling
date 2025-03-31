@@ -54,6 +54,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ser.getMessage(),"SerializationException",HttpStatus.UNPROCESSABLE_ENTITY,details);
     }
 
+    @ExceptionHandler({PoolException.class})
+    public ResponseEntity<ErrorResponse> handlePoolException(PoolException pool, List<String> details) {
+        return buildErrorResponse(pool.getMessage(),"PoolException",HttpStatus.SERVICE_UNAVAILABLE,details);
+    }
+
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, List<String> details) {
         return buildErrorResponse(ex.getMessage(),"RuntimeException",HttpStatus.INTERNAL_SERVER_ERROR,details);

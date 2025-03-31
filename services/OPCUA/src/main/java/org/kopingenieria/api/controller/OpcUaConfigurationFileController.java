@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.kopingenieria.application.service.files.OpcUaConfigFile;
-import org.kopingenieria.config.OpcUaConfiguration;
+import org.kopingenieria.application.service.files.UserConfigFile;
+import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/opcua/configurationfile")
 public class OpcUaConfigurationFileController {
 
-    private final OpcUaConfigFile configurationService;
+    private final UserConfigFile configurationService;
     private final ObjectMapper objectMapper;
 
     @PostMapping("/init")
@@ -36,9 +36,9 @@ public class OpcUaConfigurationFileController {
     }
 
     @GetMapping("/get/{filename}")
-    public ResponseEntity<OpcUaConfiguration> getConfiguration(@PathVariable @NotBlank String filename) {
+    public ResponseEntity<UserConfiguration> getConfiguration(@PathVariable @NotBlank String filename) {
         try {
-            OpcUaConfiguration config = configurationService.loadConfiguration(filename);
+            UserConfiguration config = configurationService.loadConfiguration(filename);
             return ResponseEntity.ok(config);
         } catch (ConfigurationException e) {
             return ResponseEntity.notFound().build();
@@ -48,7 +48,7 @@ public class OpcUaConfigurationFileController {
     @PostMapping("/create/{filename}")
     public ResponseEntity<Void> createConfiguration(
             @PathVariable @NotBlank String filename,
-            @RequestBody @Valid OpcUaConfiguration configuration) {
+            @RequestBody @Valid UserConfiguration configuration) {
         try {
             configurationService.saveConfiguration(configuration, filename);
             return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -60,7 +60,7 @@ public class OpcUaConfigurationFileController {
     @PutMapping("/update/{filename}")
     public ResponseEntity<Void> updateConfiguration(
             @PathVariable @NotBlank String filename,
-            @RequestBody @Valid OpcUaConfiguration configuration) {
+            @RequestBody @Valid UserConfiguration configuration) {
         try {
             configurationService.updateConfiguration(configuration, filename);
             return ResponseEntity.ok().build();
@@ -94,7 +94,7 @@ public class OpcUaConfigurationFileController {
     public ResponseEntity<Void> uploadConfiguration(
             @RequestParam("file") MultipartFile file) {
         try {
-            OpcUaConfiguration config = objectMapper.readValue(file.getInputStream(), OpcUaConfiguration.class);
+            UserConfiguration config = objectMapper.readValue(file.getInputStream(), UserConfiguration.class);
             configurationService.saveConfiguration(config, file.getOriginalFilename());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
@@ -104,7 +104,7 @@ public class OpcUaConfigurationFileController {
 
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateConfiguration(
-            @RequestBody @Valid OpcUaConfiguration configuration) {
+            @RequestBody @Valid UserConfiguration configuration) {
         try {
             // Aquí iría la lógica de validación
             Map<String, Object> validationResult = Map.of(

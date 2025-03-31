@@ -1,13 +1,9 @@
 package org.kopingenieria.application.monitoring.quality;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class QualityNetworkObservable {
-
-    private static final Logger log = LoggerFactory.getLogger(QualityNetworkObservable.class);
 
     private final List<QualityNetworkListener> listeners = new CopyOnWriteArrayList<>();
     private volatile QualityNetwork lastQuality;
@@ -30,12 +26,6 @@ public class QualityNetworkObservable {
     }
 
     private void notifyListeners(QualityNetwork quality) {
-        listeners.forEach(listener -> {
-            try {
-                listener.onQualityUpdate(quality);
-            } catch (Exception e) {
-                log.error("Error notificando al listener", e);
-            }
-        });
+        listeners.forEach(listener -> listener.onQualityUpdate(quality));
     }
 }

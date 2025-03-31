@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.stack.client.security.DefaultClientCertificateValidator;
 import org.eclipse.milo.opcua.stack.core.security.DefaultTrustListManager;
+import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,7 @@ public class CertificateManager {
     @Getter
     private PrivateKey privateKey;
 
-    public void configurarCertificados(org.kopingenieria.config.OpcUaConfiguration userConfig)
+    public void configurarCertificados(UserConfiguration userConfig)
             throws OpcUaConfigurationException {
         try {
             // Cargar certificado y clave privada una sola vez
@@ -40,7 +41,7 @@ public class CertificateManager {
     }
 
     public void aplicarConfiguracionSeguridad(OpcUaClientConfigBuilder config,
-                                              org.kopingenieria.config.OpcUaConfiguration userConfig) throws OpcUaConfigurationException {
+                                              UserConfiguration userConfig) throws OpcUaConfigurationException {
         try {
             // Configurar validador de certificados
             File trustListFile = configurarListaConfianza(userConfig.getAuthentication().getTrustListPath());

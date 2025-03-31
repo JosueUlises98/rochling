@@ -22,7 +22,7 @@ public class OpcUaConfigRequest {
     private String description;
 
     @NotNull(message = "El estado habilitado/deshabilitado es obligatorio")
-    private Boolean enabled = true;
+    private Boolean enabled;
 
     @NotNull(message = "La configuración de conexión es obligatoria")
     private OpcUaConnectionRequest connection;

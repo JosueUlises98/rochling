@@ -1,6 +1,6 @@
 package org.kopingenieria.util.serializers;
 
-import org.kopingenieria.domain.serialization.out.model.OpcUaSerializable;
+import org.kopingenieria.domain.serialization.user.UserOpcUaSerializable;
 import org.kopingenieria.exception.exceptions.SerializationException;
 import org.springframework.stereotype.Component;
 import javax.xml.bind.JAXBContext;
@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 @Component(value = "XmlSerializer")
-public class XmlSerializer<T extends OpcUaSerializable> implements OutSerializer<T> {
+public class XmlSerializer<T extends UserOpcUaSerializable> implements OutSerializer<T> {
 
     private final JAXBContext jaxbContext;
 

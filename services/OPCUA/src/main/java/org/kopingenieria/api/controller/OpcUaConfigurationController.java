@@ -3,7 +3,7 @@ package org.kopingenieria.api.controller;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.kopingenieria.application.service.opcua.OpcUaConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.OpcUaConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

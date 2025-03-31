@@ -1,12 +1,12 @@
 package org.kopingenieria.util.serializers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.kopingenieria.domain.serialization.out.model.OpcUaSerializable;
+import org.kopingenieria.domain.serialization.user.UserOpcUaSerializable;
 import org.kopingenieria.exception.exceptions.SerializationException;
 import org.springframework.stereotype.Component;
 
 @Component(value = "JsonSerializer")
-public class JsonSerializer<T extends OpcUaSerializable> implements OutSerializer<T> {
+public class JsonSerializer<T extends UserOpcUaSerializable> implements OutSerializer<T> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -64,7 +64,7 @@ public class JsonSerializer<T extends OpcUaSerializable> implements OutSerialize
             throw new SerializationException("The data to be deserialized cannot be null.");
         }
         try {
-            return (T) mapper.readValue(data,OpcUaSerializable.class);
+            return (T) mapper.readValue(data, UserOpcUaSerializable.class);
         } catch (Exception e) {
             throw new SerializationException("Error occurred while deserializing the data: " + e.getMessage(), e);
         }

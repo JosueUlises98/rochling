@@ -1,0 +1,14 @@
+package org.kopingenieria.application.validators.contracts;
+
+public interface AuthenticationValidator {
+
+    boolean validateUserCredentials(String username, String password);
+
+    boolean validateClientCertificate(String certificate);
+
+    boolean isSessionTokenValid(String token);
+
+    boolean enforcePasswordComplexity(String password);
+
+    boolean isSessionValid(String token,Object... args);
+}

@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@EnableMongoRepositories(basePackages = "com.industrial.communication.repository")
+@EnableMongoRepositories(basePackages = "")
 public class MongoConfig {
 
     @Value("${spring.data.mongodb.uri}")

@@ -4,10 +4,9 @@ package org.kopingenieria.application.service.opcua.pool.client;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.kopingenieria.application.service.opcua.workflow.OpcUaConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
-import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.logging.model.LogMethod;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class OpcUaDefaultManager {
     private OpcUaDefaultPool clientPool;
 
     @Autowired
-    private OpcUaConfiguration opcUaConfiguration;
+    private UserConfiguration opcUaConfiguration;
 
     private final Map<String, OpcUaDefaultPool.PooledOpcUaClient> managedClients;
     private final Map<String, AtomicInteger> clientUsageCounter;
@@ -58,7 +57,7 @@ public class OpcUaDefaultManager {
     )
     @LogMethod(description = "Inicializando OpcUaPoolManager con Pool de Clientes...",operation = "obtenerCliente")
     public Optional<OpcUaDefaultPool.PooledOpcUaClient> obtenerCliente(
-            UserConfiguration userConfig) {
+            org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
         String connectionId = generarIdConexion(userConfig);
 
         try {
@@ -148,7 +147,7 @@ public class OpcUaDefaultManager {
         });
     }
 
-    private String generarIdConexion(UserConfiguration config) {
+    private String generarIdConexion(org.kopingenieria.config.opcua.user.UserConfiguration config) {
         return String.format("%s_%s_%s",
                 config.getConnection().getEndpointUrl(),
                 config.getConnection().getName(),

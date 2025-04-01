@@ -4,8 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.kopingenieria.application.service.opcua.workflow.OpcUaConfiguration;
-import org.kopingenieria.config.opcua.user.UserConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaUserPool {
 
     @Autowired
-    private OpcUaConfiguration opcUaConfiguration;
+    private UserConfiguration opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
@@ -34,7 +33,7 @@ public class OpcUaUserPool {
         private final String securityPolicy;
         private final String messageSecurityMode;
 
-        public ClientKey(UserConfiguration userConfig) {
+        public ClientKey(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
             this.endpointUrl = userConfig.getConnection().getEndpointUrl();
             this.name = userConfig.getConnection().getName();
             this.securityPolicy = userConfig.getAuthentication().getSecurityPolicyUri();
@@ -63,12 +62,12 @@ public class OpcUaUserPool {
         private final OpcUaClient client;
         private final ClientKey key;
         private final List<UaSubscription> subscriptions;
-        private final UserConfiguration userConfig;
+        private final org.kopingenieria.config.opcua.user.UserConfiguration userConfig;
         private volatile long lastUsed;
         private volatile boolean isValid;
 
         public PooledOpcUaClient(OpcUaClient client,
-                                 UserConfiguration userConfig,
+                                 org.kopingenieria.config.opcua.user.UserConfiguration userConfig,
                                  List<UaSubscription> subscriptions) {
             this.client = client;
             this.key = new ClientKey(userConfig);
@@ -83,7 +82,7 @@ public class OpcUaUserPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(UserConfiguration userConfig) {
+    public Optional<PooledOpcUaClient> obtenerCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
         ClientKey key = new ClientKey(userConfig);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
@@ -107,7 +106,7 @@ public class OpcUaUserPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(UserConfiguration userConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
         try {
             OpcUaClient client = opcUaConfiguration.createUserOpcUaClient();
             List<UaSubscription> subscriptions = opcUaConfiguration.getMapSubscriptions().get(client);

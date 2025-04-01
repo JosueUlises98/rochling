@@ -3,6 +3,8 @@ package org.kopingenieria.config.opcua.bydefault;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
@@ -11,14 +13,16 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.locale.LocaleIds;
 import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
-import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.domain.enums.security.MessageSecurityMode;
-import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cglib.core.Local;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Configuration
 @ConfigurationProperties(prefix = "opcua.default")
@@ -40,12 +44,12 @@ public class DefaultConfiguration {
 
     @NotNull(message = "La conexión es obligatoria")
     private final Connection connection = Connection.builder()
+            .name("DefaultConnection")
             .endpointUrl("opc.tcp://localhost:4840")
             .applicationName("KopIngenieria OPC UA Client")
             .applicationUri("urn:kopingenieria:client")
             .productUri("urn:kopingenieria:client:product")
             .type(ConnectionType.OPCUA)
-            .timeout(Timeouts.CONNECTION)
             .status(ConnectionStatus.UNKNOWN)
             .build();
 
@@ -62,7 +66,6 @@ public class DefaultConfiguration {
             .issuerListPath(null)
             .revocationListPath(null)
             .securityPolicyUri(null)
-            .expirationWarningDays(0)
             .build();
 
     @NotNull(message = "La encriptación es obligatoria")
@@ -83,13 +86,12 @@ public class DefaultConfiguration {
             .sessionName("DefaultSession")
             .serverUri("opc.tcp://localhost:4840")
             .maxResponseMessageSize(10485760L)
-            .securityMode("SignAndEncrypt")
-            .securityPolicyUri("http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256")
-            .clientCertificate("path/to/default_client_certificate.pem")
-            .serverCertificate("path/to/default_server_certificate.pem")
-            .localeIds(List.of("en-US"))
+            .securityMode("None")
+            .securityPolicyUri(SecurityPolicyUri.NONE)
+            .clientCertificate(null)
+            .serverCertificate(null)
+            .localeIds(List.of(LocaleIds.SPANISH))
             .maxChunkCount(4)
-            .timeout(Timeouts.SESSION)
             .build();
 
     @NotNull(message = "Las suscripciones son obligatorias")
@@ -107,7 +109,6 @@ public class DefaultConfiguration {
                     .discardOldest(true)
                     .monitoringMode(MonitoringMode.Reporting)
                     .timestampsToReturn(TimestampsToReturn.Both)
-                    .timeout(Timeouts.REQUEST)
                     .build()
     );
 
@@ -118,7 +119,7 @@ public class DefaultConfiguration {
             .areaId("AREA_001")
             .processId("PROC_001")
             .operatorName("DEFAULT_OPERATOR")
-            .operatorId("12345")
+            .operatorId(UUID.randomUUID().toString())
             .build();
 
     @Getter
@@ -129,12 +130,12 @@ public class DefaultConfiguration {
         private final String applicationUri;
         private final String productUri;
         private final ConnectionType type;
-        private final Timeouts timeout;
+        private final Timeouts timeout=Timeouts.CONNECTION;
         @Setter
         private ConnectionStatus status;
 
-        @lombok.Builder
-        public Connection(String name, String endpointUrl, String applicationName, String applicationUri, String productUri, ConnectionType type, ConnectionStatus status, Timeouts timeout) {
+        @Builder
+        public Connection(String name, String endpointUrl, String applicationName, String applicationUri, String productUri, ConnectionType type,ConnectionStatus status) {
             this.name = name;
             this.endpointUrl = endpointUrl;
             this.applicationName = applicationName;
@@ -142,7 +143,6 @@ public class DefaultConfiguration {
             this.productUri = productUri;
             this.type = type;
             this.status = status;
-            this.timeout=timeout;
         }
     }
 
@@ -158,11 +158,13 @@ public class DefaultConfiguration {
         private final String trustListPath;
         private final String issuerListPath;
         private final String revocationListPath;
-        private final String securityPolicyUri;
-        private final int expirationWarningDays;
+        private final SecurityPolicyUri securityPolicyUri;
+        private final int expirationWarningDays = 30;
 
-        @lombok.Builder
-        public Authentication(IdentityProvider identityProvider, String userName, String password, SecurityPolicy securityPolicy, MessageSecurityMode messageSecurityMode, String certificatePath, String privateKeyPath, String trustListPath, String issuerListPath, String revocationListPath, String securityPolicyUri, int expirationWarningDays) {
+        @Builder
+        public Authentication(IdentityProvider identityProvider, String userName, String password, SecurityPolicy securityPolicy,
+                              MessageSecurityMode messageSecurityMode, String certificatePath, String privateKeyPath,
+                              String trustListPath, String issuerListPath, String revocationListPath, SecurityPolicyUri securityPolicyUri) {
             this.identityProvider = identityProvider;
             this.userName = userName;
             this.password = password;
@@ -174,7 +176,6 @@ public class DefaultConfiguration {
             this.issuerListPath = issuerListPath;
             this.revocationListPath = revocationListPath;
             this.securityPolicyUri = securityPolicyUri;
-            this.expirationWarningDays = expirationWarningDays;
         }
     }
 
@@ -186,12 +187,14 @@ public class DefaultConfiguration {
         private final byte[] privateKey;
         private final List<byte[]> trustedCertificates;
         private final Integer keyLength;
-        private final String algorithmName;
+        private final EncryptionAlgorithm algorithmName;
         private final String protocolVersion;
         private final String type;
 
-        @lombok.Builder
-        public Encryption(SecurityPolicy securityPolicy, MessageSecurityMode messageSecurityMode, byte[] clientCertificate, byte[] privateKey, List<byte[]> trustedCertificates, Integer keyLength, String algorithmName, String protocolVersion, String type) {
+        @Builder
+        public Encryption(SecurityPolicy securityPolicy, MessageSecurityMode messageSecurityMode, byte[] clientCertificate, byte[] privateKey,
+                          List<byte[]> trustedCertificates, Integer keyLength, EncryptionAlgorithm algorithmName,
+                          String protocolVersion, String type) {
             this.securityPolicy = securityPolicy;
             this.messageSecurityMode = messageSecurityMode;
             this.clientCertificate = clientCertificate;
@@ -210,15 +213,17 @@ public class DefaultConfiguration {
         private final String serverUri;
         private final Long maxResponseMessageSize;
         private final String securityMode;
-        private final String securityPolicyUri;
+        private final SecurityPolicyUri securityPolicyUri;
         private final String clientCertificate;
         private final String serverCertificate;
-        private final List<String> localeIds;
+        private final List<LocaleIds> localeIds;
         private final Integer maxChunkCount;
-        private final Timeouts timeout;
+        private final Timeouts timeout=Timeouts.SESSION;
 
-        @lombok.Builder
-        public Session(String sessionName, String serverUri, Long maxResponseMessageSize, String securityMode, String securityPolicyUri, String clientCertificate, String serverCertificate, List<String> localeIds, Integer maxChunkCount, Timeouts timeout) {
+        @Builder
+        public Session(String sessionName, String serverUri, Long maxResponseMessageSize, String securityMode,
+                       SecurityPolicyUri securityPolicyUri, String clientCertificate, String serverCertificate,
+                       List<LocaleIds> localeIds, Integer maxChunkCount) {
             this.sessionName = sessionName;
             this.serverUri = serverUri;
             this.maxResponseMessageSize = maxResponseMessageSize;
@@ -228,7 +233,6 @@ public class DefaultConfiguration {
             this.serverCertificate = serverCertificate;
             this.localeIds = localeIds;
             this.maxChunkCount = maxChunkCount;
-            this.timeout=timeout;
         }
     }
 
@@ -246,10 +250,12 @@ public class DefaultConfiguration {
         private final Boolean discardOldest;
         private final MonitoringMode monitoringMode;
         private final TimestampsToReturn timestampsToReturn;
-        private final Timeouts timeout;
+        private final Timeouts timeout=Timeouts.REQUEST;
 
-        @lombok.Builder
-        public Subscription(String nodeId, Double publishingInterval, UInteger lifetimeCount, UInteger maxKeepAliveCount, UInteger maxNotificationsPerPublish, Boolean publishingEnabled, UByte priority, Double samplingInterval, UInteger queueSize, Boolean discardOldest, MonitoringMode monitoringMode, TimestampsToReturn timestampsToReturn, Timeouts timeout) {
+        @Builder
+        public Subscription(String nodeId, Double publishingInterval, UInteger lifetimeCount, UInteger maxKeepAliveCount,
+                            UInteger maxNotificationsPerPublish, Boolean publishingEnabled, UByte priority, Double samplingInterval,
+                            UInteger queueSize, Boolean discardOldest, MonitoringMode monitoringMode, TimestampsToReturn timestampsToReturn) {
             this.nodeId = nodeId;
             this.publishingInterval = publishingInterval;
             this.lifetimeCount = lifetimeCount;
@@ -262,7 +268,6 @@ public class DefaultConfiguration {
             this.discardOldest = discardOldest;
             this.monitoringMode = monitoringMode;
             this.timestampsToReturn = timestampsToReturn;
-            this.timeout=timeout;
         }
     }
 
@@ -275,8 +280,9 @@ public class DefaultConfiguration {
         private final String operatorName;
         private final String operatorId;
 
-        @lombok.Builder
-        public IndustrialConfiguration(String industrialZone, String equipmentId, String areaId, String processId, String operatorName, String operatorId) {
+        @Builder
+        public IndustrialConfiguration(String industrialZone, String equipmentId, String areaId, String processId,
+                                       String operatorName, String operatorId) {
             this.industrialZone = industrialZone;
             this.equipmentId = equipmentId;
             this.areaId = areaId;

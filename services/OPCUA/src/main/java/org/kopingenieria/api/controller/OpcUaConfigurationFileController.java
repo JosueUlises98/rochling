@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
-import org.kopingenieria.application.service.files.UserConfigFile;
+import org.kopingenieria.application.service.files.user.UserConfigFile;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.springframework.http.HttpStatus;

@@ -28,6 +28,22 @@ public enum CompressedPayload {
         this.compressedSize = compressedSize;
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
+    public CompressionAlgorithm getAlgorithm() {
+        return algorithm;
+    }
+
+    public int getOriginalSize() {
+        return originalSize;
+    }
+
+    public int getCompressedSize() {
+        return compressedSize;
+    }
+
     public double getCompressionRatio() {
         if (compressedSize == 0 || originalSize == 0) {
             return 0.0;
@@ -36,6 +52,6 @@ public enum CompressedPayload {
     }
 
     public boolean isValidPayload() {
-        return data != null && data.length > 0 && originalSize > 0 && compressedSize > 0;
+        return data != null && data.length > 0 && originalSize > 0 && compressedSize > 0 && algorithm != null;
     }
 }

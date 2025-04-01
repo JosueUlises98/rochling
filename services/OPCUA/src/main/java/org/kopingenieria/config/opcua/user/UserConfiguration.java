@@ -10,10 +10,9 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.locale.LocaleIds;
 import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
-import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.domain.enums.security.MessageSecurityMode;
-import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
@@ -78,37 +77,20 @@ public class UserConfiguration {
         private String trustListPath;
         private String issuerListPath;
         private String revocationListPath;
-        private String securityPolicyUri;
+        private SecurityPolicyUri securityPolicyUri;
         private final int expirationWarningDays = 30;
-
-        public Boolean isAnonymous(){
-           Objects.requireNonNull(identityProvider);
-           return identityProvider.equals(IdentityProvider.ANONYMOUS);
-        }
-        public Boolean isUsername(){
-           Objects.requireNonNull(identityProvider);
-           return identityProvider.equals(IdentityProvider.USERNAME);
-        }
-        public Boolean isX509Certificate(){
-            Objects.requireNonNull(identityProvider);
-            return identityProvider.equals(IdentityProvider.X509IDENTITY);
-        }
-        public Boolean isComposite(){
-            Objects.requireNonNull(identityProvider);
-            return identityProvider.equals(IdentityProvider.COMPOSITE);
-        }
     }
 
     @Data
     @Builder
     public static class Encryption {
-        private String securityPolicy;
-        private String messageSecurityMode;
+        private SecurityPolicy securityPolicy;
+        private MessageSecurityMode messageSecurityMode;
         private byte[] clientCertificate;
         private byte[] privateKey;
         private List<byte[]> trustedCertificates;
         private Integer keyLength;
-        private String algorithmName;
+        private EncryptionAlgorithm algorithmName;
         private String protocolVersion;
         private String type;
     }
@@ -119,11 +101,11 @@ public class UserConfiguration {
         private String sessionName;
         private String serverUri;
         private Long maxResponseMessageSize;
-        private String securityMode;
-        private String securityPolicyUri;
+        private MessageSecurityMode securityMode;
+        private SecurityPolicyUri securityPolicyUri;
         private String clientCertificate;
         private String serverCertificate;
-        private List<String> localeIds;
+        private List<LocaleIds> localeIds;
         private Integer maxChunkCount;
         private final Timeouts timeout=Timeouts.SESSION;
     }

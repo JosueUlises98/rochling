@@ -6,8 +6,7 @@ import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.kopingenieria.application.validators.contracts.AuthenticationValidator;
-import org.kopingenieria.application.validators.user.UserAuthenticationValidator;
+import org.kopingenieria.application.validators.contract.user.UserAuthenticationValidator;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 
@@ -18,14 +17,14 @@ public class OpcUaAuthentication implements Autentication {
     private boolean isAuthenticated;
     private static final int AUTH_TIMEOUT_SECONDS = 10;
     private static final int MIN_PASSWORD_LENGTH = 8;
-    private static final AuthenticationValidator AUTHENTICATION_VALIDATOR;
+    private static final UserAuthenticationValidator AUTHENTICATION_VALIDATOR;
 
     static {
-        AUTHENTICATION_VALIDATOR = new UserAuthenticationValidator();
+        AUTHENTICATION_VALIDATOR = new org.kopingenieria.application.validators.impl.user.UserAuthenticationValidator();
     }
 
     public OpcUaAuthentication() throws OpcUaConfigurationException {
-        this.opcUaClient = new OpcUaConfiguration().createUserOpcUaClient();
+        this.opcUaClient = new UserConfiguration().createUserOpcUaClient();
         this.isAuthenticated = false;
     }
 

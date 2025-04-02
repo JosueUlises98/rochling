@@ -1,4 +1,4 @@
-package org.kopingenieria.application.validators.contract.bydefault;
+package org.kopingenieria.application.validators.contract.user;
 
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -6,7 +6,7 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 
-public interface SubscriptionValidator {
+public interface UserSubscriptionValidator {
 
     boolean validateNodeId(String nodeId);
 

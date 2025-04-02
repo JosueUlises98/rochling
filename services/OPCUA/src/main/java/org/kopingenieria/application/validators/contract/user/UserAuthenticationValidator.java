@@ -12,5 +12,5 @@ public interface UserAuthenticationValidator {
 
     boolean isSessionValid(String token,Object... args);
 
-    String getValidationResult();
+    String getValidationResult(String[] data,Object[]sessiondata);
 }

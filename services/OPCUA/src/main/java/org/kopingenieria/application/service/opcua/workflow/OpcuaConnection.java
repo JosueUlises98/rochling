@@ -14,7 +14,7 @@ import org.kopingenieria.application.service.opcua.pool.client.user.OpcUaUserPoo
 import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.application.validators.impl.user.UserConnectionValidator;
+import org.kopingenieria.application.validators.impl.user.UserConnectionValidatorImpl;
 import org.kopingenieria.exception.exceptions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
@@ -37,7 +37,7 @@ public class OpcuaConnection implements Connection {
     @Autowired
     private OpcUaUserPoolManager poolManager;
     private OpcUaUserPool.PooledOpcUaClient pooledClient;
-    private final UserConnectionValidator validatorConnection;
+    private final UserConnectionValidatorImpl validatorConnection;
     private UrlType lastConnectedUrl;
     @Getter
     private volatile ConnectionStatus currentStatus;
@@ -46,7 +46,7 @@ public class OpcuaConnection implements Connection {
     private final UserConfiguration loadConfiguration;
 
     public OpcuaConnection() throws ConfigurationException {
-        this.validatorConnection = new UserConnectionValidator();
+        this.validatorConnection = new UserConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
         UserConfigFile configFile = new UserConfigFile(new ObjectMapper(), new Properties(), new UserConfiguration());

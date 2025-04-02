@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kopingenieria.application.validators.impl.bydefault.DefaultConfigurationValidator;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
@@ -186,7 +185,7 @@ public class DefaultConfigFile {
     @Transactional
     private boolean validateConfiguration(DefaultConfiguration config) throws ConfigurationException {
         Objects.requireNonNull(config, "La configuracion no puede ser nula");
-        DefaultConfigurationValidator validator = new DefaultConfigurationValidator();
+        DefaultConfigurationValidatorImpl validator = new DefaultConfigurationValidatorImpl();
         //Validacion de conexion
         validator.validateConnection(config);
         //Validacion de autenticacion

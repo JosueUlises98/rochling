@@ -1,14 +1,18 @@
-package org.kopingenieria.application.validators.impl.bydefault;
+package org.kopingenieria.application.validators.impl.user;
 
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.kopingenieria.application.validators.contract.user.UserConfigurationValidator;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
-import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
+import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.locale.LocaleIds;
 import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
+import org.kopingenieria.domain.enums.security.CertificateType;
+import org.kopingenieria.domain.enums.security.EncryptionAlgorithm;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
-import org.kopingenieria.exception.exceptions.ConfigurationException;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.util.StringUtils;
@@ -16,321 +20,335 @@ import org.springframework.util.StringUtils;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public class DefaultConfigurationValidator {
+public class UserConfigurationValidatorImpl implements UserConfigurationValidator {
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de conexion",description = "Validacion de configuracion de conexion opcua")
     @LogSystemEvent(description = "Validacion de conexion opcua", event = "Validacion de conexion",level = LogLevel.DEBUG)
-    public void validateConnection(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateConnection(UserConfiguration config)  {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        DefaultConfiguration.Connection conn = config.getConnection();
+        UserConfiguration.Connection conn = config.getConnection();
         if (conn == null) {
-            throw new ConfigurationException("La configuración de conexión no puede ser nula");
+           return false;
         }
         // Validación de URL del endpoint
         if (!StringUtils.hasText(conn.getEndpointUrl())) {
-            throw new ConfigurationException("La URL del endpoint es obligatoria");
+            return false;
         }
         if (!isValidOpcUaUrl(conn.getEndpointUrl())) {
-            throw new ConfigurationException("URL del endpoint inválida. Debe comenzar con 'opc.tcp://'");
+            return false;
         }
         // Validación de nombres de aplicación
         if (!StringUtils.hasText(conn.getApplicationName())) {
-            throw new ConfigurationException("El nombre de la aplicación es obligatorio");
+            return false;
         }
         if (conn.getApplicationName().length() > 100) {
-            throw new ConfigurationException("El nombre de la aplicación no puede exceder 100 caracteres");
+            return false;
         }
         // Validación de URIs
         if (!StringUtils.hasText(conn.getApplicationUri())) {
-            throw new ConfigurationException("El URI de la aplicación es obligatorio");
+            return false;
         }
         if (!isValidUri(conn.getApplicationUri())) {
-            throw new ConfigurationException("URI de aplicación inválido: " + conn.getApplicationUri());
+            return false;
         }
         if (StringUtils.hasText(conn.getProductUri()) && !isValidUri(conn.getProductUri())) {
-            throw new ConfigurationException("URI de producto inválido: " + conn.getProductUri());
+            return false;
         }
         //Validacion de ConectionType
         if (!StringUtils.hasText(String.valueOf(conn.getType()))) {
-            throw new ConfigurationException("El URI de la aplicación es obligatorio");
+            return false;
         }
-        if (!isValidConnectionType(conn.getType())) {
-            throw new ConfigurationException("URI de aplicación inválido: " + conn.getApplicationUri());
+        if (!isValidConnectionType(String.valueOf(conn.getType()))) {
+            return false;
         }
         // Validación de timeouts
         if (!StringUtils.hasText(String.valueOf(conn.getTimeout()))) {
-            throw new ConfigurationException("El tiempo de espera es obligatorio");
+            return false;
         }
-        if (!isValidConnectionTimeout(conn.getTimeout())) {
-            throw new ConfigurationException("El tiempo de espera debe estar entre 100ms y 30000ms");
+        if (!isValidConnectionTimeout(conn.getTimeout().toMilliseconds())) {
+            return false;
         }
+        return true;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de autenticacion",description = "Validacion de configuracion de autenticacion opcua")
     @LogSystemEvent(description = "Validacion de autenticacion opcua", event = "Validacion de autenticacion",level = LogLevel.DEBUG)
-    public void validateAuthentication(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateAuthentication(UserConfiguration config) {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        DefaultConfiguration.Authentication auth = config.getAuthentication();
+        UserConfiguration.Authentication auth = config.getAuthentication();
         if (auth == null) {
-            throw new ConfigurationException("La configuración de autenticación no puede ser nula");
+            return false;
         }
         // Validación del modo de autenticación
         if (auth.getIdentityProvider() == null) {
-            throw new ConfigurationException("Debe especificar un identity provider");
+            return false;
         }
         // Validación de credenciales
             if (!StringUtils.hasText(auth.getUserName())) {
-                throw new ConfigurationException("El nombre de usuario es obligatorio para autenticación no anónima");
+                return false;
             }
             if (auth.getUserName().length() > 50) {
-                throw new ConfigurationException("El nombre de usuario no puede exceder 50 caracteres");
+                return false;
             }
             if (!StringUtils.hasText(auth.getPassword())) {
-                throw new ConfigurationException("La contraseña es obligatoria para autenticación no anónima");
+                return false;
             }
             if (auth.getPassword().length() < 8) {
-                throw new ConfigurationException("La contraseña debe tener al menos 8 caracteres");
+                return false;
             }
         // Validación de políticas de seguridad
         if (!StringUtils.hasText(String.valueOf(auth.getSecurityPolicy()))) {
-            throw new ConfigurationException("La política de seguridad es obligatoria");
+            return false;
         }
         if (!isValidSecurityPolicy(String.valueOf(auth.getSecurityPolicy()))) {
-            throw new ConfigurationException("Política de seguridad no válida: " + auth.getSecurityPolicy());
+            return false;
         }
         if (!StringUtils.hasText(String.valueOf(auth.getMessageSecurityMode()))) {
-            throw new ConfigurationException("El modo de seguridad es obligatorio");
+            return false;
         }
-        if (!isValidSecurityMode(auth.getMessageSecurityMode())) {
-            throw new ConfigurationException("Modo de seguridad no válido: " + auth.getMessageSecurityMode());
+        if (!isValidSecurityMode(String.valueOf(auth.getMessageSecurityMode()))) {
+            return false;
         }
         // Validación de certificados
         if (StringUtils.hasText(auth.getCertificatePath())) {
-            validateCertificatePath(auth.getCertificatePath());
+            return validateCertificatePath(auth.getCertificatePath());
         }
         if (StringUtils.hasText(auth.getPrivateKeyPath())) {
-            validatePrivateKeyPath(auth.getPrivateKeyPath());
+            return validatePrivateKeyPath(auth.getPrivateKeyPath());
         }
+        return true;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de encriptacion",description = "Validacion de configuracion de encriptacion opcua")
     @LogSystemEvent(description = "Validacion de encriptacion opcua", event = "Validacion de encriptacion",level = LogLevel.DEBUG)
-    public void validateEncryption(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateEncryption(UserConfiguration config) {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        DefaultConfiguration.Encryption enc = config.getEncryption();
+        UserConfiguration.Encryption enc = config.getEncryption();
         if (enc == null) {
-            throw new ConfigurationException("La configuración de encriptación no puede ser nula");
+            return false;
         }
         // Validación de política de seguridad
         if (!StringUtils.hasText(String.valueOf(enc.getSecurityPolicy()))) {
-            throw new ConfigurationException("La política de seguridad de encriptación es obligatoria");
+            return false;
         }
         if (!isValidEncryptionPolicy(String.valueOf(enc.getSecurityPolicy()))) {
-            throw new ConfigurationException("Política de encriptación no válida: " + enc.getSecurityPolicy());
+            return false;
         }
         // Validación del modo de mensaje
         if (!StringUtils.hasText(String.valueOf(enc.getMessageSecurityMode()))) {
-            throw new ConfigurationException("El modo de mensaje es obligatorio");
+            return false;
         }
         if (!isValidMessageMode(String.valueOf(enc.getMessageSecurityMode()))) {
-            throw new ConfigurationException("Modo de mensaje no válido: " + enc.getMessageSecurityMode());
+            return false;
         }
         // Validación del algoritmo
-        if (!StringUtils.hasText(enc.getAlgorithmName())) {
-            throw new ConfigurationException("El algoritmo de encriptación es obligatorio");
+        if (!StringUtils.hasText(String.valueOf(enc.getAlgorithmName()))) {
+            return false;
         }
-        if (!isValidEncryptionAlgorithm(enc.getAlgorithmName())) {
-            throw new ConfigurationException("Algoritmo de encriptación no válido: " + Arrays.toString(enc.getClientCertificate()));
+        if (!isValidEncryptionAlgorithm(String.valueOf(enc.getAlgorithmName()))) {
+            return false;
         }
         // Validación del tamaño de llave
         if (!StringUtils.hasText(String.valueOf(enc.getKeyLength()))) {
-            throw new ConfigurationException("El algoritmo de encriptación es obligatorio");
+            return false;
         }
-        if (!isValidKeySize(enc.getKeyLength(),enc.getAlgorithmName())) {
-            throw new ConfigurationException("Tamaño de llave no válido para el algoritmo: " + enc.getAlgorithmName());
+        if (!isValidKeySize(enc.getKeyLength(), String.valueOf(enc.getAlgorithmName()))) {
+            return false;
         }
         // Validación del tipo de certificado
         if (!StringUtils.hasText(String.valueOf(enc.getType()))) {
-            throw new ConfigurationException("El tipo de certificado es obligatorio");
+            return false;
         }
         if (!isValidCertificateType(enc.getType())) {
-            throw new ConfigurationException("Tipo de certificado no válido: " + enc.getType());
+            return false;
         }
+        return true;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de sesion",description = "Validacion de configuracion de sesion opcua")
     @LogSystemEvent(description = "Validacion de session opcua", event = "Validacion de session",level = LogLevel.DEBUG)
-    public void validateSession(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateSession(UserConfiguration config) {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        DefaultConfiguration.Session session = config.getSession();
+        UserConfiguration.Session session = config.getSession();
         if (session == null) {
-            throw new ConfigurationException("La configuración de sesión no puede ser nula");
+            return false;
         }
         // Validación del nombre de sesión
         if (!StringUtils.hasText(session.getSessionName())) {
-            throw new ConfigurationException("El nombre de sesión es obligatorio");
+            return false;
         }
         if (session.getSessionName().length() > 100) {
-            throw new ConfigurationException("El nombre de sesión no puede exceder 100 caracteres");
+            return false;
         }
         //Validacion de server uri
         if (!StringUtils.hasText(session.getServerUri())) {
-            throw new ConfigurationException("El URI del servidor es obligatorio");
+            return false;
         }
         if (isValidUri(session.getServerUri())) {
-            throw new ConfigurationException("La uri del servidor es invalida: " + session.getServerUri());
+            return false;
         }
         //Validacion de maxresponsemessagesize
         if (session.getMaxResponseMessageSize() != null) {
             if (session.getMaxResponseMessageSize() < 8192 || session.getMaxResponseMessageSize() > 16777216) {
-                throw new ConfigurationException("El tamaño máximo de mensaje de respuesta debe estar entre 8KB y 16MB");
+                return false;
             }
         }
         //Validacion de securityMode
         if (!StringUtils.hasText(String.valueOf(session.getSecurityMode()))) {
-            throw new ConfigurationException("El modo de seguridad es obligatorio");
+            return false;
         }
-        if (!isValidSecurityMode(MessageSecurityMode.valueOf(session.getSecurityMode()))) {
-            throw new ConfigurationException("Modo de seguridad invalido: " + session.getSecurityMode());
+        if (!isValidSecurityMode(String.valueOf(session.getSecurityMode()))) {
+            return false;
         }
         //Validacion de securityPolicyUri
-        if (!StringUtils.hasText(session.getSecurityPolicyUri())) {
-            throw new ConfigurationException("La uri de politica de seguridad es obligatoria");
+        if (!StringUtils.hasText(String.valueOf(session.getSecurityPolicyUri()))) {
+            return false;
         }
-        if (!isValidSecurityPolicy(session.getSecurityPolicyUri())) {
-            throw new ConfigurationException("La uri de politica de seguridad es invalida: " + session.getSecurityPolicyUri());
+        if (!isValidSecurityPolicy(String.valueOf(session.getSecurityPolicyUri()))) {
+            return false;
         }
         //Validacion de locales ids
         if (!StringUtils.hasText(String.valueOf(session.getLocaleIds()))){
-            throw new ConfigurationException("Los identificadores de idioma son obligatorios");
+            return false;
         }
-        if (!validateLocaleIds(session.getLocaleIds())){
-            throw new ConfigurationException("Los identificadores de idioma son invalidos: " + session.getLocaleIds());
+        if (!validateLocaleIds(session.getLocaleIds().stream().map(String::valueOf).collect(Collectors.toList()))){
+            return false;
         }
         // Validación de timeout
-        if (!StringUtils.hasText(String.valueOf(session.getTimeout()))){
-            throw new ConfigurationException("El tiempo de espera es obligatorio");
+        if (!StringUtils.hasText(String.valueOf(session.getTimeout().toMilliseconds()))){
+            return false;
         }
-        if (isValidSessionTimeout(session.getTimeout())){
-            throw new ConfigurationException("Los identificadores de idioma son obligatorios");
+        if (!isValidSessionTimeout(session.getTimeout().toMilliseconds())){
+            return false;
         }
+        return true;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de suscripcion",description = "Validacion de configuracion de suscripcion opcua")
     @LogSystemEvent(description = "Validacion de suscripcion opcua", event = "Validacion de suscripcion",level = LogLevel.DEBUG)
-    public void validateSubscription(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateSubscription(UserConfiguration config) {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        List<DefaultConfiguration.Subscription> subscriptions = config.getSubscriptions();
+        List<UserConfiguration.Subscription> subscriptions = config.getSubscriptions();
         if (subscriptions != null && !subscriptions.isEmpty()) {
-            for (DefaultConfiguration.Subscription sub : subscriptions) {
+            for (UserConfiguration.Subscription sub : subscriptions) {
                 // Validación del nodeid
                 if (!StringUtils.hasText(sub.getNodeId())) {
-                    throw new ConfigurationException("El nombre de la suscripción es obligatorio");
+                   return false;
                 }
                 if (!isValidNodeId(sub.getNodeId())) {
-                    throw new ConfigurationException("El id de nodo tiene un formato incorrecto: " + sub.getNodeId());
+                    return false;
                 }
                 // Validación de intervalos
                 if (!StringUtils.hasText(String.valueOf(sub.getPublishingInterval()))) {
-                    throw new ConfigurationException("El intervalo de suscripcion es obligatorio");
+                    return false;
                 }
                 if (!isValidPublishingInterval(sub.getPublishingInterval())) {
-                    throw new ConfigurationException("El intervalo de suscripcion debe estar entre 1000 y 10000 milisegundos");
+                    return false;
                 }
                 if (!StringUtils.hasText(String.valueOf(sub.getSamplingInterval()))) {
-                    throw new ConfigurationException("El intervalo de suscripcion es obligatorio");
+                    return false;
                 }
                 if (!isValidSamplingInterval(sub.getSamplingInterval())){
-                    throw new ConfigurationException("El intervalo de suscripcion debe estar entre 1000 y 10000 milisegundos");
+                    return false;
                 }
                 //Validacion del modo de monitoreo
                 if (!StringUtils.hasText(String.valueOf(sub.getMonitoringMode()))) {
-                    throw new ConfigurationException("El modo de monitoreo es obligatorio");
+                    return false;
                 }
-                if (!isValidMonitoringMode(sub.getMonitoringMode())){
-                    throw new ConfigurationException("El modo de monitoreo debe ser uno de: " + Arrays.toString(MonitoringMode.values()));
+                if (!isValidMonitoringMode(String.valueOf(sub.getMonitoringMode()))){
+                    return false;
                 }
                 //Validacion del timestamp a retornar
                 if (!StringUtils.hasText(String.valueOf(sub.getTimestampsToReturn()))) {
-                    throw new ConfigurationException("El modo de monitoreo es obligatorio");
+                    return false;
                 }
-                if (!isValidTimeStampToReturn(sub.getTimestampsToReturn())){
-                    throw new ConfigurationException("El modo de monitoreo debe ser uno de: " + Arrays.toString(MonitoringMode.values()));
+                if (!isValidTimeStampToReturn(String.valueOf(sub.getTimestampsToReturn()))){
+                    return false;
                 }
             }
         }
+        return true;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion industrial",description = "Validacion de configuracion industrial opcua")
     @LogSystemEvent(description = "Validacion de configuracion industrial opcua", event = "Validacion de configuracion industrial",level = LogLevel.DEBUG)
-    public void validateIndustrialConfiguration(DefaultConfiguration config) throws ConfigurationException {
+    public boolean validateIndustrialConfiguration(UserConfiguration config) {
         Objects.requireNonNull(config,"La configuracion es obligatoria");
-        DefaultConfiguration.IndustrialConfiguration ind = config.getIndustrialConfiguration();
+        UserConfiguration.IndustrialConfiguration ind = config.getIndustrialConfiguration();
         if (ind == null) {
-            throw new ConfigurationException("La configuración industrial no puede ser nula");
+            return false;
         }
         // Validación de zona industrial
         if (!StringUtils.hasText(ind.getIndustrialZone())) {
-            throw new ConfigurationException("La zona industrial es obligatoria");
+            return false;
         }
         if (!isValidIndustrialZone(ind.getIndustrialZone())) {
-            throw new ConfigurationException("Zona industrial no válida: " + ind.getIndustrialZone());
+            return false;
         }
         // Validación de ID de equipo
         if (!StringUtils.hasText(ind.getEquipmentId())) {
-            throw new ConfigurationException("El ID del equipo es obligatorio");
+            return false;
         }
         if (!isValidEquipmentId(ind.getEquipmentId())) {
-            throw new ConfigurationException("ID de equipo no válido: " + ind.getEquipmentId());
+            return false;
         }
         // Validación de ID de área
         if (!StringUtils.hasText(ind.getAreaId())) {
-            throw new ConfigurationException("El ID del área es obligatorio");
+            return false;
         }
         if (!isValidAreaId(ind.getAreaId())) {
-            throw new ConfigurationException("ID de área no válido: " + ind.getAreaId());
+            return false;
         }
         // Validación de ID de proceso
         if (!StringUtils.hasText(ind.getProcessId())) {
-            throw new ConfigurationException("El ID del proceso es obligatorio");
+            return false;
         }
         if (!isValidProcessId(ind.getProcessId())) {
-            throw new ConfigurationException("ID de proceso no válido: " + ind.getProcessId());
+            return false;
         }
         // Validación de OperatorName
         if (!StringUtils.hasText(ind.getOperatorName())) {
-            throw new ConfigurationException("El nombre del operador es obligatorio");
+            return false;
         }
         if (!isValidOperatorName(ind.getOperatorName())) {
-            throw new ConfigurationException("Nombre de operador no válido: " + ind.getProcessId());
+            return false;
         }
         //Validacion de ID de operador
         if (!StringUtils.hasText(ind.getOperatorId())) {
-            throw new ConfigurationException("El ID del operador es obligatorio");
+            return false;
         }
         if (!isValidOperatorId(ind.getOperatorId())) {
-            throw new ConfigurationException("ID de operador no válido: " + ind.getProcessId());
+            return false;
         }
+        return true;
+    }
+
+    public String getValidationResult(UserConfiguration config) {
+        Objects.requireNonNull(config,"La configuracion es obligatoria");
+        String result = "failed";
+       if (validateConnection(config)&validateAuthentication(config) & validateEncryption(config) &
+               validateSession(config) & validateSubscription(config) & validateIndustrialConfiguration(config)) {
+           result = "success";
+       }
+       return result;
     }
 
     // Métodos auxiliares de validación
-    private boolean isValidConnectionType(ConnectionType type) {
+    private boolean isValidConnectionType(String type) {
         Set<ConnectionType> validTypes = Set.of(ConnectionType.OPCUA);
-        return validTypes.contains(type);
+        return validTypes.contains(ConnectionType.valueOf(type));
     }
 
-    private boolean isValidConnectionTimeout(Timeouts timeout) {
-        return timeout != null && timeout.toMilliseconds() >= Timeouts.CONNECTION.toMilliseconds() && timeout.toMilliseconds() <= Timeouts.CONNECTION.toMilliseconds();
+    private boolean isValidConnectionTimeout(Long timeout) {
+        return timeout != null && timeout >= 0 && timeout <= Timeouts.CONNECTION.toMilliseconds();
     }
 
-    private boolean isValidSessionTimeout(Timeouts timeout) {
-        return timeout != null && timeout.toMilliseconds() >= Timeouts.SESSION.toMilliseconds() && timeout.toMilliseconds() <= Timeouts.SESSION.toMilliseconds();
+    private boolean isValidSessionTimeout(Long timeout) {
+        return timeout != null && timeout > 0 && timeout <= Timeouts.SESSION.toMilliseconds();
     }
 
     private boolean isValidOpcUaUrl(String url) {
@@ -356,81 +374,64 @@ public class DefaultConfigurationValidator {
     }
 
     private boolean isValidSecurityPolicy(String policy) {
-        Set<String> validPolicies = Set.of(
-                "None",
-                "Basic128Rsa15",
-                "Basic256",
-                "Basic256Sha256",
-                "Aes128_Sha256_RsaOaep",
-                "Aes256_Sha256_RsaPss"
-        );
-        return validPolicies.contains(policy);
+        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE,SecurityPolicy.BASIC256,
+                SecurityPolicy.BASIC128RSA15,SecurityPolicy.BASIC256SHA256,
+                SecurityPolicy.AES128_SHA256_RSAOAEP,SecurityPolicy.AES256_SHA256_RSAPSS);
+        return validPolicies.contains(SecurityPolicy.valueOf(policy));
     }
 
-    private boolean isValidSecurityMode(MessageSecurityMode mode) {
+    private boolean isValidSecurityMode(String mode) {
         Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE,
                 MessageSecurityMode.SIGN,
                 MessageSecurityMode.INVALID,
                 MessageSecurityMode.SIGNANDENCRYPT);
-        return validModes.contains(mode);
+        return validModes.contains(MessageSecurityMode.valueOf(mode));
     }
 
-    private void validateCertificatePath(String path) throws ConfigurationException {
+    private boolean validateCertificatePath(String path) {
         File certFile = new File(path);
         if (!certFile.exists()) {
-            throw new ConfigurationException("El archivo de certificado no existe: " + path);
+            return false;
         }
         if (!certFile.isFile()) {
-            throw new ConfigurationException("La ruta del certificado no es un archivo: " + path);
+            return false;
         }
         if (!path.toLowerCase().endsWith(".der") && !path.toLowerCase().endsWith(".pem")) {
-            throw new ConfigurationException("El certificado debe tener extensión .der o .pem");
+            return false;
         }
+        return true;
     }
 
-    private void validatePrivateKeyPath(String path) throws ConfigurationException {
+    private boolean validatePrivateKeyPath(String path){
         File keyFile = new File(path);
         if (!keyFile.exists()) {
-            throw new ConfigurationException("El archivo de llave privada no existe: " + path);
+            return false;
         }
         if (!keyFile.isFile()) {
-            throw new ConfigurationException("La ruta de la llave privada no es un archivo: " + path);
+            return false;
         }
         if (!path.toLowerCase().endsWith(".pem")) {
-            throw new ConfigurationException("La llave privada debe tener extensión .pem");
+            return false;
         }
+        return true;
     }
 
     private boolean isValidEncryptionPolicy(String policy) {
-        Set<String> validPolicies = Set.of(
-                "None",
-                "Basic128Rsa15",
-                "Basic256",
-                "Basic256Sha256",
-                "Aes128_Sha256_RsaOaep",
-                "Aes256_Sha256_RsaPss"
-        );
-        return validPolicies.contains(policy);
+        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE,SecurityPolicy.BASIC256,
+                SecurityPolicy.BASIC128RSA15);
+        return validPolicies.contains(SecurityPolicy.valueOf(policy));
     }
 
     private boolean isValidMessageMode(String mode) {
-        Set<String> validModes = Set.of(
-                "None",
-                "Sign",
-                "SignAndEncrypt"
-        );
-        return validModes.contains(mode);
+        Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE,MessageSecurityMode.SIGN,
+                MessageSecurityMode.SIGNANDENCRYPT);
+        return validModes.contains(MessageSecurityMode.valueOf(mode));
     }
 
     private boolean isValidEncryptionAlgorithm(String algorithm) {
-        Set<String> validAlgorithms = Set.of(
-                "RSA",
-                "AES",
-                "SHA256",
-                "SHA384",
-                "SHA512"
-        );
-        return validAlgorithms.contains(algorithm);
+        Set<EncryptionAlgorithm> validAlgorithms = Set.of(EncryptionAlgorithm.SHA256,EncryptionAlgorithm.SHA512,
+                EncryptionAlgorithm.SHA384,EncryptionAlgorithm.AES,EncryptionAlgorithm.RSA);
+        return validAlgorithms.contains(EncryptionAlgorithm.valueOf(algorithm));
     }
 
     private boolean isValidKeySize(Integer keySize, String algorithm) {
@@ -444,19 +445,15 @@ public class DefaultConfigurationValidator {
     }
 
     private boolean isValidCertificateType(String type) {
-        Set<String> validTypes = Set.of(
-                "X509",
-                "DER",
-                "PEM"
-        );
-        return validTypes.contains(type);
+        Set<CertificateType> validTypes = Set.of(CertificateType.X509,CertificateType.DER,CertificateType.PEM);
+        return validTypes.contains(CertificateType.valueOf(type));
     }
 
     private boolean isValidNodeId(String nodeId) {
         if (nodeId == null) return false;
 
         // Formato básico: ns=X;i=Y o ns=X;s=Y
-        Pattern pattern = Pattern.compile("^(ns=\\d+;[is]=.+)$");
+        Pattern pattern = Pattern.compile("^(ns=\\d+;s=.*)$");
         return pattern.matcher(nodeId).matches();
     }
 
@@ -516,20 +513,23 @@ public class DefaultConfigurationValidator {
 
     private boolean isValidLocale(String locale) {
         if (locale == null || locale.isBlank()) return false;
-        Pattern localePattern = Pattern.compile("^[a-z]{2}(-[A-Z]{2})?$");
-        return localePattern.matcher(locale).matches();
+        Set<LocaleIds> validLocales = Set.of(LocaleIds.values());
+        return validLocales.contains(LocaleIds.valueOf(locale));
     }
 
     private boolean isValidPublishingInterval(Double interval) {
         return interval != null && interval > 0 && interval <= 10000;
     }
+
     private boolean isValidSamplingInterval(Double interval) {
         return interval != null && interval > 0 && interval <= 10000;
     }
-    private boolean isValidMonitoringMode(MonitoringMode mode) {
-        return (mode == MonitoringMode.Disabled || mode == MonitoringMode.Sampling || mode == MonitoringMode.Reporting);
+
+    private boolean isValidMonitoringMode(String mode) {
+        return (Objects.equals(mode, MonitoringMode.Disabled.name()) || Objects.equals(mode, MonitoringMode.Sampling.name()) || Objects.equals(mode, MonitoringMode.Reporting.name()));
     }
-    private boolean isValidTimeStampToReturn(TimestampsToReturn timeStampsToReturn) {
-        return (timeStampsToReturn == TimestampsToReturn.Both || timeStampsToReturn == TimestampsToReturn.Server || timeStampsToReturn == TimestampsToReturn.Source);
+
+    private boolean isValidTimeStampToReturn(String timeStampsToReturn) {
+        return (Objects.equals(timeStampsToReturn, TimestampsToReturn.Both.name()) || Objects.equals(timeStampsToReturn, TimestampsToReturn.Server.name()) || Objects.equals(timeStampsToReturn, TimestampsToReturn.Source.name()));
     }
 }

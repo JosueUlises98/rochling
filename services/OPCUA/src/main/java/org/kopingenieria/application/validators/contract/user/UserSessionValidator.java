@@ -2,7 +2,7 @@ package org.kopingenieria.application.validators.contract.user;
 
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 
-public interface SessionValidator {
+public interface UserSessionValidator {
 
     boolean validateSession(UaClient client);
 
@@ -16,7 +16,7 @@ public interface SessionValidator {
 
     boolean validateSessionSecurityMode(UaClient client, String securityMode);
 
-    boolean validateSessionCertificate(UaClient client, String certificate);
+    boolean validateSessionCertificate(UaClient client, byte[] certificate);
 
     boolean validateSessionTimeout(UaClient client, int timeout);
 

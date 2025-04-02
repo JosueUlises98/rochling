@@ -1,4 +1,4 @@
-package org.kopingenieria.application.validators.impl.bydefault;
+package org.kopingenieria.application.validators.impl.user;
 
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaSession;
@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public class DefaultAuthenticationValidator implements UserAuthenticationValidator {
+public class UserAuthenticationValidatorImpl implements UserAuthenticationValidator {
 
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final int MAX_FAILED_ATTEMPTS = 3;
@@ -34,7 +34,6 @@ public class DefaultAuthenticationValidator implements UserAuthenticationValidat
     private final Map<String, LocalDateTime> tokenCache = new ConcurrentHashMap<>();
     // Cache para checksums de datos
     private final Map<String, String> dataChecksums = new ConcurrentHashMap<>();
-
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de credenciales",description = "Validacion de credenciales del cliente opcua")
     @LogSystemEvent(description = "Validacion de credenciales de cliente opcua ", event = "Validacion de credenciales",level = LogLevel.DEBUG)
@@ -70,29 +69,32 @@ public class DefaultAuthenticationValidator implements UserAuthenticationValidat
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de la sesion",description = "Validacion de la sesion del cliente opcua")
     @LogSystemEvent(description = "Validacion de la sesion del cliente opcua", event = "Validacion de sesion opcua",level = LogLevel.DEBUG)
     public boolean isSessionValid(String token, Object... datosSessionOpcUa) {
-        try {
             // 1. Validar que el token exista y esté activo
             if (!isActiveTokenSession(token)) {
-                throw new IllegalStateException("La sesión no está activa o el token es inválido");
+                return false;
             }
 
             // 2. Validar que el timestamp del token sea válido
             if (!createTimeStampToken(token)) {
-                throw new IllegalStateException("No se pudo actualizar el timestamp del token");
+                return false;
             }
 
             // 3. Validar el esquema de la sesión OPC UA
             if (!validateSchematicSessionToken(datosSessionOpcUa)) {
-                throw new IllegalStateException("Los datos de la sesión OPC UA no son válidos");
+                return false;
             }
 
             return true;
+    }
 
-        } catch (Exception e) {
-            // Considerar logging del error
-            System.err.println("Error en la validación de sesión: " + e.getMessage());
-            return false;
+    public String getValidationResult(String[] data,Object[]sessiondata){
+        String result = "failed";
+        Objects.requireNonNull(data,"Se necesitan los datos para validarlos");
+        Objects.requireNonNull(sessiondata,"Se necesitan los datos de la sesion para validarlos");
+        if(validateUserCredentials(data[0],data[1])&validateClientCertificate(data[2])&isSessionValid(data[3],sessiondata)&isSessionTokenValid(data[3])&enforcePasswordComplexity(data[1])){
+            result = "success";
         }
+        return result;
     }
 
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion del token de sesion",description = "Validacion del token de sesion del cliente opcua")
@@ -138,7 +140,7 @@ public class DefaultAuthenticationValidator implements UserAuthenticationValidat
         if (tokenTimestamp == null) {
             return false;
         }
-        return !(tokenTimestamp.isAfter(LocalDateTime.now()));
+        return tokenTimestamp.isBefore(LocalDateTime.now());
     }
 
     private boolean createTimeStampToken(String token){
@@ -163,7 +165,10 @@ public class DefaultAuthenticationValidator implements UserAuthenticationValidat
 
     private boolean verificarIntegridadCredenciales(String username, String password) {
         // Verificación de formato y caracteres válidos
-        if (!username.matches("^[a-zA-Z0-9._-]{3,50}$")) {
+        if (!username.matches("^[a-zA-Z0-9._-]{3,20}$")) {
+            return false;
+        }
+        if (!password.matches("^[a-zA-Z0-9._-]{12,20}$")) {
             return false;
         }
         // Verificación de consistencia de datos

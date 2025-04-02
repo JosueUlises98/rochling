@@ -7,6 +7,7 @@ import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.kopingenieria.application.validators.contract.user.UserAuthenticationValidator;
+import org.kopingenieria.application.validators.impl.user.UserAuthenticationValidatorImpl;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 
@@ -20,7 +21,7 @@ public class OpcUaAuthentication implements Autentication {
     private static final UserAuthenticationValidator AUTHENTICATION_VALIDATOR;
 
     static {
-        AUTHENTICATION_VALIDATOR = new org.kopingenieria.application.validators.impl.user.UserAuthenticationValidator();
+        AUTHENTICATION_VALIDATOR = new UserAuthenticationValidatorImpl();
     }
 
     public OpcUaAuthentication() throws OpcUaConfigurationException {

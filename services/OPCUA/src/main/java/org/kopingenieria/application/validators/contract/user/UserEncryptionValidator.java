@@ -1,12 +1,11 @@
-package org.kopingenieria.application.validators.contract.bydefault;
+package org.kopingenieria.application.validators.contract.user;
 
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
-
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-public interface EncryptionValidator {
+public interface UserEncryptionValidator {
 
     boolean validateSecurityPolicy(SecurityPolicy securityPolicy);
 

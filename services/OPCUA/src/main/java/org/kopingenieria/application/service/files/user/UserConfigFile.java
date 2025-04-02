@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import org.kopingenieria.application.validators.impl.user.UserConfigurationValidator;
+import org.kopingenieria.application.validators.impl.user.UserConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
@@ -216,7 +216,7 @@ public class UserConfigFile {
     @Transactional
     private boolean validateConfiguration(UserConfiguration config) throws ConfigurationException {
         Objects.requireNonNull(config, "La configuracion no puede ser nula");
-        UserConfigurationValidator validator = new UserConfigurationValidator();
+        UserConfigurationValidatorImpl validator = new UserConfigurationValidatorImpl();
         //Validacion de conexion
         validator.validateConnection(config);
         //Validacion de autenticacion

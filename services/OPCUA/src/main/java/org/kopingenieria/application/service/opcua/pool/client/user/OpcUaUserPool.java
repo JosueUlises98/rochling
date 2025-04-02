@@ -5,6 +5,8 @@ import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
 import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +32,7 @@ public class OpcUaUserPool {
     public static class ClientKey {
         private final String endpointUrl;
         private final String name;
-        private final String securityPolicy;
+        private final SecurityPolicyUri securityPolicy;
         private final String messageSecurityMode;
 
         public ClientKey(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {

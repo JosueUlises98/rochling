@@ -1,14 +1,17 @@
-package org.kopingenieria.application.validators.contract.user;
+package org.kopingenieria.application.validators.contract.bydefault;
 
+import org.eclipse.milo.opcua.sdk.client.subscriptions.OpcUaSubscriptionManager;
+import org.eclipse.milo.opcua.sdk.server.util.SubscriptionModel;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 
-public interface SubscriptionValidator {
+public interface DefaultSubscriptionValidator {
 
-    boolean validateNodeId(String nodeId);
+    boolean validateNodeId(NodeId nodeId);
 
     boolean validatePublishingInterval(Double publishingInterval);
 
@@ -36,7 +39,7 @@ public interface SubscriptionValidator {
 
     boolean validateSamplingPublishingRelation(Double samplingInterval, Double publishingInterval);
 
-    boolean validateCompleteSubscription(DefaultConfiguration.Subscription subscription);
+    boolean validateCompleteSubscription(OpcUaSubscriptionManager subscription);
 
     String getValidationResult();
 }

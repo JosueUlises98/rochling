@@ -4,9 +4,10 @@ package org.kopingenieria.application.service.opcua.pool.client.user;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.user.UserConfigurationImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
+import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
 import org.kopingenieria.logging.model.LogMethod;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ public class OpcUaUserPoolManager {
     private OpcUaUserPool clientPool;
 
     @Autowired
-    private UserConfiguration opcUaConfiguration;
+    private UserConfigurationImpl opcUaConfiguration;
 
     private final Map<String, OpcUaUserPool.PooledOpcUaClient> managedClients;
     private final Map<String, AtomicInteger> clientUsageCounter;
@@ -57,7 +58,7 @@ public class OpcUaUserPoolManager {
     )
     @LogMethod(description = "Inicializando OpcUaPoolManager con Pool de Clientes...",operation = "obtenerCliente")
     public Optional<OpcUaUserPool.PooledOpcUaClient> obtenerCliente(
-            org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+            UserConfigurationOpcUa userConfig) {
         String connectionId = generarIdConexion(userConfig);
 
         try {
@@ -121,7 +122,6 @@ public class OpcUaUserPoolManager {
             estadisticas.put("ultimoError", clientLastErrors.getOrDefault(connectionId, 0L));
             estadisticas.put("ultimoUso", pooledClient.getLastUsed());
             estadisticas.put("estadoConexion", pooledClient.getUserConfig().getConnection().getStatus());
-            estadisticas.put("suscripcionesActivas", pooledClient.getSubscriptions().size());
             estadisticas.put("configuracion", pooledClient.getUserConfig());
         }
 
@@ -147,7 +147,7 @@ public class OpcUaUserPoolManager {
         });
     }
 
-    private String generarIdConexion(org.kopingenieria.config.opcua.user.UserConfiguration config) {
+    private String generarIdConexion(UserConfigurationOpcUa config) {
         return String.format("%s_%s_%s",
                 config.getConnection().getEndpointUrl(),
                 config.getConnection().getName(),

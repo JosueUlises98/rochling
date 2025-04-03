@@ -6,14 +6,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.application.validators.impl.user.UserConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.*;
 import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
@@ -214,7 +212,7 @@ public class UserConfigFile {
             description = "Validacion de los campos de configuracion del cliente opcua"
     )
     @Transactional
-    private boolean validateConfiguration(UserConfiguration config) throws ConfigurationException {
+    private boolean validateConfiguration(UserConfiguration config) {
         Objects.requireNonNull(config, "La configuracion no puede ser nula");
         UserConfigurationValidatorImpl validator = new UserConfigurationValidatorImpl();
         //Validacion de conexion
@@ -337,8 +335,6 @@ public class UserConfigFile {
         encryptionToProperties(config);
         //Propiedades de session
         sessionToProperties(config);
-        //Propiedades de suscripciones
-        subscriptionsToProperties(config);
         //Propiedades de configuracion industrial
         industrialConfigurationToProperties(config);
         return props;
@@ -402,27 +398,6 @@ public class UserConfigFile {
         props.setProperty("opcua.user.session.timeout", String.valueOf(session.getTimeout()));
     }
 
-    private void subscriptionsToProperties(UserConfiguration config) {
-        // Subscriptions
-        Objects.requireNonNull(config.getSubscriptions(), "La lista de suscripciones no puede ser nula");
-        for (int i = 0; i < config.getSubscriptions().size(); i++) {
-            UserConfiguration.Subscription sub = config.getSubscriptions().get(i);
-            String prefix = "opcua.user.subscriptions[" + i + "].";
-            props.setProperty(prefix + "nodeId", sub.getNodeId());
-            props.setProperty(prefix + "publishingInterval", String.valueOf(sub.getPublishingInterval()));
-            props.setProperty(prefix + "lifetimeCount", String.valueOf(sub.getLifetimeCount()));
-            props.setProperty(prefix + "maxKeepAliveCount", String.valueOf(sub.getMaxKeepAliveCount()));
-            props.setProperty(prefix + "publishingEnabled", String.valueOf(sub.getPublishingEnabled()));
-            props.setProperty(prefix + "maxNotificationsPerPublish", String.valueOf(sub.getMaxNotificationsPerPublish()));
-            props.setProperty(prefix + "priority", String.valueOf(sub.getPriority()));
-            props.setProperty(prefix + "samplingInterval", String.valueOf(sub.getSamplingInterval()));
-            props.setProperty(prefix + "queueSize", String.valueOf(sub.getQueueSize()));
-            props.setProperty(prefix + "discardOldest", String.valueOf(sub.getDiscardOldest()));
-            props.setProperty(prefix + "monitoringMode", String.valueOf(sub.getMonitoringMode()));
-            props.setProperty(prefix + "timestampsToReturn", String.valueOf(sub.getTimestampsToReturn()));
-        }
-    }
-
     private void industrialConfigurationToProperties(UserConfiguration config) {
         // IndustrialConfiguration
         UserConfiguration.IndustrialConfiguration ind = config.getIndustrialConfiguration();
@@ -451,8 +426,6 @@ public class UserConfigFile {
         config.setEncryption(encryptionToConfig(props));
         //Propiedades de session
         config.setSession(sessionToConfig(props));
-        //Propiedades de suscripcion
-        config.setSubscriptions(subscriptionToConfig(props));
         //Propiedades de configuracion industrial
         config.setIndustrialConfiguration(industrialConfigurationToConfig(props));
         return config;
@@ -513,32 +486,6 @@ public class UserConfigFile {
                 .localeIds(List.of(LocaleIds.valueOf(props.getProperty("opcua.user.session.localeIds"))))
                 .maxChunkCount(Integer.valueOf(props.getProperty("opcua.user.session.maxChunkCount")))
                 .build();
-    }
-
-    private List<UserConfiguration.Subscription> subscriptionToConfig(Properties props) {
-        // Subscriptions
-        List<UserConfiguration.Subscription> subscriptions = new ArrayList<>();
-        int i = 0;
-        while (props.containsKey("opcua.user.subscriptions[" + i + "].name")) {
-            String prefix = "opcua.user.subscriptions[" + i + "].";
-            UserConfiguration.Subscription subscription = UserConfiguration.Subscription.builder()
-                    .nodeId(props.getProperty(prefix + "nodeId"))
-                    .publishingInterval(getDoubleProperty(props, prefix + "publishingInterval"))
-                    .lifetimeCount(getIntegerProperty(props, prefix + "lifetimeCount"))
-                    .maxKeepAliveCount(getIntegerProperty(props, prefix + "maxKeepAliveCount"))
-                    .maxNotificationsPerPublish(getIntegerProperty(props, prefix + "maxNotificationsPerPublish"))
-                    .publishingEnabled(getBooleanProperty(props, prefix + "publishingEnabled"))
-                    .priority(getUByteProperty(props, prefix + "priority"))
-                    .samplingInterval(getDoubleProperty(props, prefix + "samplingInterval"))
-                    .queueSize(getIntegerProperty(props, prefix + "queueSize"))
-                    .discardOldest(getBooleanProperty(props, prefix + "discardOldest"))
-                    .monitoringMode(MonitoringMode.valueOf(props.getProperty(prefix + "monitoringMode")))
-                    .timestampsToReturn(TimestampsToReturn.valueOf(props.getProperty(prefix + "timestampsToReturn")))
-                    .build();
-            subscriptions.add(subscription);
-            i++;
-        }
-        return subscriptions;
     }
 
     private UserConfiguration.IndustrialConfiguration industrialConfigurationToConfig(Properties props) {

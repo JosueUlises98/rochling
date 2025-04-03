@@ -1,6 +1,5 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.bydefault;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
@@ -8,25 +7,26 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.api.response.OpcUaConnectionResponse;
-import org.kopingenieria.application.service.files.user.UserConfigFile;
-import org.kopingenieria.application.service.opcua.pool.client.user.OpcUaUserPool;
-import org.kopingenieria.application.service.opcua.pool.client.user.OpcUaUserPoolManager;
-import org.kopingenieria.config.opcua.user.UserConfiguration;
+import org.kopingenieria.application.service.opcua.pool.client.bydefault.OpcUaDefaultPool;
+import org.kopingenieria.application.service.opcua.pool.client.bydefault.OpcUaDefaultPoolManager;
+import org.kopingenieria.application.validators.impl.bydefault.DefaultConnectionValidatorImpl;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.application.validators.impl.user.UserConnectionValidatorImpl;
-import org.kopingenieria.exception.exceptions.*;
+import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
+import org.kopingenieria.exception.exceptions.ConnectionException;
+import org.kopingenieria.exception.exceptions.DisconnectException;
+import org.kopingenieria.exception.exceptions.OpcUaPingException;
+import org.kopingenieria.exception.exceptions.OpcUaReconnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
-public class OpcuaConnection implements Connection {
+public class DefaultConnectionImpl implements DefaultConnection {
 
     private static final int MAX_RETRIES = 3;
     private static final int INITIAL_WAIT = 1000;
@@ -35,22 +35,22 @@ public class OpcuaConnection implements Connection {
     private static final int CONNECTION_TIMEOUT = 10000;
 
     @Autowired
-    private OpcUaUserPoolManager poolManager;
-    private OpcUaUserPool.PooledOpcUaClient pooledClient;
-    private final UserConnectionValidatorImpl validatorConnection;
+    private OpcUaDefaultPoolManager poolManager;
+    private OpcUaDefaultPool.PooledOpcUaClient pooledClient;
+    private final DefaultConnectionValidatorImpl validatorConnection;
     private UrlType lastConnectedUrl;
     @Getter
     private volatile ConnectionStatus currentStatus;
     @Getter
     private LocalDateTime lastActivityTime;
-    private final UserConfiguration loadConfiguration;
+    @Getter
+    private final DefaultConfigurationOpcUa defaultclient;
 
-    public OpcuaConnection() throws ConfigurationException {
-        this.validatorConnection = new UserConnectionValidatorImpl();
+    public DefaultConnectionImpl(DefaultConfigurationOpcUa defaultclient) {
+        this.validatorConnection = new DefaultConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
-        UserConfigFile configFile = new UserConfigFile(new ObjectMapper(), new Properties(), new UserConfiguration());
-        this.loadConfiguration = configFile.loadConfiguration(configFile.extractExistingFilename());
+        this.defaultclient =  defaultclient;
     }
 
     @Override
@@ -66,10 +66,9 @@ public class OpcuaConnection implements Connection {
         validateUrl(url);
         lastConnectedUrl = url;
         updateConnectionStatus(ConnectionStatus.CONNECTING);
-        updateLastActivity();
         try {
-            Optional<OpcUaUserPool.PooledOpcUaClient> optionalClient =
-                    poolManager.obtenerCliente(loadConfiguration);
+            Optional<OpcUaDefaultPool.PooledOpcUaClient> optionalClient =
+                    poolManager.obtenerCliente(defaultclient);
 
             if (optionalClient.isEmpty()) {
                 throw new ConnectionException("No se pudo obtener un cliente del pool");

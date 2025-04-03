@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.kopingenieria.domain.model.bydefault.DefaultConnectionConfiguration;
-import org.kopingenieria.domain.model.user.UserConnectionConfiguration;
 
 import javax.xml.bind.annotation.*;
 import java.io.Serial;

@@ -13,6 +13,7 @@ import org.kopingenieria.domain.enums.security.CertificateType;
 import org.kopingenieria.domain.enums.security.EncryptionAlgorithm;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.model.user.*;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.util.StringUtils;
@@ -26,13 +27,13 @@ import java.util.stream.Collectors;
 
 public class UserConfigurationValidatorImpl implements UserConfigurationValidator {
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de conexion",description = "Validacion de configuracion de conexion opcua")
-    @LogSystemEvent(description = "Validacion de conexion opcua", event = "Validacion de conexion",level = LogLevel.DEBUG)
-    public boolean validateConnection(UserConfiguration config)  {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        UserConfiguration.Connection conn = config.getConnection();
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de conexion", description = "Validacion de configuracion de conexion opcua")
+    @LogSystemEvent(description = "Validacion de conexion opcua", event = "Validacion de conexion", level = LogLevel.DEBUG)
+    public boolean validateConnection(UserConfiguration connection) {
+        Objects.requireNonNull(connection, "La configuracion es obligatoria");
+        UserConfiguration.Connection conn = connection.getConnection();
         if (conn == null) {
-           return false;
+            return false;
         }
         // Validación de URL del endpoint
         if (!StringUtils.hasText(conn.getEndpointUrl())) {
@@ -75,11 +76,11 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
         return true;
     }
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de autenticacion",description = "Validacion de configuracion de autenticacion opcua")
-    @LogSystemEvent(description = "Validacion de autenticacion opcua", event = "Validacion de autenticacion",level = LogLevel.DEBUG)
-    public boolean validateAuthentication(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        UserConfiguration.Authentication auth = config.getAuthentication();
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de autenticacion", description = "Validacion de configuracion de autenticacion opcua")
+    @LogSystemEvent(description = "Validacion de autenticacion opcua", event = "Validacion de autenticacion", level = LogLevel.DEBUG)
+    public boolean validateAuthentication(UserConfiguration authentication) {
+        Objects.requireNonNull(authentication, "La configuracion es obligatoria");
+        UserConfiguration.Authentication auth = authentication.getAuthentication();
         if (auth == null) {
             return false;
         }
@@ -88,18 +89,18 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
             return false;
         }
         // Validación de credenciales
-            if (!StringUtils.hasText(auth.getUserName())) {
-                return false;
-            }
-            if (auth.getUserName().length() > 50) {
-                return false;
-            }
-            if (!StringUtils.hasText(auth.getPassword())) {
-                return false;
-            }
-            if (auth.getPassword().length() < 8) {
-                return false;
-            }
+        if (!StringUtils.hasText(auth.getUserName())) {
+            return false;
+        }
+        if (auth.getUserName().length() > 50) {
+            return false;
+        }
+        if (!StringUtils.hasText(auth.getPassword())) {
+            return false;
+        }
+        if (auth.getPassword().length() < 8) {
+            return false;
+        }
         // Validación de políticas de seguridad
         if (!StringUtils.hasText(String.valueOf(auth.getSecurityPolicy()))) {
             return false;
@@ -123,11 +124,11 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
         return true;
     }
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de encriptacion",description = "Validacion de configuracion de encriptacion opcua")
-    @LogSystemEvent(description = "Validacion de encriptacion opcua", event = "Validacion de encriptacion",level = LogLevel.DEBUG)
-    public boolean validateEncryption(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        UserConfiguration.Encryption enc = config.getEncryption();
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de encriptacion", description = "Validacion de configuracion de encriptacion opcua")
+    @LogSystemEvent(description = "Validacion de encriptacion opcua", event = "Validacion de encriptacion", level = LogLevel.DEBUG)
+    public boolean validateEncryption(UserConfiguration encryption) {
+        Objects.requireNonNull(encryption, "La configuracion es obligatoria");
+        UserConfiguration.Encryption enc = encryption.getEncryption();
         if (enc == null) {
             return false;
         }
@@ -169,11 +170,11 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
         return true;
     }
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de sesion",description = "Validacion de configuracion de sesion opcua")
-    @LogSystemEvent(description = "Validacion de session opcua", event = "Validacion de session",level = LogLevel.DEBUG)
-    public boolean validateSession(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        UserConfiguration.Session session = config.getSession();
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de sesion", description = "Validacion de configuracion de sesion opcua")
+    @LogSystemEvent(description = "Validacion de session opcua", event = "Validacion de session", level = LogLevel.DEBUG)
+    public boolean validateSession(UserConfiguration sessionua) {
+        Objects.requireNonNull(sessionua, "La configuracion es obligatoria");
+        UserConfiguration.Session session = sessionua.getSession();
         if (session == null) {
             return false;
         }
@@ -212,73 +213,71 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
             return false;
         }
         //Validacion de locales ids
-        if (!StringUtils.hasText(String.valueOf(session.getLocaleIds()))){
+        if (!StringUtils.hasText(String.valueOf(session.getLocaleIds()))) {
             return false;
         }
-        if (!validateLocaleIds(session.getLocaleIds().stream().map(String::valueOf).collect(Collectors.toList()))){
+        if (!validateLocaleIds(session.getLocaleIds().stream().map(String::valueOf).collect(Collectors.toList()))) {
             return false;
         }
         // Validación de timeout
-        if (!StringUtils.hasText(String.valueOf(session.getTimeout().toMilliseconds()))){
+        if (!StringUtils.hasText(String.valueOf(session.getTimeout().toMilliseconds()))) {
             return false;
         }
-        if (!isValidSessionTimeout(session.getTimeout().toMilliseconds())){
+        if (!isValidSessionTimeout(session.getTimeout().toMilliseconds())) {
             return false;
         }
         return true;
     }
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion de suscripcion",description = "Validacion de configuracion de suscripcion opcua")
-    @LogSystemEvent(description = "Validacion de suscripcion opcua", event = "Validacion de suscripcion",level = LogLevel.DEBUG)
-    public boolean validateSubscription(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        List<UserConfiguration.Subscription> subscriptions = config.getSubscriptions();
-        if (subscriptions != null && !subscriptions.isEmpty()) {
-            for (UserConfiguration.Subscription sub : subscriptions) {
-                // Validación del nodeid
-                if (!StringUtils.hasText(sub.getNodeId())) {
-                   return false;
-                }
-                if (!isValidNodeId(sub.getNodeId())) {
-                    return false;
-                }
-                // Validación de intervalos
-                if (!StringUtils.hasText(String.valueOf(sub.getPublishingInterval()))) {
-                    return false;
-                }
-                if (!isValidPublishingInterval(sub.getPublishingInterval())) {
-                    return false;
-                }
-                if (!StringUtils.hasText(String.valueOf(sub.getSamplingInterval()))) {
-                    return false;
-                }
-                if (!isValidSamplingInterval(sub.getSamplingInterval())){
-                    return false;
-                }
-                //Validacion del modo de monitoreo
-                if (!StringUtils.hasText(String.valueOf(sub.getMonitoringMode()))) {
-                    return false;
-                }
-                if (!isValidMonitoringMode(String.valueOf(sub.getMonitoringMode()))){
-                    return false;
-                }
-                //Validacion del timestamp a retornar
-                if (!StringUtils.hasText(String.valueOf(sub.getTimestampsToReturn()))) {
-                    return false;
-                }
-                if (!isValidTimeStampToReturn(String.valueOf(sub.getTimestampsToReturn()))){
-                    return false;
-                }
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de suscripcion", description = "Validacion de configuracion de suscripcion opcua")
+    @LogSystemEvent(description = "Validacion de suscripcion opcua", event = "Validacion de suscripcion", level = LogLevel.DEBUG)
+    public boolean validateSubscription(UserConfiguration subscription) {
+        Objects.requireNonNull(subscription, "La configuracion es obligatoria");
+        List<UserConfiguration.Subscription> subs = subscription.getSubscriptions();
+        for (UserConfiguration.Subscription sub : subs) {
+            // Validación del nodeid
+            if (!StringUtils.hasText(sub.getNodeId())) {
+                return false;
+            }
+            if (!isValidNodeId(sub.getNodeId())) {
+                return false;
+            }
+            // Validación de intervalos
+            if (!StringUtils.hasText(String.valueOf(sub.getPublishingInterval()))) {
+                return false;
+            }
+            if (!isValidPublishingInterval(sub.getPublishingInterval())) {
+                return false;
+            }
+            if (!StringUtils.hasText(String.valueOf(sub.getSamplingInterval()))) {
+                return false;
+            }
+            if (!isValidSamplingInterval(sub.getSamplingInterval())) {
+                return false;
+            }
+            //Validacion del modo de monitoreo
+            if (!StringUtils.hasText(String.valueOf(sub.getMonitoringMode()))) {
+                return false;
+            }
+            if (!isValidMonitoringMode(String.valueOf(sub.getMonitoringMode()))) {
+                return false;
+            }
+            //Validacion del timestamp a retornar
+            if (!StringUtils.hasText(String.valueOf(sub.getTimestampsToReturn()))) {
+                return false;
+            }
+            if (!isValidTimeStampToReturn(String.valueOf(sub.getTimestampsToReturn()))) {
+                return false;
             }
         }
         return true;
     }
 
-    @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de configuracion industrial",description = "Validacion de configuracion industrial opcua")
-    @LogSystemEvent(description = "Validacion de configuracion industrial opcua", event = "Validacion de configuracion industrial",level = LogLevel.DEBUG)
-    public boolean validateIndustrialConfiguration(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
-        UserConfiguration.IndustrialConfiguration ind = config.getIndustrialConfiguration();
+    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion industrial", description = "Validacion de configuracion industrial opcua")
+    @LogSystemEvent(description = "Validacion de configuracion industrial opcua", event = "Validacion de configuracion industrial", level = LogLevel.DEBUG)
+    public boolean validateIndustrialConfiguration(UserConfiguration industrialconfig) {
+        Objects.requireNonNull(industrialconfig, "La configuracion es obligatoria");
+        UserConfiguration.IndustrialConfiguration ind = industrialconfig.getIndustrialConfiguration();
         if (ind == null) {
             return false;
         }
@@ -328,13 +327,13 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
     }
 
     public String getValidationResult(UserConfiguration config) {
-        Objects.requireNonNull(config,"La configuracion es obligatoria");
+        Objects.requireNonNull(config, "La configuracion es obligatoria");
         String result = "failed";
-       if (validateConnection(config)&validateAuthentication(config) & validateEncryption(config) &
-               validateSession(config) & validateSubscription(config) & validateIndustrialConfiguration(config)) {
-           result = "success";
-       }
-       return result;
+        if (validateConnection(config) & validateAuthentication(config) & validateEncryption(config) &
+                validateSession(config) & validateSubscription(config) & validateIndustrialConfiguration(config)) {
+            result = "success";
+        }
+        return result;
     }
 
     // Métodos auxiliares de validación
@@ -374,9 +373,9 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
     }
 
     private boolean isValidSecurityPolicy(String policy) {
-        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE,SecurityPolicy.BASIC256,
-                SecurityPolicy.BASIC128RSA15,SecurityPolicy.BASIC256SHA256,
-                SecurityPolicy.AES128_SHA256_RSAOAEP,SecurityPolicy.AES256_SHA256_RSAPSS);
+        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE, SecurityPolicy.BASIC256,
+                SecurityPolicy.BASIC128RSA15, SecurityPolicy.BASIC256SHA256,
+                SecurityPolicy.AES128_SHA256_RSAOAEP, SecurityPolicy.AES256_SHA256_RSAPSS);
         return validPolicies.contains(SecurityPolicy.valueOf(policy));
     }
 
@@ -402,7 +401,7 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
         return true;
     }
 
-    private boolean validatePrivateKeyPath(String path){
+    private boolean validatePrivateKeyPath(String path) {
         File keyFile = new File(path);
         if (!keyFile.exists()) {
             return false;
@@ -417,20 +416,20 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
     }
 
     private boolean isValidEncryptionPolicy(String policy) {
-        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE,SecurityPolicy.BASIC256,
+        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE, SecurityPolicy.BASIC256,
                 SecurityPolicy.BASIC128RSA15);
         return validPolicies.contains(SecurityPolicy.valueOf(policy));
     }
 
     private boolean isValidMessageMode(String mode) {
-        Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE,MessageSecurityMode.SIGN,
+        Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE, MessageSecurityMode.SIGN,
                 MessageSecurityMode.SIGNANDENCRYPT);
         return validModes.contains(MessageSecurityMode.valueOf(mode));
     }
 
     private boolean isValidEncryptionAlgorithm(String algorithm) {
-        Set<EncryptionAlgorithm> validAlgorithms = Set.of(EncryptionAlgorithm.SHA256,EncryptionAlgorithm.SHA512,
-                EncryptionAlgorithm.SHA384,EncryptionAlgorithm.AES,EncryptionAlgorithm.RSA);
+        Set<EncryptionAlgorithm> validAlgorithms = Set.of(EncryptionAlgorithm.SHA256, EncryptionAlgorithm.SHA512,
+                EncryptionAlgorithm.SHA384, EncryptionAlgorithm.AES, EncryptionAlgorithm.RSA);
         return validAlgorithms.contains(EncryptionAlgorithm.valueOf(algorithm));
     }
 
@@ -445,7 +444,7 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
     }
 
     private boolean isValidCertificateType(String type) {
-        Set<CertificateType> validTypes = Set.of(CertificateType.X509,CertificateType.DER,CertificateType.PEM);
+        Set<CertificateType> validTypes = Set.of(CertificateType.X509, CertificateType.DER, CertificateType.PEM);
         return validTypes.contains(CertificateType.valueOf(type));
     }
 

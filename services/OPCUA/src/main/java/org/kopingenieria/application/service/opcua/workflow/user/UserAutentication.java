@@ -1,8 +1,8 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.user;
 
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 
-public interface Autentication {
+public interface UserAutentication {
 
     boolean authenticate(IdentityProvider identityProvider, Object... credentials) throws SecurityException;
 

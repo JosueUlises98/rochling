@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.user;
 
 import org.kopingenieria.api.response.OpcUaConnectionResponse;
 import org.kopingenieria.domain.enums.connection.UrlType;
@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  * - ping(): Verifies the health and status of the current connection to ensure connectivity.
  *   Throws an exception if connectivity cannot be verified.
  */
-public interface Connection extends AutoCloseable {
+public interface UserConnection extends AutoCloseable {
     /**
      * Establishes a connection to an external system or resource asynchronously.
      *

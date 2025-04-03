@@ -1,32 +1,41 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.user;
 
-import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
+import org.kopingenieria.application.service.opcua.pool.client.user.OpcUaUserPoolManager;
+import org.kopingenieria.application.service.opcua.pool.connection.user.UserConnectionPool;
 import org.kopingenieria.application.validators.contract.user.UserAuthenticationValidator;
 import org.kopingenieria.application.validators.impl.user.UserAuthenticationValidatorImpl;
+import org.kopingenieria.domain.enums.connection.UrlType;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
+import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.exception.exceptions.ConnectionPoolException;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
+import org.springframework.stereotype.Service;
 
-public class OpcUaAuthentication implements Autentication {
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-    private final OpcUaClient opcUaClient;
+@Service
+public class UserAuthenticationImpl implements UserAutentication {
+
+    private final UserConnectionPool pool;
+    private final OpcUaUserPoolManager userPoolManager;
     private IdentityProvider currentProvider;
     private boolean isAuthenticated;
     private static final int AUTH_TIMEOUT_SECONDS = 10;
     private static final int MIN_PASSWORD_LENGTH = 8;
-    private static final UserAuthenticationValidator AUTHENTICATION_VALIDATOR;
+    private static final UserAuthenticationValidator AUTHENTICATION_VALIDATOR = new UserAuthenticationValidatorImpl();
 
-    static {
-        AUTHENTICATION_VALIDATOR = new UserAuthenticationValidatorImpl();
-    }
 
-    public OpcUaAuthentication() throws OpcUaConfigurationException {
-        this.opcUaClient = new UserConfiguration().createUserOpcUaClient();
+    public UserAuthenticationImpl(UserConnectionPool.PoolConfig poolConfig, List<UserConfigurationOpcUa> users) throws ConnectionPoolException {
+        this.pool = new UserConnectionPool(poolConfig,users);
         this.isAuthenticated = false;
+        this.userPoolManager = new OpcUaUserPoolManager();
     }
 
     @Override
@@ -37,7 +46,7 @@ public class OpcUaAuthentication implements Autentication {
                 throw new SecurityException("Proveedor de identidad no soportado: " + identityProvider);
             }
             // Obtener la configuración de seguridad actual del cliente
-            EndpointDescription activeEndpoint = opcUaClient.getConfig().getEndpoint();
+            EndpointDescription activeEndpoint = userPoolManager.obtenerCliente().get().getClient().getConfig().getEndpoint();
 
             // Verificar que el endpoint coincida con el tipo de autenticación solicitado
             switch (identityProvider) {
@@ -89,12 +98,12 @@ public class OpcUaAuthentication implements Autentication {
 
     private boolean verifyClientCredentials(Object credentials) {
         try {
-            org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider identityProvider = opcUaClient.getConfig().getIdentityProvider();
+            org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider identityProvider =
 
             return switch (identityProvider) {
                 case AnonymousProvider ignored -> verifyAnonymousConfig(identityProvider);
                 case UsernameProvider ignored -> verifyUserPasswordConfig(identityProvider, credentials);
-                case org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider ignored ->
+                case X509IdentityProvider ignored ->
                         verifyCertificateConfig();
                 default -> false;
             };

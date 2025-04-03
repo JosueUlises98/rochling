@@ -67,6 +67,7 @@ public class UserConnectionValidatorImpl implements UserConnectionValidator {
         }
     }
 
+
     @Auditable(type = AuditEntryType.OPERATION,value = "Validacion de sesion",description = "Validacion de sesion opcua")
     @LogSystemEvent(description = "Validacion de sesion valida opcua", event = "Validacion de sesion valida",level = LogLevel.DEBUG)
     public boolean validateValidSession(UaClient client) {

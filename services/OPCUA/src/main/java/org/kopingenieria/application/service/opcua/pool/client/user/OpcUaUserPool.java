@@ -3,14 +3,12 @@ package org.kopingenieria.application.service.opcua.pool.client.user;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
-import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.application.service.opcua.workflow.user.UserConfigurationImpl;
 import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
+import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,7 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaUserPool {
 
     @Autowired
-    private UserConfiguration opcUaConfiguration;
+    private UserConfigurationImpl opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
@@ -35,7 +33,7 @@ public class OpcUaUserPool {
         private final SecurityPolicyUri securityPolicy;
         private final String messageSecurityMode;
 
-        public ClientKey(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+        public ClientKey(UserConfigurationOpcUa userConfig) {
             this.endpointUrl = userConfig.getConnection().getEndpointUrl();
             this.name = userConfig.getConnection().getName();
             this.securityPolicy = userConfig.getAuthentication().getSecurityPolicyUri();
@@ -63,18 +61,15 @@ public class OpcUaUserPool {
     public static class PooledOpcUaClient {
         private final OpcUaClient client;
         private final ClientKey key;
-        private final List<UaSubscription> subscriptions;
-        private final org.kopingenieria.config.opcua.user.UserConfiguration userConfig;
+        private final UserConfigurationOpcUa userConfig;
         private volatile long lastUsed;
         private volatile boolean isValid;
 
         public PooledOpcUaClient(OpcUaClient client,
-                                 org.kopingenieria.config.opcua.user.UserConfiguration userConfig,
-                                 List<UaSubscription> subscriptions) {
+                                 UserConfigurationOpcUa userConfig) {
             this.client = client;
             this.key = new ClientKey(userConfig);
             this.userConfig = userConfig;
-            this.subscriptions = subscriptions;
             this.lastUsed = System.currentTimeMillis();
             this.isValid = true;
         }
@@ -84,7 +79,7 @@ public class OpcUaUserPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+    public Optional<PooledOpcUaClient> obtenerCliente(UserConfigurationOpcUa userConfig) {
         ClientKey key = new ClientKey(userConfig);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
@@ -108,12 +103,11 @@ public class OpcUaUserPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(UserConfigurationOpcUa userConfig) {
         try {
-            OpcUaClient client = opcUaConfiguration.createUserOpcUaClient();
-            List<UaSubscription> subscriptions = opcUaConfiguration.getMapSubscriptions().get(client);
+            OpcUaClient client = opcUaConfiguration.createUserOpcUaClient(userConfig);
 
-            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, userConfig, subscriptions);
+            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, userConfig);
             ClientKey key = new ClientKey(userConfig);
 
             activeClients.put(key, pooledClient);

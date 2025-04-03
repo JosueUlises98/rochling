@@ -2,28 +2,36 @@ package org.kopingenieria.domain.model.bydefault;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.kopingenieria.domain.enums.communication.SessionStatus;
+import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.locale.LocaleIds;
+import org.kopingenieria.domain.enums.security.MessageSecurityMode;
+import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 
-@Data
+@Getter
 @Builder
 public class DefaultSessionConfiguration implements Serializable {
     @Serial
-    private static final long serialVersionUID = 13L;
+    private static final long serialVersionUID = 4L;
 
-    private String sessionId;
-    private String sessionName;
-    private String serverUri;
-    private Long maxResponseMessageSize;
-    private String securityMode;
-    private String securityPolicyUri;
-    private String clientCertificate;
-    private String serverCertificate;
-    private List<String> localeIds;
-    private Integer maxChunkCount;
-    private Long timeout;
-    private String clientIp;
-
+    private final String sessionName;
+    private final String serverUri;
+    private final Long maxResponseMessageSize;
+    private final MessageSecurityMode securityMode;
+    private final SecurityPolicyUri securityPolicyUri;
+    private final SecurityPolicy securityPolicy;
+    private final String clientCertificate;
+    private final String serverCertificate;
+    private final List<LocaleIds> localeIds;
+    private final Integer maxChunkCount;
+    private final Timeouts timeout=Timeouts.SESSION;
+    @Setter
+    private SessionStatus sessionStatus;
 }

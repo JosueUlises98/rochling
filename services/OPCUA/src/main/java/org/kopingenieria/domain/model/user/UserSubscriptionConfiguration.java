@@ -4,8 +4,9 @@ import lombok.Builder;
 import lombok.Data;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MonitoringMode;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.kopingenieria.domain.enums.connection.Timeouts;
+import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -28,4 +29,5 @@ public class UserSubscriptionConfiguration implements Serializable {
     private Boolean discardOldest;
     private MonitoringMode monitoringMode;
     private TimestampsToReturn timestampsToReturn;
+    private final Timeouts timeout=Timeouts.REQUEST;
 }

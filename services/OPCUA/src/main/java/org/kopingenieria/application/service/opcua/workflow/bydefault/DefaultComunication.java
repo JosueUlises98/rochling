@@ -1,10 +1,10 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.bydefault;
 
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 
 import java.util.Map;
 
-public interface Comunication {
+public interface DefaultComunication {
     /**
      * Lectura dinámica desde el servidor OPC UA.
      *

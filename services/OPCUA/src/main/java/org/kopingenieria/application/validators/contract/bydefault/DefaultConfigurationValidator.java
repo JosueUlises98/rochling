@@ -7,8 +7,6 @@ public interface DefaultConfigurationValidator {
     boolean validateAuthentication(DefaultConfiguration config);
     boolean validateEncryption(DefaultConfiguration config);
     boolean validateSession(DefaultConfiguration config);
-    boolean validateSubscription(DefaultConfiguration config);
     boolean validateIndustrialConfiguration(DefaultConfiguration config);
-
     String getValidationResult(DefaultConfiguration config);
 }

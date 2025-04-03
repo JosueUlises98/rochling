@@ -94,24 +94,6 @@ public class DefaultConfiguration {
             .maxChunkCount(4)
             .build();
 
-    @NotNull(message = "Las suscripciones son obligatorias")
-    private final List<Subscription> subscriptions = List.of(
-            Subscription.builder()
-                    .nodeId("NodeId-1")
-                    .publishingInterval(1000.0)
-                    .lifetimeCount(UInteger.valueOf(120))
-                    .maxKeepAliveCount(UInteger.valueOf(10))
-                    .maxNotificationsPerPublish(UInteger.valueOf(500))
-                    .publishingEnabled(true)
-                    .priority(UByte.valueOf(1))
-                    .samplingInterval(500.0)
-                    .queueSize(UInteger.valueOf(10))
-                    .discardOldest(true)
-                    .monitoringMode(MonitoringMode.Reporting)
-                    .timestampsToReturn(TimestampsToReturn.Both)
-                    .build()
-    );
-
     @NotNull(message = "La configuración industrial es obligatoria")
     private final IndustrialConfiguration industrialConfiguration = IndustrialConfiguration.builder()
             .industrialZone("ZONE_001")
@@ -233,41 +215,6 @@ public class DefaultConfiguration {
             this.serverCertificate = serverCertificate;
             this.localeIds = localeIds;
             this.maxChunkCount = maxChunkCount;
-        }
-    }
-
-    @Getter
-    public static class Subscription {
-        private final String nodeId;
-        private final Double publishingInterval;
-        private final UInteger lifetimeCount;
-        private final UInteger maxKeepAliveCount;
-        private final UInteger maxNotificationsPerPublish;
-        private final Boolean publishingEnabled;
-        private final UByte priority;
-        private final Double samplingInterval;
-        private final UInteger queueSize;
-        private final Boolean discardOldest;
-        private final MonitoringMode monitoringMode;
-        private final TimestampsToReturn timestampsToReturn;
-        private final Timeouts timeout=Timeouts.REQUEST;
-
-        @Builder
-        public Subscription(String nodeId, Double publishingInterval, UInteger lifetimeCount, UInteger maxKeepAliveCount,
-                            UInteger maxNotificationsPerPublish, Boolean publishingEnabled, UByte priority, Double samplingInterval,
-                            UInteger queueSize, Boolean discardOldest, MonitoringMode monitoringMode, TimestampsToReturn timestampsToReturn) {
-            this.nodeId = nodeId;
-            this.publishingInterval = publishingInterval;
-            this.lifetimeCount = lifetimeCount;
-            this.maxKeepAliveCount = maxKeepAliveCount;
-            this.maxNotificationsPerPublish = maxNotificationsPerPublish;
-            this.publishingEnabled = publishingEnabled;
-            this.priority = priority;
-            this.samplingInterval = samplingInterval;
-            this.queueSize = queueSize;
-            this.discardOldest = discardOldest;
-            this.monitoringMode = monitoringMode;
-            this.timestampsToReturn = timestampsToReturn;
         }
     }
 

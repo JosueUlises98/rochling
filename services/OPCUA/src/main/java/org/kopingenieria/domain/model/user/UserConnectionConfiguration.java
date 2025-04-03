@@ -2,6 +2,7 @@ package org.kopingenieria.domain.model.user;
 
 import lombok.Builder;
 import lombok.Data;
+import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 
@@ -14,10 +15,12 @@ public class UserConnectionConfiguration implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private String name;
     private String endpointUrl;
     private String applicationName;
     private String applicationUri;
     private String productUri;
     private ConnectionType type;
-    private Timeouts timeout;
+    private final Timeouts timeout=Timeouts.CONNECTION;
+    private ConnectionStatus status;
 }

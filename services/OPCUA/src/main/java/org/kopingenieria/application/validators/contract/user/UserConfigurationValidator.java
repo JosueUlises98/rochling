@@ -7,8 +7,6 @@ public interface UserConfigurationValidator {
     boolean validateAuthentication(UserConfiguration config);
     boolean validateEncryption(UserConfiguration config);
     boolean validateSession(UserConfiguration config);
-    boolean validateSubscription(UserConfiguration config);
     boolean validateIndustrialConfiguration(UserConfiguration config);
-
     String getValidationResult(UserConfiguration config);
 }

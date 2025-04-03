@@ -1,6 +1,8 @@
 package org.kopingenieria.application.validators.contract.user;
 
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
+import org.kopingenieria.domain.model.user.UserSessionConfiguration;
+
 
 public interface UserSessionValidator {
 
@@ -8,17 +10,17 @@ public interface UserSessionValidator {
 
     boolean validateSessionToken(String token);
 
-    boolean isSessionActive(UaClient client);
+    boolean isSessionActive(UserSessionConfiguration user);
 
-    boolean isSessionExpired(UaClient client);
+    boolean isSessionExpired(UserSessionConfiguration user);
 
-    boolean validateSessionSecurityPolicy(UaClient client, String securityPolicy);
+    boolean validateSessionSecurityPolicy(UaClient client, UserSessionConfiguration user);
 
-    boolean validateSessionSecurityMode(UaClient client, String securityMode);
+    boolean validateSessionSecurityMode(UaClient client, UserSessionConfiguration user);
 
-    boolean validateSessionCertificate(UaClient client, byte[] certificate);
+    boolean validateSessionCertificate(UaClient client, UserSessionConfiguration user);
 
-    boolean validateSessionTimeout(UaClient client, int timeout);
+    boolean validateSessionTimeout(UaClient client);
 
     String getValidationResult();
 

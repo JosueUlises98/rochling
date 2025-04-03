@@ -1,13 +1,14 @@
-package org.kopingenieria.application.service.opcua.pool.client;
+package org.kopingenieria.application.service.opcua.pool.client.bydefault;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.bydefault.DefaultConfigurationImpl;
+import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
+import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaDefaultPool {
 
     @Autowired
-    private UserConfiguration opcUaConfiguration;
+    private DefaultConfigurationImpl opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
@@ -33,11 +34,11 @@ public class OpcUaDefaultPool {
         private final String securityPolicy;
         private final String messageSecurityMode;
 
-        public ClientKey(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
-            this.endpointUrl = userConfig.getConnection().getEndpointUrl();
-            this.name = userConfig.getConnection().getName();
-            this.securityPolicy = userConfig.getAuthentication().getSecurityPolicyUri();
-            this.messageSecurityMode = userConfig.getAuthentication().getMessageSecurityMode().name();
+        public ClientKey(DefaultConfigurationOpcUa defaultConfig) {
+            this.endpointUrl = defaultConfig.getConnection().getEndpointUrl();
+            this.name = defaultConfig.getConnection().getName();
+            this.securityPolicy = defaultConfig.getAuthentication().getSecurityPolicyUri().name();
+            this.messageSecurityMode = defaultConfig.getAuthentication().getMessageSecurityMode().name();
         }
 
         @Override
@@ -61,28 +62,25 @@ public class OpcUaDefaultPool {
     public static class PooledOpcUaClient {
         private final OpcUaClient client;
         private final ClientKey key;
-        private final List<UaSubscription> subscriptions;
-        private final org.kopingenieria.config.opcua.user.UserConfiguration userConfig;
+        private final DefaultConfigurationOpcUa defaultConfig;
         private volatile long lastUsed;
         private volatile boolean isValid;
 
         public PooledOpcUaClient(OpcUaClient client,
-                                 org.kopingenieria.config.opcua.user.UserConfiguration userConfig,
-                                 List<UaSubscription> subscriptions) {
+                                 DefaultConfigurationOpcUa defaultConfig) {
             this.client = client;
-            this.key = new ClientKey(userConfig);
-            this.userConfig = userConfig;
-            this.subscriptions = subscriptions;
+            this.key = new ClientKey(defaultConfig);
+            this.defaultConfig = defaultConfig;
             this.lastUsed = System.currentTimeMillis();
             this.isValid = true;
         }
 
         public boolean isConnected(){
-            return userConfig.getConnection().getStatus().name().equals("CONNECTED");
+            return defaultConfig.getConnection().getStatus().name().equals("CONNECTED");
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+    public Optional<PooledOpcUaClient> obtenerCliente(DefaultConfigurationOpcUa userConfig) {
         ClientKey key = new ClientKey(userConfig);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
@@ -106,13 +104,12 @@ public class OpcUaDefaultPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(DefaultConfigurationOpcUa defaultConfig) {
         try {
-            OpcUaClient client = opcUaConfiguration.createUserOpcUaClient();
-            List<UaSubscription> subscriptions = opcUaConfiguration.getMapSubscriptions().get(client);
+            OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient(defaultConfig);
 
-            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, userConfig, subscriptions);
-            ClientKey key = new ClientKey(userConfig);
+            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, defaultConfig);
+            ClientKey key = new ClientKey(defaultConfig);
 
             activeClients.put(key, pooledClient);
             return Optional.of(pooledClient);
@@ -133,5 +130,4 @@ public class OpcUaDefaultPool {
             activeClients.remove(client.key);
         }
     }
-
 }

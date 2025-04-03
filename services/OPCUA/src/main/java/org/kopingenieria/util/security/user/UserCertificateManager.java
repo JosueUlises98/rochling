@@ -5,6 +5,7 @@ import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
 import org.eclipse.milo.opcua.stack.client.security.DefaultClientCertificateValidator;
 import org.eclipse.milo.opcua.stack.core.security.DefaultTrustListManager;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
+import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 import org.kopingenieria.util.loader.CertificateLoader;
 import org.kopingenieria.util.loader.PrivateKeyLoader;
@@ -27,7 +28,7 @@ public class UserCertificateManager {
     @Getter
     private PrivateKey privateKey;
 
-    public void configurarCertificados(UserConfiguration userConfig)
+    public void configurarCertificados(UserConfigurationOpcUa userConfig)
             throws OpcUaConfigurationException {
         try {
             // Cargar certificado y clave privada una sola vez
@@ -46,7 +47,7 @@ public class UserCertificateManager {
     }
 
     public void aplicarConfiguracionSeguridad(OpcUaClientConfigBuilder config,
-                                              UserConfiguration userConfig) throws OpcUaConfigurationException {
+                                              UserConfigurationOpcUa userConfig) throws OpcUaConfigurationException {
         try {
             // Configurar validador de certificados
             File trustListFile = configurarListaConfianza(userConfig.getAuthentication().getTrustListPath());

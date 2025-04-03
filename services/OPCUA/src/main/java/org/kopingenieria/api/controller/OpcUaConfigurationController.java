@@ -3,7 +3,7 @@ package org.kopingenieria.api.controller;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.subscriptions.UaSubscription;
-import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
+import org.kopingenieria.application.service.opcua.workflow.user.UserConfigurationImpl;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/opcua/configuration")
 public class OpcUaConfigurationController {
 
-    private final UserConfiguration userConfiguration;
+    private final UserConfigurationImpl userConfiguration;
     private final DefaultConfiguration defaultConfiguration;
 
     @PostMapping("/client/default")

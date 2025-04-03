@@ -1,15 +1,14 @@
 package org.kopingenieria.application.validators.contract.user;
 
-import org.kopingenieria.domain.enums.security.MessageSecurityMode;
-import org.kopingenieria.domain.enums.security.SecurityPolicy;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 public interface UserEncryptionValidator {
 
-    boolean validateSecurityPolicy(SecurityPolicy securityPolicy);
+    boolean validateSecurityPolicy(String securityPolicy);
 
-    boolean validateSecurityMode(MessageSecurityMode messageSecurityMode);
+    boolean validateSecurityMode(String messageSecurityMode);
 
     boolean validateClientCertificate(byte[] clientCertificate);
 
@@ -28,4 +27,5 @@ public interface UserEncryptionValidator {
     String getValidationResult();
 
     boolean checkCertificateRevocation(X509Certificate certificate);
+
 }

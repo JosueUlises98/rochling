@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kopingenieria.application.validators.impl.bydefault.DefaultConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
@@ -194,8 +195,6 @@ public class DefaultConfigFile {
         validator.validateEncryption(config);
         //Validacion de session
         validator.validateSession(config);
-        //Validacion de suscripcion
-        validator.validateSubscription(config);
         //Validacion de configuracion industrial
         validator.validateIndustrialConfiguration(config);
         return true;
@@ -303,8 +302,6 @@ public class DefaultConfigFile {
         encryptionToProperties(config);
         //Propiedades de session
         sessionToProperties(config);
-        //Propiedades de suscripciones
-        subscriptionsToProperties(config);
         //Propiedades de configuracion industrial
         industrialConfigurationToProperties(config);
         return props;
@@ -369,27 +366,6 @@ public class DefaultConfigFile {
         props.setProperty("opcua.default.session.localeIds", String.valueOf(session.getLocaleIds()));
         props.setProperty("opcua.default.session.maxChunkCount", String.valueOf(session.getMaxChunkCount()));
         props.setProperty("opcua.default.session.timeout", String.valueOf(session.getTimeout()));
-    }
-
-    private void subscriptionsToProperties(DefaultConfiguration config) {
-        // Subscriptions
-        Objects.requireNonNull(config.getSubscriptions(), "La lista de suscripciones no puede ser nula");
-        for (int i = 0; i < config.getSubscriptions().size(); i++) {
-            DefaultConfiguration.Subscription sub = config.getSubscriptions().get(i);
-            String prefix = "opcua.default.subscriptions[" + i + "].";
-            props.setProperty(prefix + "nodeId", sub.getNodeId());
-            props.setProperty(prefix + "publishingInterval", String.valueOf(sub.getPublishingInterval()));
-            props.setProperty(prefix + "lifetimeCount", String.valueOf(sub.getLifetimeCount()));
-            props.setProperty(prefix + "maxKeepAliveCount", String.valueOf(sub.getMaxKeepAliveCount()));
-            props.setProperty(prefix + "publishingEnabled", String.valueOf(sub.getPublishingEnabled()));
-            props.setProperty(prefix + "maxNotificationsPerPublish", String.valueOf(sub.getMaxNotificationsPerPublish()));
-            props.setProperty(prefix + "priority", String.valueOf(sub.getPriority()));
-            props.setProperty(prefix + "samplingInterval", String.valueOf(sub.getSamplingInterval()));
-            props.setProperty(prefix + "queueSize", String.valueOf(sub.getQueueSize()));
-            props.setProperty(prefix + "discardOldest", String.valueOf(sub.getDiscardOldest()));
-            props.setProperty(prefix + "monitoringMode", String.valueOf(sub.getMonitoringMode()));
-            props.setProperty(prefix + "timestampsToReturn", String.valueOf(sub.getTimestampsToReturn()));
-        }
     }
 
     private void industrialConfigurationToProperties(DefaultConfiguration config) {

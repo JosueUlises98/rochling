@@ -59,6 +59,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(pool.getMessage(),"PoolException",HttpStatus.SERVICE_UNAVAILABLE,details);
     }
 
+    @ExceptionHandler({ConfigurationMappingException.class})
+    public ResponseEntity<ErrorResponse> handleConfigurationMappingException(ConfigurationMappingException ex,List<String> details) {
+        return buildErrorResponse(ex.getMessage(),"ConfigurationMappingException",HttpStatus.BAD_REQUEST,details);
+    }
+
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex, List<String> details) {
         return buildErrorResponse(ex.getMessage(),"RuntimeException",HttpStatus.INTERNAL_SERVER_ERROR,details);

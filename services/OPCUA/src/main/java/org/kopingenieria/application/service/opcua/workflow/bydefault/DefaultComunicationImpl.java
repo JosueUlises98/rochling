@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.opcua.workflow;
+package org.kopingenieria.application.service.opcua.workflow.bydefault;
 
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -14,11 +14,12 @@ import org.eclipse.milo.opcua.stack.core.types.structured.DeleteNodesItem;
 import org.eclipse.milo.opcua.stack.core.types.structured.DeleteNodesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class OpcUaComunication implements Comunication {
+public class DefaultComunicationImpl implements DefaultComunication {
     /**
      * Logger instance used for logging operations throughout the ComunicacionClienteService class.
      *
@@ -30,7 +31,7 @@ public class OpcUaComunication implements Comunication {
      * throughout the lifecycle of the class, promoting efficient memory usage and consistency
      * across all logging operations.
      */
-    private static final Logger logger = LoggerFactory.getLogger(OpcUaComunication.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultComunicationImpl.class);
     /**
      * Represents an instance of the ConexionClienteService used to manage
      * client communication and interactions within the service.
@@ -61,7 +62,7 @@ public class OpcUaComunication implements Comunication {
      * @param opcuaserver the OPC UA server handling server-side operations
      * @param opcuaclient the OPC UA client used for client-side interactions
      */
-    public OpcUaComunication(OpcUaSession session, OpcUaClient opcuaclient) {
+    public DefaultComunicationImpl(OpcUaSession session, OpcUaClient opcuaclient) {
         this.session=session;
         this.opcuaclient = opcuaclient;
     }

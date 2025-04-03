@@ -1,18 +1,18 @@
-package org.kopingenieria.application.service.opcua.pool.client;
+package org.kopingenieria.application.service.opcua.pool.client.bydefault;
 
 
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import org.kopingenieria.application.service.opcua.workflow.UserConfiguration;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
+import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
+import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
 import org.kopingenieria.logging.model.LogMethod;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -21,19 +21,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
-public class OpcUaDefaultManager {
+public class OpcUaDefaultPoolManager {
 
     @Autowired
     private OpcUaDefaultPool clientPool;
 
     @Autowired
-    private UserConfiguration opcUaConfiguration;
+    private DefaultConfiguration opcUaConfiguration;
 
     private final Map<String, OpcUaDefaultPool.PooledOpcUaClient> managedClients;
     private final Map<String, AtomicInteger> clientUsageCounter;
     private final Map<String, Long> clientLastErrors;
 
-    public OpcUaDefaultManager() {
+    public OpcUaDefaultPoolManager() {
         this.managedClients = new ConcurrentHashMap<>();
         this.clientUsageCounter = new ConcurrentHashMap<>();
         this.clientLastErrors = new ConcurrentHashMap<>();
@@ -57,7 +57,7 @@ public class OpcUaDefaultManager {
     )
     @LogMethod(description = "Inicializando OpcUaPoolManager con Pool de Clientes...",operation = "obtenerCliente")
     public Optional<OpcUaDefaultPool.PooledOpcUaClient> obtenerCliente(
-            org.kopingenieria.config.opcua.user.UserConfiguration userConfig) {
+            DefaultConfigurationOpcUa userConfig) {
         String connectionId = generarIdConexion(userConfig);
 
         try {
@@ -120,9 +120,8 @@ public class OpcUaDefaultManager {
             estadisticas.put("usos", clientUsageCounter.getOrDefault(connectionId, new AtomicInteger(0)).get());
             estadisticas.put("ultimoError", clientLastErrors.getOrDefault(connectionId, 0L));
             estadisticas.put("ultimoUso", pooledClient.getLastUsed());
-            estadisticas.put("estadoConexion", pooledClient.getUserConfig().getConnection().getStatus());
-            estadisticas.put("suscripcionesActivas", pooledClient.getSubscriptions().size());
-            estadisticas.put("configuracion", pooledClient.getUserConfig());
+            estadisticas.put("estadoConexion", pooledClient.getDefaultConfig().getConnection().getStatus());
+            estadisticas.put("configuracion", pooledClient.getDefaultConfig());
         }
 
         return estadisticas;
@@ -147,7 +146,7 @@ public class OpcUaDefaultManager {
         });
     }
 
-    private String generarIdConexion(org.kopingenieria.config.opcua.user.UserConfiguration config) {
+    private String generarIdConexion(DefaultConfigurationOpcUa config) {
         return String.format("%s_%s_%s",
                 config.getConnection().getEndpointUrl(),
                 config.getConnection().getName(),

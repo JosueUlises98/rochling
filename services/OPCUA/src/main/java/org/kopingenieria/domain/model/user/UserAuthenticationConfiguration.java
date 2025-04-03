@@ -5,6 +5,7 @@ import lombok.Data;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
+import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -25,4 +26,6 @@ public class UserAuthenticationConfiguration implements Serializable {
     private String trustListPath;
     private String issuerListPath;
     private String revocationListPath;
+    private SecurityPolicyUri securityPolicyUri;
+    private final int expirationWarningDays = 30;
 }

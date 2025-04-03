@@ -45,9 +45,6 @@ public class UserConfiguration {
     @NotNull(message = "La sesión es obligatoria")
     private Session session;
 
-    @NotNull(message = "La lista de suscripciones no puede ser nula")
-    private List<Subscription> subscriptions;
-
     @NotNull(message = "La configuración industrial es obligatoria")
     private IndustrialConfiguration industrialConfiguration;
 
@@ -108,24 +105,6 @@ public class UserConfiguration {
         private List<LocaleIds> localeIds;
         private Integer maxChunkCount;
         private final Timeouts timeout=Timeouts.SESSION;
-    }
-
-    @Data
-    @Builder
-    public static class Subscription {
-        private String nodeId;
-        private Double publishingInterval;
-        private UInteger lifetimeCount;
-        private UInteger maxKeepAliveCount;
-        private UInteger maxNotificationsPerPublish;
-        private Boolean publishingEnabled;
-        private UByte priority;
-        private Double samplingInterval;
-        private UInteger queueSize;
-        private Boolean discardOldest;
-        private MonitoringMode monitoringMode;
-        private TimestampsToReturn timestampsToReturn;
-        private final Timeouts timeout=Timeouts.REQUEST;
     }
 
     @Data

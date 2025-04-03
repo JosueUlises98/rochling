@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface DefaultEncryptionValidator {
 
-    boolean validateSecurityPolicy(SecurityPolicy securityPolicy);
+    boolean validateSecurityPolicy(String securityPolicy);
 
-    boolean validateSecurityMode(MessageSecurityMode messageSecurityMode);
+    boolean validateSecurityMode(String messageSecurityMode);
 
     boolean validateClientCertificate(byte[] clientCertificate);
 

@@ -1,8 +1,6 @@
 package org.kopingenieria.api.validator;
 
 import lombok.RequiredArgsConstructor;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.api.request.*;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
@@ -166,41 +164,6 @@ public class RequestValidator {
         if (request.getTimeout() != null) {
             validateSessionTimeout(request.getTimeout(), errors);
         }
-    }
-
-    public void validateSubscriptionParameters(SubscriptionRequest request, List<String> errors) {
-        // Validar nodeId
-        if (request.getNodeId() != null) {
-            validateNodeId(request.getNodeId(), errors);
-        }
-
-        // Validar intervalos de tiempo
-        validateTimeIntervals(request, errors);
-
-        // Validar contadores
-        validateCounters(request, errors);
-
-        // Validar configuración de notificaciones
-        validateNotificationSettings(request, errors);
-
-        // Validar configuración de monitoreo
-        validateMonitoringSettings(request, errors);
-    }
-
-    public void validateConfigurationParameters(OpcUaConfigRequest request, List<String> errors) {
-        // Validar campos básicos
-        validateBasicFields(request, errors);
-
-        // Validar componentes principales
-        validateMainComponents(request, errors);
-
-        // Validar configuración industrial
-        if (request.getIndustrialConfiguration() != null) {
-            validateIndustrialConfiguration(request.getIndustrialConfiguration(), errors);
-        }
-
-        // Validar lista de suscripciones
-        validateSubscriptionsList(request.getSubscriptions(), errors);
     }
 
     //Metodos auxiliares de validacion de autenticacion
@@ -627,104 +590,6 @@ public class RequestValidator {
         }
     }
 
-    private void validateTimeIntervals(SubscriptionRequest request, List<String> errors) {
-        // Validar publishingInterval
-        Double publishingInterval = request.getPublishingInterval();
-        if (publishingInterval != null) {
-            if (publishingInterval < SubscriptionConstants.MIN_PUBLISHING_INTERVAL) {
-                errors.add(String.format("El publishingInterval no puede ser menor a %.2f ms",
-                        SubscriptionConstants.MIN_PUBLISHING_INTERVAL));
-            }
-            if (publishingInterval > SubscriptionConstants.MAX_PUBLISHING_INTERVAL) {
-                errors.add(String.format("El publishingInterval no puede ser mayor a %.2f ms",
-                        SubscriptionConstants.MAX_PUBLISHING_INTERVAL));
-            }
-        }
-        // Validar samplingInterval
-        Double samplingInterval = request.getSamplingInterval();
-        if (samplingInterval != null) {
-            if (samplingInterval < SubscriptionConstants.MIN_SAMPLING_INTERVAL) {
-                errors.add(String.format("El samplingInterval no puede ser menor a %.2f ms",
-                        SubscriptionConstants.MIN_SAMPLING_INTERVAL));
-            }
-            if (samplingInterval > SubscriptionConstants.MAX_SAMPLING_INTERVAL) {
-                errors.add(String.format("El samplingInterval no puede ser mayor a %.2f ms",
-                        SubscriptionConstants.MAX_SAMPLING_INTERVAL));
-            }
-        }
-        // Validar relación entre intervalos
-        if (publishingInterval != null && samplingInterval != null) {
-            if (samplingInterval > publishingInterval) {
-                errors.add("El samplingInterval no puede ser mayor que el publishingInterval");
-            }
-        }
-    }
-
-    private void validateCounters(SubscriptionRequest request, List<String> errors) {
-        // Validar lifetimeCount
-        UInteger lifetimeCount = request.getLifetimeCount();
-        if (lifetimeCount != null) {
-            if (lifetimeCount.longValue() > SubscriptionConstants.MAX_LIFETIME_COUNT) {
-                errors.add(String.format("El lifetimeCount no puede ser mayor a %d",
-                        SubscriptionConstants.MAX_LIFETIME_COUNT));
-            }
-        }
-        // Validar maxKeepAliveCount
-        UInteger maxKeepAliveCount = request.getMaxKeepAliveCount();
-        if (maxKeepAliveCount != null) {
-            if (maxKeepAliveCount.longValue() > SubscriptionConstants.MAX_KEEP_ALIVE_COUNT) {
-                errors.add(String.format("El maxKeepAliveCount no puede ser mayor a %d",
-                        SubscriptionConstants.MAX_KEEP_ALIVE_COUNT));
-            }
-        }
-        // Validar relación entre contadores
-        if (lifetimeCount != null && maxKeepAliveCount != null) {
-            if (maxKeepAliveCount.longValue() >= lifetimeCount.longValue()) {
-                errors.add("El maxKeepAliveCount debe ser menor que el lifetimeCount");
-            }
-        }
-    }
-
-    private void validateNotificationSettings(SubscriptionRequest request, List<String> errors) {
-        // Validar maxNotificationsPerPublish
-        UInteger maxNotifications = request.getMaxNotificationsPerPublish();
-        if (maxNotifications != null) {
-            if (maxNotifications.longValue() > SubscriptionConstants.MAX_NOTIFICATIONS_PER_PUBLISH) {
-                errors.add(String.format("El maxNotificationsPerPublish no puede ser mayor a %d",
-                        SubscriptionConstants.MAX_NOTIFICATIONS_PER_PUBLISH));
-            }
-        }
-        // Validar priority
-        UByte priority = request.getPriority();
-        if (priority != null) {
-            if (priority.intValue() > SubscriptionConstants.MAX_PRIORITY) {
-                errors.add(String.format("La prioridad no puede ser mayor a %d",
-                        SubscriptionConstants.MAX_PRIORITY));
-            }
-        }
-    }
-
-    private void validateMonitoringSettings(SubscriptionRequest request, List<String> errors) {
-        // Validar queueSize
-        UInteger queueSize = request.getQueueSize();
-        if (queueSize != null) {
-            if (queueSize.longValue() > SubscriptionConstants.MAX_QUEUE_SIZE) {
-                errors.add(String.format("El queueSize no puede ser mayor a %d",
-                        SubscriptionConstants.MAX_QUEUE_SIZE));
-            }
-        }
-        // Validar monitoringMode
-        MonitoringMode monitoringMode = request.getMonitoringMode();
-        if (monitoringMode != null && !SubscriptionConstants.VALID_MONITORING_MODES.contains(monitoringMode)) {
-            errors.add("Modo de monitoreo no válido: " + monitoringMode);
-        }
-        // Validar timestampsToReturn
-        TimestampsToReturn timestampsToReturn = request.getTimestampsToReturn();
-        if (timestampsToReturn != null && !SubscriptionConstants.VALID_TIMESTAMPS_TO_RETURN.contains(timestampsToReturn)) {
-            errors.add("Tipo de timestamp no válido: " + timestampsToReturn);
-        }
-    }
-
     //Metodos auxiliares de validacion de configuracion general de un cliente opcua
     private void validateBasicFields(OpcUaConfigRequest request, List<String> errors) {
         // Validar nombre
@@ -766,11 +631,6 @@ public class RequestValidator {
         // Validar configuración de sesión
         if (request.getSession() != null) {
             validateSessionParameters(request.getSession(), errors);
-        }
-
-        //Validar configuracion de suscripciones
-        if (request.getSubscriptions() != null){
-            validateSubscriptionsList(request.getSubscriptions(), errors);
         }
     }
 
@@ -841,20 +701,6 @@ public class RequestValidator {
         if (config.getOperatorId() != null) {
             if (!config.getOperatorId().matches(ConfigConstants.OPERATOR_ID_PATTERN)) {
                 errors.add("Formato de ID de operador no válido. Debe seguir el patrón: OP-####");
-            }
-        }
-    }
-
-    private void validateSubscriptionsList(List<SubscriptionRequest> subscriptions,
-                                           List<String> errors) {
-        if (subscriptions != null) {
-            if (subscriptions.size() > ConfigConstants.MAX_SUBSCRIPTIONS) {
-                errors.add(String.format("No se pueden tener más de %d suscripciones",
-                        ConfigConstants.MAX_SUBSCRIPTIONS));
-            }
-            // Validar cada suscripción
-            for (SubscriptionRequest subscription : subscriptions) {
-                validateSubscriptionParameters(subscription, errors);
             }
         }
     }

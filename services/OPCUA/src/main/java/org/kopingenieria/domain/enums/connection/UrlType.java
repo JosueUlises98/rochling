@@ -3,15 +3,15 @@ package org.kopingenieria.domain.enums.connection;
 
 public enum UrlType {
 
-    // URLs HTTP/HTTPS
-    HTTP_LOCAL(Http.LOCAL),
-    HTTP_REMOTE(Http.REMOTE),
-    HTTP_SECURE(Http.SECURE),
-
     // URLs OPC UA
     OPCUA_LOCAL(OpcUa.LOCAL),
     OPCUA_REMOTE(OpcUa.REMOTE),
-    OPCUA_SECURE(OpcUa.SECURE);
+    OPCUA_SECURE(OpcUa.SECURE),
+
+    // URLs HTTP/HTTPS
+    HTTP_LOCAL(Http.LOCAL),
+    HTTP_REMOTE(Http.REMOTE),
+    HTTP_SECURE(Http.SECURE);
 
     private final String url;
 

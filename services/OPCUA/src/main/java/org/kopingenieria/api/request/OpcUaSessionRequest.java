@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import org.kopingenieria.domain.enums.connection.Timeouts;
 
 import java.util.List;
 
@@ -42,6 +43,6 @@ public class OpcUaSessionRequest {
     private Integer maxChunkCount;
 
     @Min(value = 1000, message = "El tiempo de espera debe ser al menos 1000 ms")
-    private Long timeout;
+    private final Timeouts timeout = Timeouts.SESSION;
 
 }

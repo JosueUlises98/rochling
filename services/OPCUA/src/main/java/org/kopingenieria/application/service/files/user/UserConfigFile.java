@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
 import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.kopingenieria.application.validators.impl.user.UserConfigurationValidatorImpl;
+import org.kopingenieria.application.validators.user.UserConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
@@ -223,8 +223,6 @@ public class UserConfigFile {
         validator.validateEncryption(config);
         //Validacion de session
         validator.validateSession(config);
-        //Validacion de suscripcion
-        validator.validateSubscription(config);
         //Validacion de configuracion industrial
         validator.validateIndustrialConfiguration(config);
         return true;

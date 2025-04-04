@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kopingenieria.application.validators.impl.bydefault.DefaultConfigurationValidatorImpl;
+import org.kopingenieria.application.validators.bydefault.DefaultConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;

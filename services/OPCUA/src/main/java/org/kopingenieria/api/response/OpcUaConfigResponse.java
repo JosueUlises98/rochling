@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 
 @Data
 @Builder
@@ -14,6 +15,9 @@ public class OpcUaConfigResponse {
     // Indica si la configuración fue exitosa
     private boolean exitoso;
 
+    //Cliente opcua de eclipse milo
+    private OpcUaClient miloClient;
+
     // Identificador único del cliente configurado
     private String clientId;
 
@@ -22,16 +26,10 @@ public class OpcUaConfigResponse {
     private String securityMode;
     private String securityPolicy;
 
-    // Estado de la conexión
-    private String estadoConexion;
-
-    // Información de la sesión establecida
-    private String sessionId;
-    private Long sessionTimeout;
-
     // Mensaje informativo
     private String mensaje;
 
     // Detalles en caso de error
     private String error;
+
 }

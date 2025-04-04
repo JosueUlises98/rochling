@@ -6,6 +6,7 @@ import java.util.Optional;
 public class CrlConfig {
 
     private String localCrlFile;
+
     private CRL certificateRevocationList;
 
     public CrlConfig(String localCrlFile) {

@@ -36,10 +36,6 @@ public class OpcUaConfigRequest {
     @NotNull(message = "La configuración de sesión es obligatoria")
     private OpcUaSessionRequest session;
 
-    @NotNull(message = "La lista de suscripciones no puede ser nula")
-    @Size(min = 1, message = "Debe haber al menos una suscripción")
-    private List<@NotNull(message = "La suscripción no puede ser nula") SubscriptionRequest> subscriptions;
-
     @NotNull(message = "La configuración industrial es obligatoria")
     private IndustrialConfigurationRequest industrialConfiguration;
 

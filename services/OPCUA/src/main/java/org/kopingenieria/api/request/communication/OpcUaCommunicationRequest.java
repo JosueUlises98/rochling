@@ -1,4 +1,4 @@
-package org.kopingenieria.api.request;
+package org.kopingenieria.api.request.communication;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;

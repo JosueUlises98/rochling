@@ -4,13 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.kopingenieria.application.service.configuration.components.UserConfigurationComp;
-import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,33 +24,14 @@ public class OpcUaUserPool {
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
     private final ScheduledExecutorService maintenanceExecutor;
 
+    @Data
     public static class ClientKey {
-        private final String endpointUrl;
-        private final String name;
-        private final SecurityPolicyUri securityPolicy;
-        private final String messageSecurityMode;
+        private static final String id = UUID.randomUUID().toString();
+        private String name;
+        private static final LocalDateTime timestamp = LocalDateTime.now();
 
-        public ClientKey(UserConfigurationOpcUa userConfig) {
-            this.endpointUrl = userConfig.getConnection().getEndpointUrl();
-            this.name = userConfig.getConnection().getName();
-            this.securityPolicy = userConfig.getAuthentication().getSecurityPolicyUri();
-            this.messageSecurityMode = userConfig.getAuthentication().getMessageSecurityMode().name();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ClientKey clientKey = (ClientKey) o;
-            return Objects.equals(endpointUrl, clientKey.endpointUrl) &&
-                    Objects.equals(name, clientKey.name) &&
-                    Objects.equals(securityPolicy, clientKey.securityPolicy) &&
-                    Objects.equals(messageSecurityMode, clientKey.messageSecurityMode);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(endpointUrl, name, securityPolicy, messageSecurityMode);
+        public ClientKey(UserOpcUa userConfig) {
+            this.name = userConfig.getName();
         }
     }
 
@@ -60,12 +39,12 @@ public class OpcUaUserPool {
     public static class PooledOpcUaClient {
         private final OpcUaClient client;
         private final ClientKey key;
-        private final UserConfigurationOpcUa userConfig;
+        private final UserOpcUa userConfig;
         private volatile long lastUsed;
         private volatile boolean isValid;
 
         public PooledOpcUaClient(OpcUaClient client,
-                                 UserConfigurationOpcUa userConfig) {
+                                 UserOpcUa userConfig) {
             this.client = client;
             this.key = new ClientKey(userConfig);
             this.userConfig = userConfig;
@@ -78,7 +57,7 @@ public class OpcUaUserPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(UserConfigurationOpcUa userConfig) {
+    public Optional<PooledOpcUaClient> obtenerCliente(UserOpcUa userConfig) {
         ClientKey key = new ClientKey(userConfig);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
@@ -102,7 +81,7 @@ public class OpcUaUserPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(UserConfigurationOpcUa userConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(UserOpcUa userConfig) {
         try {
             OpcUaClient client = opcUaConfiguration.createUserOpcUaClient(userConfig);
 

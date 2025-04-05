@@ -4,11 +4,11 @@ import jakarta.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.kopingenieria.api.response.OpcUaConnectionResponse;
+import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
 import org.kopingenieria.application.service.connection.user.UserConnectionImpl;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.ConnectionPoolException;
 import org.springframework.stereotype.Service;
 
@@ -99,7 +99,7 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    public UserConnectionPool(PoolConfig config, List<UserConfigurationOpcUa>clients) throws ConnectionPoolException {
+    public UserConnectionPool(PoolConfig config, List<UserOpcUa>clients) throws ConnectionPoolException {
         this.config = config;
         this.availableConnections = new LinkedBlockingQueue<>(config.getMaxPoolSize());
         this.activeConnections = new ConcurrentHashMap<>();
@@ -110,7 +110,7 @@ public class UserConnectionPool implements AutoCloseable {
         startHealthCheck(clients.getFirst());
     }
 
-    private void initializePool(List<UserConfigurationOpcUa>clients) throws ConnectionPoolException {
+    private void initializePool(List<UserOpcUa>clients) throws ConnectionPoolException {
         poolLock.writeLock().lock();
         try {
             for (int i = 0; i < config.getMinPoolSize(); i++) {
@@ -121,7 +121,7 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    private void createAndAddConnection(UserConfigurationOpcUa client) throws ConnectionPoolException {
+    private void createAndAddConnection(UserOpcUa client) throws ConnectionPoolException {
         try {
             UserConnectionImpl connection = new UserConnectionImpl(client);
             PooledConnection pooledConnection = new PooledConnection(connection);
@@ -131,7 +131,7 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    public CompletableFuture<PooledConnection> acquireConnection(UrlType url,UserConfigurationOpcUa client) {
+    public CompletableFuture<PooledConnection> acquireConnection(UrlType url, UserOpcUa client) {
         validatePoolState();
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -191,7 +191,7 @@ public class UserConnectionPool implements AutoCloseable {
                 .join();
     }
 
-    public void releaseConnection(PooledConnection connection,UserConfigurationOpcUa client) throws Exception {
+    public void releaseConnection(PooledConnection connection, UserOpcUa client) throws Exception {
         if (connection == null) return;
 
         poolLock.writeLock().lock();
@@ -207,14 +207,14 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    private void replaceFailedConnection(PooledConnection failedConnection,UserConfigurationOpcUa client) throws Exception {
+    private void replaceFailedConnection(PooledConnection failedConnection, UserOpcUa client) throws Exception {
             failedConnection.getConnection().close();
             if (!isShutdown && getTotalConnections() < config.getMinPoolSize()) {
                 createAndAddConnection(client);
             }
     }
 
-    private void startHealthCheck(UserConfigurationOpcUa client) {
+    private void startHealthCheck(UserOpcUa client) {
         healthCheckExecutor.scheduleAtFixedRate(
                 () -> performHealthCheck(client),
                 config.getHealthCheckInterval().toMillis(),
@@ -223,7 +223,7 @@ public class UserConnectionPool implements AutoCloseable {
         );
     }
 
-    private void performHealthCheck(UserConfigurationOpcUa client) {
+    private void performHealthCheck(UserOpcUa client) {
         poolLock.readLock().lock();
         try {
             List<CompletableFuture<Void>> healthChecks = new ArrayList<>();
@@ -254,7 +254,7 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    private void handleUnhealthyConnection(PooledConnection connection,UserConfigurationOpcUa client) throws Exception {
+    private void handleUnhealthyConnection(PooledConnection connection, UserOpcUa client) throws Exception {
         poolLock.writeLock().lock();
         try {
             availableConnections.remove(connection);

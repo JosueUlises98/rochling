@@ -6,13 +6,13 @@ import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import org.kopingenieria.api.response.OpcUaConnectionResponse;
+import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
 import org.kopingenieria.application.service.pool.clients.bydefault.OpcUaDefaultPool;
 import org.kopingenieria.application.service.pool.clients.bydefault.OpcUaDefaultPoolManager;
 import org.kopingenieria.application.validators.bydefault.DefaultConnectionValidatorImpl;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
-import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
+import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
 import org.kopingenieria.exception.exceptions.ConnectionException;
 import org.kopingenieria.exception.exceptions.DisconnectException;
 import org.kopingenieria.exception.exceptions.OpcUaPingException;
@@ -44,9 +44,9 @@ public class DefaultConnectionImpl implements DefaultConnection {
     @Getter
     private LocalDateTime lastActivityTime;
     @Getter
-    private final DefaultConfigurationOpcUa defaultclient;
+    private final DefaultOpcUa defaultclient;
 
-    public DefaultConnectionImpl(DefaultConfigurationOpcUa defaultclient) {
+    public DefaultConnectionImpl(DefaultOpcUa defaultclient) {
         this.validatorConnection = new DefaultConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();

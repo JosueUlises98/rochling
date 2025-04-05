@@ -1,4 +1,4 @@
-package org.kopingenieria.api.response;
+package org.kopingenieria.api.response.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

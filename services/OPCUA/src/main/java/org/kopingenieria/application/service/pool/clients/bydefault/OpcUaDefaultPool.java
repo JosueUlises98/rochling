@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.kopingenieria.application.service.configuration.components.DefaultConfigurationComp;
-import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
+import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,32 +27,12 @@ public class OpcUaDefaultPool {
     private final ScheduledExecutorService maintenanceExecutor;
 
     public static class ClientKey {
-        private final String endpointUrl;
-        private final String name;
-        private final String securityPolicy;
-        private final String messageSecurityMode;
+        private static final String id = UUID.randomUUID().toString();
+        private String name;
+        private static final LocalDateTime timestamp = LocalDateTime.now();
 
-        public ClientKey(DefaultConfigurationOpcUa defaultConfig) {
-            this.endpointUrl = defaultConfig.getConnection().getEndpointUrl();
-            this.name = defaultConfig.getConnection().getName();
-            this.securityPolicy = defaultConfig.getAuthentication().getSecurityPolicyUri().name();
-            this.messageSecurityMode = defaultConfig.getAuthentication().getMessageSecurityMode().name();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ClientKey clientKey = (ClientKey) o;
-            return Objects.equals(endpointUrl, clientKey.endpointUrl) &&
-                    Objects.equals(name, clientKey.name) &&
-                    Objects.equals(securityPolicy, clientKey.securityPolicy) &&
-                    Objects.equals(messageSecurityMode, clientKey.messageSecurityMode);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(endpointUrl, name, securityPolicy, messageSecurityMode);
+        public ClientKey(DefaultOpcUa defaultConfig) {
+            this.name = defaultConfig.getName();
         }
     }
 
@@ -60,12 +40,12 @@ public class OpcUaDefaultPool {
     public static class PooledOpcUaClient {
         private final OpcUaClient client;
         private final ClientKey key;
-        private final DefaultConfigurationOpcUa defaultConfig;
+        private final DefaultOpcUa defaultConfig;
         private volatile long lastUsed;
         private volatile boolean isValid;
 
         public PooledOpcUaClient(OpcUaClient client,
-                                 DefaultConfigurationOpcUa defaultConfig) {
+                                 DefaultOpcUa defaultConfig) {
             this.client = client;
             this.key = new ClientKey(defaultConfig);
             this.defaultConfig = defaultConfig;
@@ -78,15 +58,15 @@ public class OpcUaDefaultPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(DefaultConfigurationOpcUa userConfig) {
-        ClientKey key = new ClientKey(userConfig);
+    public Optional<PooledOpcUaClient> obtenerCliente(DefaultOpcUa defaultConfig) {
+        ClientKey key = new ClientKey(defaultConfig);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
         if (existingClient.isPresent()) {
             return existingClient;
         }
         // Crear nuevo cliente si no existe
-        return crearNuevoCliente(userConfig);
+        return crearNuevoCliente();
     }
 
     private Optional<PooledOpcUaClient> obtenerClienteExistente(ClientKey key) {
@@ -102,12 +82,13 @@ public class OpcUaDefaultPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(DefaultConfigurationOpcUa defaultConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente() {
         try {
-            OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient(defaultConfig);
 
-            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, defaultConfig);
-            ClientKey key = new ClientKey(defaultConfig);
+            OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient();
+
+            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, opcUaConfiguration.getDefaultclient());
+            ClientKey key = new ClientKey(opcUaConfiguration.getDefaultclient());
 
             activeClients.put(key, pooledClient);
             return Optional.of(pooledClient);

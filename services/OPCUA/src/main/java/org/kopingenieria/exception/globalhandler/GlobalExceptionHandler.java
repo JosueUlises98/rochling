@@ -1,6 +1,6 @@
 package org.kopingenieria.exception.globalhandler;
 
-import org.kopingenieria.api.response.ErrorResponse;
+import org.kopingenieria.api.response.error.ErrorResponse;
 import org.kopingenieria.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

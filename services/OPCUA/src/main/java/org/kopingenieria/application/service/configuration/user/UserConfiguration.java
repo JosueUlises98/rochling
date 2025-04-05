@@ -1,10 +1,10 @@
 package org.kopingenieria.application.service.configuration.user;
 
-import org.kopingenieria.api.response.OpcUaConfigResponse;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.api.request.configuration.UserConfigRequest;
+import org.kopingenieria.api.response.configuration.OpcUaConfigResponse;
 
 public interface UserConfiguration {
 
-    OpcUaConfigResponse createUserOpcUaClient(UserConfigurationOpcUa useropcua);
+    OpcUaConfigResponse createUserOpcUaClient(UserConfigRequest useropcua);
 
 }

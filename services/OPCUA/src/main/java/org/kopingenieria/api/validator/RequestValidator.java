@@ -2,7 +2,11 @@ package org.kopingenieria.api.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import org.kopingenieria.api.request.*;
+import org.kopingenieria.api.request.configuration.UserConfigRequest;
+import org.kopingenieria.api.request.connection.OpcUaSessionRequest;
+import org.kopingenieria.api.request.connection.bydefault.DefaultConnectionRequest;
+import org.kopingenieria.api.request.security.bydefault.OpcUaAuthenticationRequest;
+import org.kopingenieria.api.request.security.bydefault.OpcUaEncryptionRequest;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
@@ -23,7 +27,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RequestValidator {
-
 
     public void validateAuthenticationParameters(OpcUaAuthenticationRequest request, List<String> errors) {
         // Validar proveedor de identidad
@@ -50,10 +53,10 @@ public class RequestValidator {
         validateCertificateConfiguration(request, errors);
     }
 
-    public void validateConnectionParameters(OpcUaConnectionRequest request, List<String> errors) {
+    public void validateConnectionParameters(DefaultConnectionRequest request, List<String> errors) {
         // Validar endpoint URL
         if (request.getEndpointUrl() != null) {
-            validateEndpointUrl(request.getEndpointUrl(), errors);
+            validateEndpointUrl(String.valueOf(request.getEndpointUrl()), errors);
         }
         // Validar nombre de aplicación
         if (request.getApplicationName() != null) {
@@ -80,13 +83,13 @@ public class RequestValidator {
     public void validateEncryptionParameters(OpcUaEncryptionRequest request, List<String> errors) {
         // Validar política de seguridad
         if (request.getSecurityPolicy() != null) {
-            validateEncryptionSecurityPolicy(request.getSecurityPolicy(), errors);
+            validateEncryptionSecurityPolicy(String.valueOf(request.getSecurityPolicy()), errors);
         }
 
         // Validar modo de seguridad del mensaje
         if (request.getMessageSecurityMode() != null) {
-            validateEncryptionSecurityMode(request.getMessageSecurityMode(),
-                    request.getSecurityPolicy(), errors);
+            validateEncryptionSecurityMode(String.valueOf(request.getMessageSecurityMode()),
+                    String.valueOf(request.getSecurityPolicy()), errors);
         }
 
         // Validar certificado del cliente
@@ -107,12 +110,12 @@ public class RequestValidator {
 
         // Validar longitud de clave
         if (request.getKeyLength() != null) {
-            validateKeyLength(request.getKeyLength(), errors);
+            validateKeyLength(String.valueOf(request.getKeyLength()), errors);
         }
 
         // Validar algoritmo
         if (request.getAlgorithmName() != null) {
-            validateAlgorithm(request.getAlgorithmName(), errors);
+            validateAlgorithm(String.valueOf(request.getAlgorithmName()), errors);
         }
 
         // Validar versión del protocolo
@@ -162,7 +165,7 @@ public class RequestValidator {
 
         // Validar tiempo de espera
         if (request.getTimeout() != null) {
-            validateSessionTimeout(request.getTimeout(), errors);
+            validateSessionTimeout(request.getTimeout().toMilliseconds(), errors);
         }
     }
 
@@ -591,7 +594,7 @@ public class RequestValidator {
     }
 
     //Metodos auxiliares de validacion de configuracion general de un cliente opcua
-    private void validateBasicFields(OpcUaConfigRequest request, List<String> errors) {
+    private void validateBasicFields(UserConfigRequest request, List<String> errors) {
         // Validar nombre
         if (request.getName() != null) {
             if (!request.getName().matches(ConfigConstants.NAME_PATTERN)) {
@@ -612,7 +615,7 @@ public class RequestValidator {
         }
     }
 
-    private void validateMainComponents(OpcUaConfigRequest request, List<String> errors) {
+    private void validateMainComponents(UserConfigRequest request, List<String> errors) {
         // Validar configuración de conexión
         if (request.getConnection() != null) {
             validateConnectionParameters(request.getConnection(), errors);
@@ -635,7 +638,7 @@ public class RequestValidator {
     }
 
     private void validateIndustrialConfiguration(
-            OpcUaConfigRequest.IndustrialConfigurationRequest config,
+            UserConfigRequest.IndustrialConfigurationRequest config,
             List<String> errors) {
 
         // Validar zona industrial
@@ -689,7 +692,7 @@ public class RequestValidator {
     }
 
     private void validateOperatorInfo(
-            OpcUaConfigRequest.IndustrialConfigurationRequest config,
+            UserConfigRequest.IndustrialConfigurationRequest config,
             List<String> errors) {
         // Validar nombre del operador
         if (config.getOperatorName() != null) {

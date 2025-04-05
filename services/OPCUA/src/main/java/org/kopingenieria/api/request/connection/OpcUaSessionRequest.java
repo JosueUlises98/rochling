@@ -1,4 +1,4 @@
-package org.kopingenieria.api.request;
+package org.kopingenieria.api.request.connection;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

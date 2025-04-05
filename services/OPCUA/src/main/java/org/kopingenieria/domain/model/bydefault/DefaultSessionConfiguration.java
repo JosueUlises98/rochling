@@ -24,11 +24,6 @@ public class DefaultSessionConfiguration implements Serializable {
     private final String sessionName;
     private final String serverUri;
     private final Long maxResponseMessageSize;
-    private final MessageSecurityMode securityMode;
-    private final SecurityPolicyUri securityPolicyUri;
-    private final SecurityPolicy securityPolicy;
-    private final String clientCertificate;
-    private final String serverCertificate;
     private final List<LocaleIds> localeIds;
     private final Integer maxChunkCount;
     private final Timeouts timeout=Timeouts.SESSION;

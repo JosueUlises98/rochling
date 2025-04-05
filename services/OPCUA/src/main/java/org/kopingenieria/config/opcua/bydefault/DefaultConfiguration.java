@@ -30,6 +30,10 @@ import java.util.UUID;
 @Getter
 public class DefaultConfiguration {
 
+    private final String id = UUID.randomUUID().toString();
+
+    private final Integer maxChunkCount = 4;
+
     @NotBlank(message = "El nombre del archivo es obligatorio")
     private final String filename = "OPC UA Default Configuration";
 
@@ -53,34 +57,6 @@ public class DefaultConfiguration {
             .status(ConnectionStatus.UNKNOWN)
             .build();
 
-    @NotNull(message = "La autenticación es obligatoria")
-    private final Authentication authentication = Authentication.builder()
-            .identityProvider(IdentityProvider.ANONYMOUS)
-            .userName(null)
-            .password(null)
-            .securityPolicy(null)
-            .messageSecurityMode(null)
-            .certificatePath(null)
-            .privateKeyPath(null)
-            .trustListPath(null)
-            .issuerListPath(null)
-            .revocationListPath(null)
-            .securityPolicyUri(null)
-            .build();
-
-    @NotNull(message = "La encriptación es obligatoria")
-    private final Encryption encryption = Encryption.builder()
-            .securityPolicy(null)
-            .messageSecurityMode(null)
-            .clientCertificate(null)
-            .privateKey(null)
-            .trustedCertificates(null)
-            .keyLength(null)
-            .algorithmName(null)
-            .protocolVersion(null)
-            .type(null)
-            .build();
-
     @NotNull(message = "La sesión es obligatoria")
     private final Session session = Session.builder()
             .sessionName("DefaultSession")
@@ -90,7 +66,7 @@ public class DefaultConfiguration {
             .securityPolicyUri(SecurityPolicyUri.NONE)
             .clientCertificate(null)
             .serverCertificate(null)
-            .localeIds(List.of(LocaleIds.SPANISH))
+            .localeIds(List.of(LocaleIds.SPANISH,LocaleIds.ENGLISH,LocaleIds.CHINESE,LocaleIds.FRENCH))
             .maxChunkCount(4)
             .build();
 
@@ -125,67 +101,6 @@ public class DefaultConfiguration {
             this.productUri = productUri;
             this.type = type;
             this.status = status;
-        }
-    }
-
-    @Getter
-    public static class Authentication {
-        private final IdentityProvider identityProvider;
-        private final String userName;
-        private final String password;
-        private final SecurityPolicy securityPolicy;
-        private final MessageSecurityMode messageSecurityMode;
-        private final String certificatePath;
-        private final String privateKeyPath;
-        private final String trustListPath;
-        private final String issuerListPath;
-        private final String revocationListPath;
-        private final SecurityPolicyUri securityPolicyUri;
-        private final int expirationWarningDays = 30;
-
-        @Builder
-        public Authentication(IdentityProvider identityProvider, String userName, String password, SecurityPolicy securityPolicy,
-                              MessageSecurityMode messageSecurityMode, String certificatePath, String privateKeyPath,
-                              String trustListPath, String issuerListPath, String revocationListPath, SecurityPolicyUri securityPolicyUri) {
-            this.identityProvider = identityProvider;
-            this.userName = userName;
-            this.password = password;
-            this.securityPolicy = securityPolicy;
-            this.messageSecurityMode = messageSecurityMode;
-            this.certificatePath = certificatePath;
-            this.privateKeyPath = privateKeyPath;
-            this.trustListPath = trustListPath;
-            this.issuerListPath = issuerListPath;
-            this.revocationListPath = revocationListPath;
-            this.securityPolicyUri = securityPolicyUri;
-        }
-    }
-
-    @Getter
-    public static class Encryption {
-        private final SecurityPolicy securityPolicy;
-        private final MessageSecurityMode messageSecurityMode;
-        private final byte[] clientCertificate;
-        private final byte[] privateKey;
-        private final List<byte[]> trustedCertificates;
-        private final Integer keyLength;
-        private final EncryptionAlgorithm algorithmName;
-        private final String protocolVersion;
-        private final String type;
-
-        @Builder
-        public Encryption(SecurityPolicy securityPolicy, MessageSecurityMode messageSecurityMode, byte[] clientCertificate, byte[] privateKey,
-                          List<byte[]> trustedCertificates, Integer keyLength, EncryptionAlgorithm algorithmName,
-                          String protocolVersion, String type) {
-            this.securityPolicy = securityPolicy;
-            this.messageSecurityMode = messageSecurityMode;
-            this.clientCertificate = clientCertificate;
-            this.privateKey = privateKey;
-            this.trustedCertificates = trustedCertificates;
-            this.keyLength = keyLength;
-            this.algorithmName = algorithmName;
-            this.protocolVersion = protocolVersion;
-            this.type = type;
         }
     }
 

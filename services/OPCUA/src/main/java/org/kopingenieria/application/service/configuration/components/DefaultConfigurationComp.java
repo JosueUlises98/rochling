@@ -1,48 +1,69 @@
 package org.kopingenieria.application.service.configuration.components;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
-import org.eclipse.milo.opcua.sdk.client.api.identity.AnonymousProvider;
-import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
-import org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider;
-import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
+import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
+import org.kopingenieria.domain.enums.communication.SessionStatus;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
+import org.kopingenieria.domain.model.bydefault.DefaultConnectionConfiguration;
+import org.kopingenieria.domain.model.bydefault.DefaultIndustrialConfiguration;
+import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
+import org.kopingenieria.domain.model.bydefault.DefaultSessionConfiguration;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
-import org.kopingenieria.util.security.bydefault.DefaultCertificateManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 @Component( "DefaultConfiguration" )
 @Getter
+@NoArgsConstructor
 public class DefaultConfigurationComp {
 
-    @Autowired
-    private DefaultCertificateManager certificateManager;
+    private DefaultOpcUa defaultclient;
 
-    public OpcUaClient createDefaultOpcUaClient(DefaultConfigurationOpcUa defaultopcua) throws OpcUaConfigurationException {
+    public OpcUaClient createDefaultOpcUaClient() throws OpcUaConfigurationException {
         try {
-            // Inicializar certificados
-            certificateManager.configurarCertificados(defaultopcua);
+            DefaultConfiguration defconfig = new DefaultConfiguration();
+            DefaultOpcUa defaultopcua = DefaultOpcUa.builder()
+                    .name("Default_Client_OPCUA")
+                    .connection(DefaultConnectionConfiguration.builder()
+                            .name(defconfig.getConnection().getName())
+                    .endpointUrl(defconfig.getConnection().getEndpointUrl())
+                            .applicationName(defconfig.getConnection().getApplicationName())
+                            .applicationUri(defconfig.getConnection().getApplicationUri())
+                            .type(defconfig.getConnection().getType())
+                            .status(defconfig.getConnection().getStatus())
+                            .build())
+                    .session(DefaultSessionConfiguration.builder()
+                            .sessionName(defconfig.getSession().getSessionName())
+                            .serverUri(defconfig.getSession().getServerUri())
+                            .maxResponseMessageSize(defconfig.getSession().getMaxResponseMessageSize())
+                            .localeIds(defconfig.getSession().getLocaleIds())
+                            .maxChunkCount(defconfig.getSession().getMaxChunkCount())
+                            .sessionStatus(SessionStatus.INACTIVE)
+                            .build())
+                    .industrial(DefaultIndustrialConfiguration.builder()
+                            .industrialZone(defconfig.getIndustrialConfiguration().getIndustrialZone())
+                            .equipmentId(defconfig.getIndustrialConfiguration().getEquipmentId())
+                            .areaId(defconfig.getIndustrialConfiguration().getAreaId())
+                            .processId(defconfig.getIndustrialConfiguration().getProcessId())
+                            .operatorName(defconfig.getIndustrialConfiguration().getOperatorName())
+                            .operatorId(defconfig.getIndustrialConfiguration().getOperatorId())
+                            .build())
+                    .build();
+
+            defaultclient = defaultopcua;
 
             // Crear builder de configuración
             OpcUaClientConfigBuilder config = new OpcUaClientConfigBuilder();
 
             // 1. Configuración de conexión
             configurarConexion(config, defaultopcua);
-
-            // 2. Configuración de autenticación
-            configurarAutenticacion(config, defaultopcua);
-
-            // 3. Configuración de encriptacion(Seguridad)
-            certificateManager.aplicarConfiguracionSeguridad(config,defaultopcua);
 
             // 4. Configuración de sesión
             configurarSesion(config, defaultopcua);
@@ -57,13 +78,11 @@ public class DefaultConfigurationComp {
     }
 
     private void configurarConexion(OpcUaClientConfigBuilder config,
-                                    DefaultConfigurationOpcUa userConfig) {
+                                    DefaultOpcUa userConfig) {
         EndpointDescription endpoint = EndpointDescription.builder()
                 .endpointUrl(userConfig.getConnection().getEndpointUrl())
-                .securityPolicyUri(SecurityPolicy.valueOf(
-                        String.valueOf(userConfig.getAuthentication().getSecurityPolicyUri())
-                ).getUri())
-                .securityMode(MessageSecurityMode.valueOf(userConfig.getEncryption().getMessageSecurityMode().name()))
+                .securityPolicyUri(null)
+                .securityMode(null)
                 .build();
 
         config.setEndpoint(endpoint)
@@ -74,25 +93,8 @@ public class DefaultConfigurationComp {
                 .setRequestTimeout(uint(String.valueOf(userConfig.getConnection().getTimeout())));
     }
 
-    private void configurarAutenticacion(OpcUaClientConfigBuilder config,
-                                         DefaultConfigurationOpcUa userConfig) {
-        if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.ANONYMOUS)) {
-            config.setIdentityProvider(new AnonymousProvider());
-        } else if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.USERNAME)) {
-            config.setIdentityProvider(new UsernameProvider(
-                    userConfig.getAuthentication().getUserName(),
-                    userConfig.getAuthentication().getPassword()
-            ));
-        } else if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.X509IDENTITY)) {
-            config.setIdentityProvider(new X509IdentityProvider(
-                    certificateManager.getClientCertificate(),
-                    certificateManager.getPrivateKey()
-            ));
-        }
-    }
-
     private void configurarSesion(OpcUaClientConfigBuilder config,
-                                  DefaultConfigurationOpcUa userConfig) {
+                                  DefaultOpcUa userConfig) {
         config.setSessionName(() -> userConfig.getSession().getSessionName())
                 .setSessionTimeout(uint(String.valueOf(userConfig.getSession().getTimeout())))
                 .setMaxResponseMessageSize(uint(

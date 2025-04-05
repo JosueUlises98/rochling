@@ -252,8 +252,8 @@
     </pluginRepositories>
 
     <!-- Metadatos del proyecto -->
-    <name>Rochling Project</name>
-    <description>Sistema de gestión para Rochling</description>
+    <name>Rochling System</name>
+    <description>Sistema de Comunicacion Industrial</description>
     <organization>
         <name>KOP Ingeniería</name>
     </organization>

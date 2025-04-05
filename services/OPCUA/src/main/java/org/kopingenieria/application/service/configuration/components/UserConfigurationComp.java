@@ -12,7 +12,7 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 import org.kopingenieria.util.security.user.UserCertificateManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ public class UserConfigurationComp {
     @Autowired
     private UserCertificateManager certificateManager;
 
-    public OpcUaClient createUserOpcUaClient(UserConfigurationOpcUa useropcua) throws OpcUaConfigurationException {
+    public OpcUaClient createUserOpcUaClient(UserOpcUa useropcua) throws OpcUaConfigurationException {
         try {
             // Inicializar certificados
             certificateManager.configurarCertificados(useropcua);
@@ -57,7 +57,7 @@ public class UserConfigurationComp {
     }
 
     private void configurarConexion(OpcUaClientConfigBuilder config,
-                                    UserConfigurationOpcUa userConfig) {
+                                    UserOpcUa userConfig) {
         EndpointDescription endpoint = EndpointDescription.builder()
                 .endpointUrl(userConfig.getConnection().getEndpointUrl())
                 .securityPolicyUri(SecurityPolicy.valueOf(
@@ -75,7 +75,7 @@ public class UserConfigurationComp {
     }
 
     private void configurarAutenticacion(OpcUaClientConfigBuilder config,
-                                         UserConfigurationOpcUa userConfig) {
+                                         UserOpcUa userConfig) {
         if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.ANONYMOUS)) {
             config.setIdentityProvider(new AnonymousProvider());
         } else if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.USERNAME)) {
@@ -92,7 +92,7 @@ public class UserConfigurationComp {
     }
 
     private void configurarSesion(OpcUaClientConfigBuilder config,
-                                  UserConfigurationOpcUa userConfig) {
+                                  UserOpcUa userConfig) {
         config.setSessionName(() -> userConfig.getSession().getSessionName())
                 .setSessionTimeout(uint(String.valueOf(userConfig.getSession().getTimeout())))
                 .setMaxResponseMessageSize(uint(

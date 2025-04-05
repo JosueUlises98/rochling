@@ -1,15 +1,15 @@
 package org.kopingenieria.application.service.security.bydefault;
 
-import org.kopingenieria.api.response.AuthenticationResponse;
-import org.kopingenieria.domain.enums.security.IdentityProvider;
+import org.kopingenieria.api.request.security.bydefault.OpcUaAuthenticationRequest;
+import org.kopingenieria.api.response.security.AuthenticationResponse;
 
 public interface DefaultAutentication {
 
-    AuthenticationResponse authenticate(IdentityProvider identityProvider, Object... credentials) throws SecurityException;
+    AuthenticationResponse authenticate(OpcUaAuthenticationRequest authenticationRequest) throws SecurityException;
 
-    AuthenticationResponse isSupported(IdentityProvider identityProvider);
+    AuthenticationResponse isSupported(OpcUaAuthenticationRequest authenticationRequest);
 
-    AuthenticationResponse invalidate();
+    AuthenticationResponse invalidate(OpcUaAuthenticationRequest authenticationRequest);
 
-    AuthenticationResponse getCurrentIdentityProvider();
+    AuthenticationResponse getCurrentIdentityProvider(OpcUaAuthenticationRequest authenticationRequest);
 }

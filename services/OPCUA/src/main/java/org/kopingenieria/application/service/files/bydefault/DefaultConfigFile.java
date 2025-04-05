@@ -189,10 +189,6 @@ public class DefaultConfigFile {
         DefaultConfigurationValidatorImpl validator = new DefaultConfigurationValidatorImpl();
         //Validacion de conexion
         validator.validateConnection(config);
-        //Validacion de autenticacion
-        validator.validateAuthentication(config);
-        //Validacion de encriptacion
-        validator.validateEncryption(config);
         //Validacion de session
         validator.validateSession(config);
         //Validacion de configuracion industrial
@@ -296,10 +292,6 @@ public class DefaultConfigFile {
         props.setProperty("opcua.default.version", String.valueOf(config.getVersion()));
         //Propiedades de conexion
         connectionToProperties(config);
-        //Propiedades de autenticacion
-        authenticationToProperties(config);
-        //Propiedades de encriptacion
-        encryptionToProperties(config);
         //Propiedades de session
         sessionToProperties(config);
         //Propiedades de configuracion industrial
@@ -318,38 +310,6 @@ public class DefaultConfigFile {
         props.setProperty("opcua.default.connection.type",conn.getType().name());
         props.setProperty("opcua.default.connection.timeout", String.valueOf(conn.getTimeout()));
         props.setProperty("opcua.default.connection.status",conn.getStatus().name());
-    }
-
-    private void authenticationToProperties(DefaultConfiguration config) {
-        // Authentication
-        DefaultConfiguration.Authentication auth = config.getAuthentication();
-        Objects.requireNonNull(auth, "La autenticacion no puede ser nula");
-        props.setProperty("opcua.default.authentication.identityProvider",auth.getIdentityProvider().name());
-        props.setProperty("opcua.default.authentication.username", auth.getUserName());
-        props.setProperty("opcua.default.authentication.password", auth.getPassword());
-        props.setProperty("opcua.default.authentication.securityPolicy", String.valueOf(auth.getSecurityPolicy()));
-        props.setProperty("opcua.default.authentication.messageSecurityMode", String.valueOf(auth.getMessageSecurityMode()));
-        props.setProperty("opcua.default.authentication.certificatePath", auth.getCertificatePath());
-        props.setProperty("opcua.default.authentication.privateKeyPath", auth.getPrivateKeyPath());
-        props.setProperty("opcua.default.authentication.trustListPath", auth.getTrustListPath());
-        props.setProperty("opcua.default.authentication.issuerListPath", auth.getIssuerListPath());
-        props.setProperty("opcua.default.authentication.revocationListPath", auth.getRevocationListPath());
-        props.setProperty("opcua.default.authentication.securityPolicyUri", String.valueOf(auth.getSecurityPolicyUri()));
-        props.setProperty("opcua.default.authentication.expirationWarningDays", String.valueOf(auth.getExpirationWarningDays()));
-    }
-
-    private void encryptionToProperties(DefaultConfiguration config) {
-        // Encryption
-        DefaultConfiguration.Encryption enc = config.getEncryption();
-        Objects.requireNonNull(enc, "La encriptacion no puede ser nula");
-        props.setProperty("opcua.default.encryption.securityPolicy", String.valueOf(enc.getSecurityPolicy()));
-        props.setProperty("opcua.default.encryption.messageSecurityMode", String.valueOf(enc.getMessageSecurityMode()));
-        props.setProperty("opcua.default.encryption.clientCertificate", Arrays.toString(enc.getClientCertificate()));
-        props.setProperty("opcua.default.encryption.privateKey", Arrays.toString(enc.getPrivateKey()));
-        props.setProperty("opcua.default.encryption.trustedCertificates", String.valueOf(enc.getTrustedCertificates()));
-        props.setProperty("opcua.default.encryption.keyLength", String.valueOf(enc.getKeyLength()));
-        props.setProperty("opcua.default.encryption.algorithmName", String.valueOf(enc.getAlgorithmName()));
-        props.setProperty("opcua.default.encryption.protocolVersion",enc.getProtocolVersion());
     }
 
     private void sessionToProperties(DefaultConfiguration config) {

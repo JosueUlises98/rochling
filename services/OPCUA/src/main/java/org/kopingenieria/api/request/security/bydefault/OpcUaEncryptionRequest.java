@@ -1,7 +1,5 @@
-package org.kopingenieria.api.request;
+package org.kopingenieria.api.request.security.bydefault;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -9,7 +7,6 @@ import lombok.Data;
 import org.kopingenieria.domain.enums.security.EncryptionAlgorithm;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
-
 import java.util.List;
 
 @Data
@@ -36,17 +33,7 @@ public class OpcUaEncryptionRequest {
     @Size(min = 1, message = "Los certificados de confianza no pueden estar vacíos")
             byte[]> trustedCertificates;
 
-    @NotNull(message = "El tamaño de la clave es obligatorio")
-    @Min(value = 128, message = "El tamaño mínimo de la clave es 128")
-    private Integer keyLength;
-
     @NotNull(message = "El algoritmo de encriptación es obligatorio")
     private EncryptionAlgorithm algorithmName;
-
-    @NotBlank(message = "La versión del protocolo no puede estar vacía")
-    private String protocolVersion;
-
-    @NotBlank(message = "El tipo es obligatorio")
-    private String type;
 
 }

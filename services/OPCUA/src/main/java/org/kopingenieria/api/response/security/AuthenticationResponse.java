@@ -1,4 +1,4 @@
-package org.kopingenieria.api.response;
+package org.kopingenieria.api.response.security;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;

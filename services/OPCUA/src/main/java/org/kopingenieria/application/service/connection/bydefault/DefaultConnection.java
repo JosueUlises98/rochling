@@ -1,6 +1,6 @@
 package org.kopingenieria.application.service.connection.bydefault;
 
-import org.kopingenieria.api.response.OpcUaConnectionResponse;
+import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
 import org.kopingenieria.domain.enums.connection.UrlType;
 
 import java.util.concurrent.CompletableFuture;

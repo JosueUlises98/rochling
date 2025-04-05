@@ -2,9 +2,9 @@ package org.kopingenieria.application.service.configuration.user;
 
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.api.response.OpcUaConfigResponse;
+import org.kopingenieria.api.request.configuration.UserConfigRequest;
+import org.kopingenieria.api.response.configuration.OpcUaConfigResponse;
 import org.kopingenieria.application.service.configuration.components.UserConfigurationComp;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
@@ -17,7 +17,7 @@ public class UserConfigurationImpl implements UserConfiguration {
     private UserConfigurationComp userconfig;
 
     @Override
-    public OpcUaConfigResponse createUserOpcUaClient(UserConfigurationOpcUa useropcua) {
+    public OpcUaConfigResponse createUserOpcUaClient(UserConfigRequest useropcua) {
         if (useropcua == null) {
             return OpcUaConfigResponse.builder()
                     .exitoso(false)
@@ -26,15 +26,15 @@ public class UserConfigurationImpl implements UserConfiguration {
         }
         try {
 
-            OpcUaClient uaclient = userconfig.createUserOpcUaClient(useropcua);
+            OpcUaClient uaclient = userconfig.createUserOpcUaClient(useropcua.getUserConfig());
 
             return OpcUaConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(uaclient)
                     .clientId(UUID.randomUUID().toString())
-                    .endpointUrl(useropcua.getConnection().getEndpointUrl())
-                    .securityMode(useropcua.getEncryption().getMessageSecurityMode().name())
-                    .securityPolicy(useropcua.getAuthentication().getSecurityPolicyUri().name())
+                    .endpointUrl(useropcua.getUserConfig().getConnection().getEndpointUrl())
+                    .securityMode(useropcua.getUserConfig().getAuthentication().getMessageSecurityMode().toString())
+                    .securityPolicy(useropcua.getUserConfig().getAuthentication().getSecurityPolicy().toString())
                     .mensaje("Cliente OPC UA creado correctamente")
                     .build();
 
@@ -42,10 +42,10 @@ public class UserConfigurationImpl implements UserConfiguration {
             return OpcUaConfigResponse.builder()
                     .exitoso(false)
                     .miloClient(null)
-                    .clientId(null)
-                    .endpointUrl(useropcua.getConnection().getEndpointUrl())
-                    .securityMode(useropcua.getEncryption().getMessageSecurityMode().name())
-                    .securityPolicy(useropcua.getAuthentication().getSecurityPolicyUri().name())
+                    .clientId(useropcua.getUserConfig().getId())
+                    .endpointUrl(useropcua.getUserConfig().getConnection().getEndpointUrl())
+                    .securityMode(useropcua.getUserConfig().getAuthentication().getMessageSecurityMode().name())
+                    .securityPolicy(useropcua.getUserConfig().getAuthentication().getSecurityPolicy().name())
                     .mensaje("Error creando cliente OPC UA")
                     .error(e.getMessage())
                     .build();

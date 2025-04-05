@@ -3,7 +3,7 @@ package org.kopingenieria.domain.serialization.user;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ public class UserConfigurationSerializable extends UserOpcUaSerializable {
     @XmlElement(name = "configuration")
     @NotNull(message = "La configuracion no puede ser nulo")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private UserConfigurationOpcUa opcuaConfiguration;
+    private UserOpcUa opcuaConfiguration;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

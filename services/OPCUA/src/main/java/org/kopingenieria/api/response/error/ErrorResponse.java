@@ -1,4 +1,4 @@
-package org.kopingenieria.api.response;
+package org.kopingenieria.api.response.error;
 
 import lombok.Builder;
 import lombok.Data;

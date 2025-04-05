@@ -6,7 +6,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.logging.model.LogMethod;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ public class OpcUaUserPoolManager {
     )
     @LogMethod(description = "Inicializando OpcUaPoolManager con Pool de Clientes...",operation = "obtenerCliente")
     public Optional<OpcUaUserPool.PooledOpcUaClient> obtenerCliente(
-            UserConfigurationOpcUa userConfig) {
+            UserOpcUa userConfig) {
         String connectionId = generarIdConexion(userConfig);
 
         try {
@@ -143,7 +143,7 @@ public class OpcUaUserPoolManager {
         });
     }
 
-    private String generarIdConexion(UserConfigurationOpcUa config) {
+    private String generarIdConexion(UserOpcUa config) {
         return String.format("%s_%s_%s",
                 config.getConnection().getEndpointUrl(),
                 config.getConnection().getName(),

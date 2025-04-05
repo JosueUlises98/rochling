@@ -11,7 +11,7 @@ import java.util.function.Function;
 @Component("userConfigurationMapper")
 public class UserConfigurationMapper {
 
-    public UserConfigurationOpcUa mapConfiguration(
+    public UserOpcUa mapConfiguration(
             String filename,
             Function<String, UserConfiguration> configLoader) throws ConfigurationMappingException {
         try {
@@ -23,12 +23,12 @@ public class UserConfigurationMapper {
         }
     }
 
-    private UserConfigurationOpcUa mapToOpcUaConfiguration(UserConfiguration userConfig) throws ConfigurationMappingException {
+    private UserOpcUa mapToOpcUaConfiguration(UserConfiguration userConfig) throws ConfigurationMappingException {
         if (userConfig == null) {
             throw new ConfigurationMappingException("La configuración base es nula");
         }
 
-        return UserConfigurationOpcUa.builder()
+        return UserOpcUa.builder()
                 .connection(mapConnectionConfig(userConfig))
                 .encryption(mapEncryptionConfig(userConfig))
                 .industrial(mapIndustrialConfig(userConfig))

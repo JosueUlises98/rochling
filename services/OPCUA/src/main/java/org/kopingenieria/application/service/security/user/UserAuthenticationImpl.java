@@ -11,7 +11,7 @@ import org.kopingenieria.application.service.pool.connections.user.UserConnectio
 import org.kopingenieria.application.validators.contract.user.UserAuthenticationValidator;
 import org.kopingenieria.application.validators.user.UserAuthenticationValidatorImpl;
 import org.kopingenieria.domain.enums.security.IdentityProvider;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.ConnectionPoolException;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +22,13 @@ public class UserAuthenticationImpl implements UserAutentication {
 
     private final UserConnectionPool pool;
     private final OpcUaUserPoolManager userPoolManager;
-    private IdentityProvider currentProvider;
     private boolean isAuthenticated;
     private static final int AUTH_TIMEOUT_SECONDS = 10;
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final UserAuthenticationValidator AUTHENTICATION_VALIDATOR = new UserAuthenticationValidatorImpl();
 
 
-    public UserAuthenticationImpl(UserConnectionPool.PoolConfig poolConfig, List<UserConfigurationOpcUa> users) throws ConnectionPoolException {
+    public UserAuthenticationImpl(UserConnectionPool.PoolConfig poolConfig, List<UserOpcUa> users) throws ConnectionPoolException {
         this.pool = new UserConnectionPool(poolConfig,users);
         this.isAuthenticated = false;
         this.userPoolManager = new OpcUaUserPoolManager();

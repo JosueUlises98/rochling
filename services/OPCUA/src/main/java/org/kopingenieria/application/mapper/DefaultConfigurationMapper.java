@@ -12,7 +12,7 @@ import java.util.function.Function;
 @Component("defaultConfigurationMapper")
 public class DefaultConfigurationMapper {
 
-    public DefaultConfigurationOpcUa mapConfiguration(
+    public DefaultOpcUa mapConfiguration(
             String filename,
             Function<String, DefaultConfiguration> configLoader) throws ConfigurationMappingException {
         try {
@@ -24,12 +24,12 @@ public class DefaultConfigurationMapper {
         }
     }
 
-    private DefaultConfigurationOpcUa mapToOpcUaConfiguration(DefaultConfiguration defaultConfig) throws ConfigurationMappingException {
+    private DefaultOpcUa mapToOpcUaConfiguration(DefaultConfiguration defaultConfig) throws ConfigurationMappingException {
         if (defaultConfig == null) {
             throw new ConfigurationMappingException("La configuración base es nula");
         }
 
-        return DefaultConfigurationOpcUa.builder()
+        return DefaultOpcUa.builder()
                 .connection(mapConnectionConfig(defaultConfig))
                 .encryption(mapEncryptionConfig(defaultConfig))
                 .industrial(mapIndustrialConfig(defaultConfig))

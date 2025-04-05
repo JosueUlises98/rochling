@@ -6,13 +6,14 @@ import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import org.kopingenieria.api.response.OpcUaConnectionResponse;
+import org.kopingenieria.api.request.connection.user.UserConnectionRequest;
+import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
 import org.kopingenieria.application.service.pool.clients.user.OpcUaUserPool;
 import org.kopingenieria.application.service.pool.clients.user.OpcUaUserPoolManager;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
 import org.kopingenieria.application.validators.user.UserConnectionValidatorImpl;
-import org.kopingenieria.domain.model.user.UserConfigurationOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
@@ -41,13 +42,15 @@ public class UserConnectionImpl implements UserConnection {
     @Getter
     private LocalDateTime lastActivityTime;
     @Getter
-    private final UserConfigurationOpcUa userclient;
+    private final UserOpcUa userclient;
+    private final UserConnectionRequest request;
 
-    public UserConnectionImpl(UserConfigurationOpcUa userclient) {
+    public UserConnectionImpl(UserOpcUa userclient, UserConnectionRequest request) {
         this.validatorConnection = new UserConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
-        this.userclient =  userclient;
+        this.userclient = userclient;
+        this.request = request;
     }
 
     @Override

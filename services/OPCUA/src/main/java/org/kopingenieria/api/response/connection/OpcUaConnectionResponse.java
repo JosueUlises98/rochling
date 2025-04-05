@@ -1,10 +1,9 @@
-package org.kopingenieria.api.response;
+package org.kopingenieria.api.response.connection;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
-import org.kopingenieria.application.monitoring.quality.QualityNetwork;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.QualityLevel;
 

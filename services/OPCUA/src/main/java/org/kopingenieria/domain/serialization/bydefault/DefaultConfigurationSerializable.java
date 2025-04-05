@@ -3,7 +3,7 @@ package org.kopingenieria.domain.serialization.bydefault;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.domain.model.bydefault.DefaultConfigurationOpcUa;
+import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
 
 import javax.xml.bind.annotation.*;
 import java.io.Serial;
@@ -29,7 +29,7 @@ public class DefaultConfigurationSerializable extends DefaultOpcUaSerializable {
     @XmlElement(name = "configuration")
     @NotNull(message = "La configuracion no puede ser nulo")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private DefaultConfigurationOpcUa opcuaConfiguration;
+    private DefaultOpcUa opcuaConfiguration;
 
     @JsonProperty("timestamp")
     @XmlElement(name = "timestamp")

@@ -18,12 +18,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Configuration
 @ConfigurationProperties(prefix = "opcua.user")
 @Validated
 @Data
 public class UserConfiguration {
+
+    private final String id = UUID.randomUUID().toString();
 
     @NotBlank(message = "El nombre de la configuración es obligatorio")
     private String filename;

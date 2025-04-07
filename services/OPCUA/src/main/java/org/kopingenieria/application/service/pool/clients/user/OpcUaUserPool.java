@@ -3,7 +3,7 @@ package org.kopingenieria.application.service.pool.clients.user;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.application.service.configuration.components.UserConfigurationComp;
+import org.kopingenieria.application.service.configuration.user.UserSDKComp;
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaUserPool {
 
     @Autowired
-    private UserConfigurationComp opcUaConfiguration;
+    private UserSDKComp opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;

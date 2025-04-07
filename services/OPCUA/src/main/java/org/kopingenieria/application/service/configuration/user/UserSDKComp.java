@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.configuration.components;
+package org.kopingenieria.application.service.configuration.user;
 
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -22,10 +22,11 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 
 @Component("UserConfiguration")
 @Getter
-public class UserConfigurationComp {
+public class UserSDKComp {
 
     @Autowired
     private UserCertificateManager certificateManager;
+
 
     public OpcUaClient createUserOpcUaClient(UserOpcUa useropcua) throws OpcUaConfigurationException {
         try {

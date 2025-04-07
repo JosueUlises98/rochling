@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.configuration.components;
+package org.kopingenieria.application.service.configuration.bydefault;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +22,7 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 @Component( "DefaultConfiguration" )
 @Getter
 @NoArgsConstructor
-public class DefaultConfigurationComp {
+public class DefaultSDKComp {
 
     private DefaultOpcUa defaultclient;
 

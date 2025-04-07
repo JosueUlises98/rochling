@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.files.bydefault;
+package org.kopingenieria.application.service.files.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -12,7 +12,7 @@ import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -24,7 +24,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @Slf4j
 @AllArgsConstructor
 public class DefaultConfigFile {

@@ -1,6 +1,6 @@
 package org.kopingenieria.application.service.security.bydefault;
 
-import org.kopingenieria.api.request.security.bydefault.OpcUaAuthenticationRequest;
+import org.kopingenieria.api.request.security.OpcUaAuthenticationRequest;
 import org.kopingenieria.api.response.security.AuthenticationResponse;
 
 public interface DefaultAutentication {

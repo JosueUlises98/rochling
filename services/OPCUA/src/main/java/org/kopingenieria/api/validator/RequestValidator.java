@@ -5,8 +5,8 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.api.request.configuration.UserConfigRequest;
 import org.kopingenieria.api.request.connection.OpcUaSessionRequest;
 import org.kopingenieria.api.request.connection.bydefault.DefaultConnectionRequest;
-import org.kopingenieria.api.request.security.bydefault.OpcUaAuthenticationRequest;
-import org.kopingenieria.api.request.security.bydefault.OpcUaEncryptionRequest;
+import org.kopingenieria.api.request.security.OpcUaAuthenticationRequest;
+import org.kopingenieria.api.request.security.OpcUaEncryptionRequest;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
@@ -273,7 +273,7 @@ public class RequestValidator {
         validateCertificatePath(request.getIssuerListPath(), "lista resolutora", errors);
 
         // Validar ruta de la lista de revocación
-        validateCertificatePath(request.getRevocationListPath(), "lista de revocación", errors);
+        validateCertificatePath(request.getCertificatePath(), "lista de revocación", errors);
     }
 
     private void validateCertificatePath(String path, String type, List<String> errors) {
@@ -312,6 +312,7 @@ public class RequestValidator {
         int lastDotIndex = path.lastIndexOf('.');
         return lastDotIndex > 0 ? path.substring(lastDotIndex) : "";
     }
+
     //Metodos auxiliares de validacion de conexion
     private void validateEndpointUrl(String endpointUrl, List<String> errors) {
         if (!endpointUrl.startsWith("opc.tcp://")) {
@@ -692,10 +693,10 @@ public class RequestValidator {
     }
 
     private void validateOperatorInfo(
-            UserConfigRequest.IndustrialConfigurationRequest config,
+            UserConfigRequest config,
             List<String> errors) {
         // Validar nombre del operador
-        if (config.getOperatorName() != null) {
+        if (config.getUserConfig().getIndustrial().getOperatorName() != null) {
             if (!config.getOperatorName().matches(ConfigConstants.OPERATOR_NAME_PATTERN)) {
                 errors.add("El nombre del operador solo puede contener letras y espacios");
             }

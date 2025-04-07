@@ -1,4 +1,4 @@
-package org.kopingenieria.api.request.security.bydefault;
+package org.kopingenieria.api.request.security;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -1,26 +1,21 @@
-package org.kopingenieria.application.service.files.user;
+package org.kopingenieria.application.service.files.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.kopingenieria.application.validators.user.UserConfigurationValidatorImpl;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
-import org.kopingenieria.domain.enums.connection.ConnectionType;
-import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.security.*;
 import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
-import org.springframework.stereotype.Service;
+import org.kopingenieria.util.loader.UserConfigurationLoader;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,7 +24,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @Slf4j
 @AllArgsConstructor
 public class UserConfigFile {
@@ -38,7 +33,6 @@ public class UserConfigFile {
     private static final String BACKUP_PATH = CONFIG_PATH + "backup/";
     private final ObjectMapper objectMapper;
     private Properties props;
-    private UserConfiguration config;
 
     @Auditable(value = "Evento de inicializacion de directorios", type = AuditEntryType.CREATE, description = "Inicializacion de directorios en ruta definida")
     @LogSystemEvent(event = "Inicializacion de directorios",
@@ -243,7 +237,7 @@ public class UserConfigFile {
             type = AuditEntryType.CREATE,
             description = "Creación de backup de configuración"
     )
-    public void backupConfiguration(String filename) throws ConfigurationException {
+    private void backupConfiguration(String filename) throws ConfigurationException {
         validateFilename(filename);
         try {
             String sourcePath = CONFIG_PATH + filename;
@@ -294,11 +288,8 @@ public class UserConfigFile {
     }
 
     private UserConfiguration loadPropertiesConfiguration(String filePath) throws IOException {
-        Properties props = new Properties();
-        try (InputStream is = new FileInputStream(filePath)) {
-            props.load(is);
-            return mapPropertiesToConfig(props);
-        }
+        UserConfigurationLoader userConfigurationLoader = new UserConfigurationLoader();
+        return userConfigurationLoader.loadConfiguration(filePath);
     }
 
     private void saveYamlConfiguration(UserConfiguration config, String filePath) throws IOException {
@@ -406,117 +397,6 @@ public class UserConfigFile {
         props.setProperty("opcua.user.industrialConfiguration.processId", ind.getProcessId());
         props.setProperty("opcua.user.industrialConfiguration.operatorName", ind.getOperatorName());
         props.setProperty("opcua.user.industrialConfiguration.operatorId", ind.getOperatorId());
-    }
-
-    @Transactional
-    private UserConfiguration mapPropertiesToConfig(Properties props) {
-        Objects.requireNonNull(props, "Propiedades no pueden ser nulas");
-        // Propiedades principales
-        config.setFilename(props.getProperty("opcua.user.filename"));
-        config.setDescription(props.getProperty("opcua.user.description"));
-        config.setEnabled(Boolean.valueOf(props.getProperty("opcua.user.enabled")));
-        config.setVersion(Long.valueOf(props.getProperty("opcua.user.version")));
-        //Propiedades de conexion
-        config.setConnection(connectionToConfig(props));
-        //Propiedades de autenticacion
-        config.setAuthentication(authenticationToConfig(props));
-        //Propiedades de encriptacion
-        config.setEncryption(encryptionToConfig(props));
-        //Propiedades de session
-        config.setSession(sessionToConfig(props));
-        //Propiedades de configuracion industrial
-        config.setIndustrialConfiguration(industrialConfigurationToConfig(props));
-        return config;
-    }
-
-    private UserConfiguration.Connection connectionToConfig(Properties props) {
-        // Connection
-        return UserConfiguration.Connection.builder()
-                .endpointUrl(props.getProperty("opcua.user.connection.endpointUrl"))
-                .applicationName(props.getProperty("opcua.user.connection.applicationName"))
-                .applicationUri(props.getProperty("opcua.user.connection.applicationUri"))
-                .productUri(props.getProperty("opcua.user.connection.productUri"))
-                .type(ConnectionType.valueOf(props.getProperty("opcua.user.connection.type")))
-                .name(props.getProperty("opcua.user.connection.name"))
-                .build();
-    }
-
-    private UserConfiguration.Authentication authenticationToConfig(Properties props) {
-        // Authentication
-        return UserConfiguration.Authentication.builder()
-                .identityProvider(IdentityProvider.valueOf(props.getProperty("opcua.user.authentication.identityProvider")))
-                .userName(props.getProperty("opcua.user.authentication.userName"))
-                .password(props.getProperty("opcua.user.authentication.password"))
-                .securityPolicy(SecurityPolicy.valueOf(props.getProperty("opcua.user.authentication.securityPolicy")))
-                .messageSecurityMode(MessageSecurityMode.valueOf(props.getProperty("opcua.user.authentication.messageSecurityMode")))
-                .certificatePath(props.getProperty("opcua.user.authentication.certificatePath"))
-                .privateKeyPath(props.getProperty("opcua.user.authentication.privateKeyPath"))
-                .trustListPath(props.getProperty("opcua.user.authentication.trustListPath"))
-                .issuerListPath(props.getProperty("opcua.user.authentication.issuerListPath"))
-                .revocationListPath(props.getProperty("opcua.user.authentication.revocationListPath"))
-                .build();
-    }
-
-    private UserConfiguration.Encryption encryptionToConfig(Properties props) {
-        // Encryption
-        return UserConfiguration.Encryption.builder()
-                .securityPolicy(SecurityPolicy.valueOf(props.getProperty("opcua.user.encryption.securityPolicy")))
-                .messageSecurityMode(MessageSecurityMode.valueOf(props.getProperty("opcua.user.encryption.messageSecurityMode")))
-                .clientCertificate(props.getProperty("opcua.user.encryption.clientCertificate").getBytes())
-                .privateKey(props.getProperty("opcua.user.encryption.privateKey").getBytes())
-                .trustedCertificates(Collections.singletonList(props.getProperty("opcua.user.encryption.trustedCertificates").getBytes()))
-                .keyLength(Integer.valueOf(props.getProperty("opcua.user.encryption.keyLength")))
-                .algorithmName(EncryptionAlgorithm.valueOf(props.getProperty("opcua.user.encryption.algorithmName")))
-                .protocolVersion(props.getProperty("opcua.user.encryption.protocolVersion"))
-                .build();
-    }
-
-    private UserConfiguration.Session sessionToConfig(Properties props) {
-        // Session
-        return UserConfiguration.Session.builder()
-                .sessionName(props.getProperty("opcua.user.session.sessionName"))
-                .serverUri(props.getProperty("opcua.user.session.serverUri"))
-                .maxResponseMessageSize(Long.valueOf(props.getProperty("opcua.user.session.maxResponseMessageSize")))
-                .securityMode(MessageSecurityMode.valueOf(props.getProperty("opcua.user.session.securityMode")))
-                .securityPolicyUri(SecurityPolicyUri.valueOf(props.getProperty("opcua.user.session.securityPolicyUri")))
-                .clientCertificate(props.getProperty("opcua.user.session.clientCertificate"))
-                .serverCertificate(props.getProperty("opcua.user.session.serverCertificate"))
-                .localeIds(List.of(LocaleIds.valueOf(props.getProperty("opcua.user.session.localeIds"))))
-                .maxChunkCount(Integer.valueOf(props.getProperty("opcua.user.session.maxChunkCount")))
-                .build();
-    }
-
-    private UserConfiguration.IndustrialConfiguration industrialConfigurationToConfig(Properties props) {
-        // IndustrialConfiguration
-       return UserConfiguration.IndustrialConfiguration.builder()
-                .industrialZone(props.getProperty("opcua.user.industrialConfiguration.industrialZone"))
-                .equipmentId(props.getProperty("opcua.user.industrialConfiguration.equipmentId"))
-                .areaId(props.getProperty("opcua.user.industrialConfiguration.areaId"))
-                .processId(props.getProperty("opcua.user.industrialConfiguration.processId"))
-               .operatorName(props.getProperty("opcua.user.industrialConfiguration.operatorName"))
-               .operatorId(props.getProperty("opcua.user.industrialConfiguration.operatorId"))
-                .build();
-    }
-
-    // Métodos auxiliares para conversión de tipos
-    private UInteger getIntegerProperty(Properties props, String key) {
-        String value = props.getProperty(key);
-        return value != null ? UInteger.valueOf(value) : null;
-    }
-
-    private Double getDoubleProperty(Properties props, String key) {
-        String value = props.getProperty(key);
-        return value != null ? Double.valueOf(value) : null;
-    }
-
-    private Boolean getBooleanProperty(Properties props, String key) {
-        String value = props.getProperty(key);
-        return value != null ? Boolean.valueOf(value) : null;
-    }
-
-    private UByte getUByteProperty(Properties props, String key) {
-        String value = props.getProperty(key);
-        return value != null ? UByte.valueOf(value) : null;
     }
 
     private void validateFilename(String filename) throws ConfigurationException {

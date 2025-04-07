@@ -4,29 +4,25 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import lombok.Getter;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Configuration
 @ConfigurationProperties(prefix = "opcua.user")
 @Validated
-@Data
+@Getter
+@Builder
 public class UserConfiguration {
 
-    private final String id = UUID.randomUUID().toString();
+    private final String id;
 
     @NotBlank(message = "El nombre de la configuración es obligatorio")
     private String filename;

@@ -6,11 +6,11 @@ import java.io.IOException;
 import java.util.Properties;
 
 @Component("configurationLoader")
-public class ConfigurationLoader {
+public class PropertiesLoader {
 
     public static Properties loadProperties(String fileName) throws IOException {
         Properties properties = new Properties();
-        properties.load(ConfigurationLoader.class.getClassLoader().getResourceAsStream(fileName));
+        properties.load(PropertiesLoader.class.getClassLoader().getResourceAsStream(fileName));
         return properties;
     }
 }

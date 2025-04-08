@@ -6,14 +6,11 @@ import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.security.CertificateType;
-import org.kopingenieria.domain.enums.security.EncryptionAlgorithm;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
 import org.kopingenieria.domain.enums.security.SecurityPolicy;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
 import org.springframework.util.StringUtils;
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -68,100 +65,6 @@ public class DefaultConfigurationValidatorImpl implements DefaultConfigurationVa
             return false;
         }
         if (!isValidConnectionTimeout(conn.getTimeout().toMilliseconds())) {
-            return false;
-        }
-        return true;
-    }
-
-    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de autenticacion", description = "Validacion de configuracion de autenticacion opcua")
-    @LogSystemEvent(description = "Validacion de autenticacion opcua", event = "Validacion de autenticacion", level = LogLevel.DEBUG)
-    public boolean validateAuthentication(DefaultConfiguration authentication) {
-        Objects.requireNonNull(authentication, "La configuracion es obligatoria");
-        DefaultConfiguration.Authentication auth = authentication.getAuthentication();
-        if (auth == null) {
-            return false;
-        }
-        // Validación del modo de autenticación
-        if (auth.getIdentityProvider() == null) {
-            return false;
-        }
-        // Validación de credenciales
-        if (!StringUtils.hasText(auth.getUserName())) {
-            return false;
-        }
-        if (auth.getUserName().length() > 50) {
-            return false;
-        }
-        if (!StringUtils.hasText(auth.getPassword())) {
-            return false;
-        }
-        if (auth.getPassword().length() < 8) {
-            return false;
-        }
-        // Validación de políticas de seguridad
-        if (!StringUtils.hasText(String.valueOf(auth.getSecurityPolicy()))) {
-            return false;
-        }
-        if (!isValidSecurityPolicy(String.valueOf(auth.getSecurityPolicy()))) {
-            return false;
-        }
-        if (!StringUtils.hasText(String.valueOf(auth.getMessageSecurityMode()))) {
-            return false;
-        }
-        if (!isValidSecurityMode(String.valueOf(auth.getMessageSecurityMode()))) {
-            return false;
-        }
-        // Validación de certificados
-        if (StringUtils.hasText(auth.getCertificatePath())) {
-            return validateCertificatePath(auth.getCertificatePath());
-        }
-        if (StringUtils.hasText(auth.getPrivateKeyPath())) {
-            return validatePrivateKeyPath(auth.getPrivateKeyPath());
-        }
-        return true;
-    }
-
-    @Auditable(type = AuditEntryType.OPERATION, value = "Validacion de configuracion de encriptacion", description = "Validacion de configuracion de encriptacion opcua")
-    @LogSystemEvent(description = "Validacion de encriptacion opcua", event = "Validacion de encriptacion", level = LogLevel.DEBUG)
-    public boolean validateEncryption(DefaultConfiguration encryption) {
-        Objects.requireNonNull(encryption, "La configuracion es obligatoria");
-        DefaultConfiguration.Encryption enc = encryption.getEncryption();
-        if (enc == null) {
-            return false;
-        }
-        // Validación de política de seguridad
-        if (!StringUtils.hasText(String.valueOf(enc.getSecurityPolicy()))) {
-            return false;
-        }
-        if (!isValidEncryptionPolicy(String.valueOf(enc.getSecurityPolicy()))) {
-            return false;
-        }
-        // Validación del modo de mensaje
-        if (!StringUtils.hasText(String.valueOf(enc.getMessageSecurityMode()))) {
-            return false;
-        }
-        if (!isValidMessageMode(String.valueOf(enc.getMessageSecurityMode()))) {
-            return false;
-        }
-        // Validación del algoritmo
-        if (!StringUtils.hasText(String.valueOf(enc.getAlgorithmName()))) {
-            return false;
-        }
-        if (!isValidEncryptionAlgorithm(String.valueOf(enc.getAlgorithmName()))) {
-            return false;
-        }
-        // Validación del tamaño de llave
-        if (!StringUtils.hasText(String.valueOf(enc.getKeyLength()))) {
-            return false;
-        }
-        if (!isValidKeySize(enc.getKeyLength(), String.valueOf(enc.getAlgorithmName()))) {
-            return false;
-        }
-        // Validación del tipo de certificado
-        if (!StringUtils.hasText(String.valueOf(enc.getType()))) {
-            return false;
-        }
-        if (!isValidCertificateType(enc.getType())) {
             return false;
         }
         return true;
@@ -282,8 +185,7 @@ public class DefaultConfigurationValidatorImpl implements DefaultConfigurationVa
     public String getValidationResult(DefaultConfiguration config) {
         Objects.requireNonNull(config, "La configuracion es obligatoria");
         String result = "failed";
-        if (validateConnection(config) & validateAuthentication(config) & validateEncryption(config) &
-                validateSession(config) & validateIndustrialConfiguration(config)) {
+        if (validateConnection(config) & validateSession(config) & validateIndustrialConfiguration(config)) {
             result = "success";
         }
         return result;
@@ -338,75 +240,6 @@ public class DefaultConfigurationValidatorImpl implements DefaultConfigurationVa
                 MessageSecurityMode.INVALID,
                 MessageSecurityMode.SIGNANDENCRYPT);
         return validModes.contains(MessageSecurityMode.valueOf(mode));
-    }
-
-    private boolean validateCertificatePath(String path) {
-        File certFile = new File(path);
-        if (!certFile.exists()) {
-            return false;
-        }
-        if (!certFile.isFile()) {
-            return false;
-        }
-        if (!path.toLowerCase().endsWith(".der") && !path.toLowerCase().endsWith(".pem")) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean validatePrivateKeyPath(String path) {
-        File keyFile = new File(path);
-        if (!keyFile.exists()) {
-            return false;
-        }
-        if (!keyFile.isFile()) {
-            return false;
-        }
-        if (!path.toLowerCase().endsWith(".pem")) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isValidEncryptionPolicy(String policy) {
-        Set<SecurityPolicy> validPolicies = Set.of(SecurityPolicy.NONE, SecurityPolicy.BASIC256,
-                SecurityPolicy.BASIC128RSA15);
-        return validPolicies.contains(SecurityPolicy.valueOf(policy));
-    }
-
-    private boolean isValidMessageMode(String mode) {
-        Set<MessageSecurityMode> validModes = Set.of(MessageSecurityMode.NONE, MessageSecurityMode.SIGN,
-                MessageSecurityMode.SIGNANDENCRYPT);
-        return validModes.contains(MessageSecurityMode.valueOf(mode));
-    }
-
-    private boolean isValidEncryptionAlgorithm(String algorithm) {
-        Set<EncryptionAlgorithm> validAlgorithms = Set.of(EncryptionAlgorithm.SHA256, EncryptionAlgorithm.SHA512,
-                EncryptionAlgorithm.SHA384, EncryptionAlgorithm.AES, EncryptionAlgorithm.RSA);
-        return validAlgorithms.contains(EncryptionAlgorithm.valueOf(algorithm));
-    }
-
-    private boolean isValidKeySize(Integer keySize, String algorithm) {
-        if (algorithm == null || keySize == null) return false;
-
-        return switch (algorithm.toUpperCase()) {
-            case "RSA" -> keySize >= 2048 && keySize <= 4096 && keySize % 1024 == 0;
-            case "AES" -> keySize == 128 || keySize == 192 || keySize == 256;
-            default -> false;
-        };
-    }
-
-    private boolean isValidCertificateType(String type) {
-        Set<CertificateType> validTypes = Set.of(CertificateType.X509, CertificateType.DER, CertificateType.PEM);
-        return validTypes.contains(CertificateType.valueOf(type));
-    }
-
-    private boolean isValidNodeId(String nodeId) {
-        if (nodeId == null) return false;
-
-        // Formato básico: ns=X;i=Y o ns=X;s=Y
-        Pattern pattern = Pattern.compile("^(ns=\\d+;s=.*)$");
-        return pattern.matcher(nodeId).matches();
     }
 
     private boolean isValidIndustrialZone(String zone) {

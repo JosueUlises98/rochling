@@ -6,8 +6,8 @@ import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.QualityLevel;
-
 import java.time.LocalDateTime;
+
 
 @Data
 @Builder

@@ -27,7 +27,6 @@ public class UserSDKComp {
     @Autowired
     private UserCertificateManager certificateManager;
 
-
     public OpcUaClient createUserOpcUaClient(UserOpcUa useropcua) throws OpcUaConfigurationException {
         try {
             // Inicializar certificados

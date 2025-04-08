@@ -18,6 +18,8 @@ import org.kopingenieria.exception.exceptions.DisconnectException;
 import org.kopingenieria.exception.exceptions.OpcUaPingException;
 import org.kopingenieria.exception.exceptions.OpcUaReconnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+@Component("DefaultConnectionImpl")
 public class DefaultConnectionImpl implements DefaultConnection {
 
     private static final int MAX_RETRIES = 3;

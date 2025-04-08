@@ -16,6 +16,8 @@ import org.kopingenieria.application.validators.user.UserConnectionValidatorImpl
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+@Component("UserConnectionImpl")
 public class UserConnectionImpl implements UserConnection {
 
     private static final int MAX_RETRIES = 3;
@@ -43,14 +46,12 @@ public class UserConnectionImpl implements UserConnection {
     private LocalDateTime lastActivityTime;
     @Getter
     private final UserOpcUa userclient;
-    private final UserConnectionRequest request;
 
-    public UserConnectionImpl(UserOpcUa userclient, UserConnectionRequest request) {
+    public UserConnectionImpl(UserOpcUa userclient) {
         this.validatorConnection = new UserConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
         this.userclient = userclient;
-        this.request = request;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package org.kopingenieria.application.validators.bydefault;
 
 import org.eclipse.milo.opcua.sdk.client.api.UaClient;
-import org.kopingenieria.domain.model.bydefault.DefaultSessionConfiguration;
 import org.kopingenieria.domain.model.user.UserSessionConfiguration;
 
 public interface DefaultSessionValidator {
@@ -13,12 +12,6 @@ public interface DefaultSessionValidator {
     boolean isSessionActive(UserSessionConfiguration client);
 
     boolean isSessionExpired(UserSessionConfiguration client);
-
-    boolean validateSessionSecurityPolicy(UaClient client, DefaultSessionConfiguration user);
-
-    boolean validateSessionSecurityMode(UaClient client, DefaultSessionConfiguration user);
-
-    boolean validateSessionCertificate(UaClient client, DefaultSessionConfiguration user);
 
     boolean validateSessionTimeout(UaClient client);
 

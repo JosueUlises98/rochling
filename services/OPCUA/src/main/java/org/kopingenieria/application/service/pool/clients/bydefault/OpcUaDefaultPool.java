@@ -1,15 +1,21 @@
 package org.kopingenieria.application.service.pool.clients.bydefault;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.kopingenieria.application.service.configuration.bydefault.DefaultSDKComp;
+import org.kopingenieria.application.service.files.component.DefaultConfigFile;
+import org.kopingenieria.application.service.files.component.UserConfigFile;
+import org.kopingenieria.application.service.files.user.UserFileService;
+import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -84,7 +90,9 @@ public class OpcUaDefaultPool {
 
     private Optional<PooledOpcUaClient> crearNuevoCliente() {
         try {
-
+            DefaultConfigFile defaultConfigFile = new DefaultConfigFile(new ObjectMapper(), new Properties());
+            defaultConfigFile.init();
+            defaultConfigFile.saveConfiguration(new DefaultConfiguration().getInmutableDefaultConfiguration(),);
             OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient();
 
             PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, opcUaConfiguration.getDefaultclient());

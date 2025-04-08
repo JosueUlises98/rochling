@@ -35,7 +35,7 @@ public class DefaultConfiguration {
     private final Integer maxChunkCount = 4;
 
     @NotBlank(message = "El nombre del archivo es obligatorio")
-    private final String filename = "OPC UA Default Configuration";
+    private final String filename = "OPC UA Default Configuration.properties";
 
     @NotBlank(message = "La descripción es obligatoria")
     private final String description = "Configuración por defecto del cliente OPC UA";

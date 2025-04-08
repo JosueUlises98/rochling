@@ -8,7 +8,6 @@ import org.kopingenieria.application.service.files.component.UserConfigFile;
 import org.kopingenieria.application.service.files.user.UserFileService;
 import org.kopingenieria.util.helper.ConfigurationHelper;
 import org.springframework.stereotype.Component;
-
 import java.util.Properties;
 
 @Component("UserConfiguration")

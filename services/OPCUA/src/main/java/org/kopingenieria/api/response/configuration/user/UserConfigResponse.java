@@ -1,4 +1,4 @@
-package org.kopingenieria.api.response.configuration;
+package org.kopingenieria.api.response.configuration.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import org.kopingenieria.domain.model.user.UserOpcUa;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConfigResponse {
+public class UserConfigResponse {
 
     // Indica si la configuración fue exitosa
     private boolean exitoso;
@@ -20,7 +20,7 @@ public class ConfigResponse {
     private OpcUaClient miloClient;
 
     //Cliente opcua del dominio
-    private UserOpcUa userOpcUa;
+    private UserOpcUa client;
 
     // Identificador único del cliente configurado
     private String clientId;

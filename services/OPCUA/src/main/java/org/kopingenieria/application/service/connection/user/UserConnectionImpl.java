@@ -34,7 +34,7 @@ public class UserConnectionImpl implements UserConnection {
     private static final int CONNECTION_TIMEOUT = 10000;
 
     @Autowired
-    private OpcUaUserPoolManager poolManager;
+    private OpcUaUserPool userpool;
     private OpcUaUserPool.PooledOpcUaClient pooledClient;
     private final UserConnectionValidatorImpl validatorConnection;
     private UrlType lastConnectedUrl;
@@ -43,13 +43,13 @@ public class UserConnectionImpl implements UserConnection {
     @Getter
     private LocalDateTime lastActivityTime;
     @Getter
-    private final UserOpcUa userclient;
+    private String clientId;
 
-    public UserConnectionImpl(UserOpcUa userclient) {
+    public UserConnectionImpl(String clientId) {
         this.validatorConnection = new UserConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
-        this.userclient = userclient;
+        this.clientId = clientId;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class UserConnectionImpl implements UserConnection {
         updateConnectionStatus(ConnectionStatus.CONNECTING);
         try {
             Optional<OpcUaUserPool.PooledOpcUaClient> optionalClient =
-                    poolManager.obtenerCliente(userclient);
+                    userpool.obtenerCliente(clientId);
 
             if (optionalClient.isEmpty()) {
                 throw new ConnectionException("No se pudo obtener un cliente del pool");
@@ -207,7 +207,7 @@ public class UserConnectionImpl implements UserConnection {
 
     private boolean validateConnection(UrlType url, OpcUaClient client) {
         return validatorConnection.validateActiveSession(client) &&
-                validatorConnection.validateLocalHost(url.getUrl());
+                validatorConnection.validateLocalHost(url.getUrl()) && validatorConnection.validateEndpoint(url.getUrl());
     }
 
     private CompletableFuture<ConnectionResponse> connectClient(OpcUaClient client) {
@@ -266,7 +266,6 @@ public class UserConnectionImpl implements UserConnection {
                         opcUaClient.getConfig().getProductUri() : null)
                 .status(status)
                 .lastActivity(lastActivityTime)
-                .client(client)
                 .build();
     }
 
@@ -281,7 +280,7 @@ public class UserConnectionImpl implements UserConnection {
 
     private void cleanup() {
         if (pooledClient != null) {
-            poolManager.liberarCliente(pooledClient);
+            userpool.liberarCliente(pooledClient);
             pooledClient = null;
         }
         updateConnectionStatus(ConnectionStatus.DISCONNECTED);

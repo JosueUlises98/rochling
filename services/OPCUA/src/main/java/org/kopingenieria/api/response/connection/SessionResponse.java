@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SessionResponse {
-    private Long id;
+    private String id;
     private String sessionId;
     private String sessionName;
     private String serverUri;

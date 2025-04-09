@@ -1,9 +1,9 @@
-package org.kopingenieria.application.service.configuration.bydefault;
+package org.kopingenieria.application.service.configuration.bydefault.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.api.response.configuration.ConfigResponse;
+import org.kopingenieria.api.response.configuration.bydefault.DefaultConfigResponse;
 import org.kopingenieria.application.service.files.bydefault.DefaultFileService;
 import org.kopingenieria.application.service.files.component.DefaultConfigFile;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
@@ -32,7 +32,7 @@ public class DefaultConfigComp{
     }
 
     // CREATE
-    public ConfigResponse createDefaultOpcuaC() {
+    public DefaultConfigResponse createDefaultOpcuaC() {
         try {
 
             OpcUaClient uaclient = defaultconfig.createDefaultOpcUaClient();
@@ -40,16 +40,17 @@ public class DefaultConfigComp{
             mapclients.put(defaultconfig.getDefaultclient(), uaclient);
             clients.add(new HashMap<>(mapclients));
 
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(uaclient)
+                    .client(defaultconfig.getDefaultclient())
                     .clientId(defaultconfig.getDefaultclient().getId())
                     .endpointUrl(defaultconfig.getDefaultclient().getConnection().getEndpointUrl())
                     .mensaje("Cliente OPC UA creado correctamente")
                     .build();
 
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error creando cliente OPC UA")
                     .error(e.getMessage())
@@ -58,7 +59,7 @@ public class DefaultConfigComp{
     }
 
     // READ
-    public ConfigResponse readDefaultConfiguration(String clientId) {
+    public DefaultConfigResponse readDefaultConfiguration(String clientId) {
         try {
 
             Optional<DefaultOpcUa> client = mapclients.keySet()
@@ -67,22 +68,23 @@ public class DefaultConfigComp{
                     .findFirst();
 
             if (client.isEmpty()) {
-                return ConfigResponse.builder()
+                return DefaultConfigResponse.builder()
                         .exitoso(false)
                         .mensaje("Configuración no encontrada")
                         .build();
             }
 
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(mapclients.get(client.get()))
+                    .client(client.get())
                     .clientId(client.get().getId())
                     .endpointUrl(client.get().getConnection().getEndpointUrl())
                     .mensaje("Configuración recuperada exitosamente")
                     .build();
 
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al leer configuración")
                     .error(e.getMessage())
@@ -91,7 +93,7 @@ public class DefaultConfigComp{
     }
 
     // DELETE
-    public ConfigResponse deleteDefaultConfiguration(String clientId) {
+    public DefaultConfigResponse deleteDefaultConfiguration(String clientId) {
         try {
 
             Optional<DefaultOpcUa> clientToRemove = mapclients.keySet()
@@ -100,7 +102,7 @@ public class DefaultConfigComp{
                     .findFirst();
 
             if (clientToRemove.isEmpty()) {
-                return ConfigResponse.builder()
+                return DefaultConfigResponse.builder()
                         .exitoso(false)
                         .mensaje("Configuración no encontrada para eliminar")
                         .build();
@@ -113,13 +115,13 @@ public class DefaultConfigComp{
 
             configfile.deleteConfiguration(clientToRemove.get().getName());
 
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(true)
                     .mensaje("Configuración eliminada correctamente")
                     .build();
 
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return DefaultConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al eliminar configuración")
                     .error(e.getMessage())
@@ -128,10 +130,10 @@ public class DefaultConfigComp{
     }
 
     // READ ALL
-    public List<ConfigResponse> getAllConfigurations() {
+    public List<DefaultConfigResponse> getAllConfigurations() {
         try {
             return mapclients.entrySet().stream()
-                    .map(entry -> ConfigResponse.builder()
+                    .map(entry -> DefaultConfigResponse.builder()
                             .exitoso(true)
                             .miloClient(entry.getValue())
                             .clientId(entry.getKey().getId())
@@ -141,7 +143,7 @@ public class DefaultConfigComp{
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            return List.of(ConfigResponse.builder()
+            return List.of(DefaultConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al recuperar configuraciones")
                     .error(e.getMessage())

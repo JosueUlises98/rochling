@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.configuration.bydefault;
+package org.kopingenieria.application.service.configuration.bydefault.component;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

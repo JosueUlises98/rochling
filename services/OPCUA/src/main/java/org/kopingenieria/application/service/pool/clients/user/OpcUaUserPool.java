@@ -3,8 +3,8 @@ package org.kopingenieria.application.service.pool.clients.user;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.api.response.configuration.ConfigResponse;
-import org.kopingenieria.application.service.configuration.user.UserConfigComp;
+import org.kopingenieria.api.response.configuration.user.UserConfigResponse;
+import org.kopingenieria.application.service.configuration.user.component.UserConfigComp;
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 
-@Component
+@Component("opcUaUserPool")
 @AllArgsConstructor
 public class OpcUaUserPool {
 
@@ -65,8 +65,8 @@ public class OpcUaUserPool {
     }
 
     public Optional<PooledOpcUaClient> obtenerCliente(String id) {
-        ConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
-        UserOpcUa opcUa = configuration.getUserOpcUa();
+        UserConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
+        UserOpcUa opcUa = configuration.getClient();
         ClientKey key = new ClientKey(opcUa);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
@@ -93,8 +93,8 @@ public class OpcUaUserPool {
     private Optional<PooledOpcUaClient> crearNuevoCliente(String id) {
         try {
 
-            ConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
-            UserOpcUa userOpcUa = configuration.getUserOpcUa();
+            UserConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
+            UserOpcUa userOpcUa = configuration.getClient();
             OpcUaClient miloClient = configuration.getMiloClient();
 
             PooledOpcUaClient pooledClient = new PooledOpcUaClient(miloClient, userOpcUa);

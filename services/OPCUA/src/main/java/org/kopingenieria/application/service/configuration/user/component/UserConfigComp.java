@@ -1,10 +1,10 @@
-package org.kopingenieria.application.service.configuration.user;
+package org.kopingenieria.application.service.configuration.user.component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.kopingenieria.api.request.configuration.UserConfigRequest;
-import org.kopingenieria.api.response.configuration.ConfigResponse;
+import org.kopingenieria.api.response.configuration.user.UserConfigResponse;
 import org.kopingenieria.application.service.files.component.UserConfigFile;
 import org.kopingenieria.application.service.files.user.UserFileService;
 import org.kopingenieria.domain.model.user.UserOpcUa;
@@ -31,9 +31,9 @@ public class UserConfigComp {
     }
 
     // CREATE
-    public ConfigResponse createUserOpcUaClient(UserConfigRequest useropcua) {
+    public UserConfigResponse createUserOpcUaClient(UserConfigRequest useropcua) {
         if (useropcua == null) {
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Configuración no puede ser null")
                     .build();
@@ -45,7 +45,7 @@ public class UserConfigComp {
             mapclients.put(useropcua.getUserConfig(), uaclient);
             clients.add(new HashMap<>(mapclients));
 
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(uaclient)
                     .clientId(useropcua.getUserConfig().getId())
@@ -55,7 +55,7 @@ public class UserConfigComp {
                     .mensaje("Cliente OPC UA creado correctamente")
                     .build();
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error creando cliente OPC UA")
                     .error(e.getMessage())
@@ -64,7 +64,7 @@ public class UserConfigComp {
     }
 
     // READ
-    public ConfigResponse getUserConfiguration(String clientId) {
+    public UserConfigResponse getUserConfiguration(String clientId) {
         try {
 
             Optional<UserOpcUa> userConfig = mapclients.keySet()
@@ -73,7 +73,7 @@ public class UserConfigComp {
                     .findFirst();
 
             if (userConfig.isEmpty()) {
-                return ConfigResponse.builder()
+                return UserConfigResponse.builder()
                         .exitoso(false)
                         .mensaje("Configuración no encontrada")
                         .build();
@@ -82,10 +82,10 @@ public class UserConfigComp {
             UserOpcUa config = userConfig.get();
             OpcUaClient client = mapclients.get(config);
 
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(client)
-                    .userOpcUa(config)
+                    .client(config)
                     .clientId(config.getId())
                     .endpointUrl(config.getConnection().getEndpointUrl())
                     .securityMode(config.getAuthentication().getMessageSecurityMode().toString())
@@ -94,7 +94,7 @@ public class UserConfigComp {
                     .build();
 
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al recuperar configuración")
                     .error(e.getMessage())
@@ -103,7 +103,7 @@ public class UserConfigComp {
     }
 
     // DELETE
-    public ConfigResponse deleteUserConfiguration(String clientId) {
+    public UserConfigResponse deleteUserConfiguration(String clientId) {
         try {
 
             Optional<UserOpcUa> configToRemove = mapclients.keySet()
@@ -113,7 +113,7 @@ public class UserConfigComp {
 
             if (configToRemove.isEmpty()) {
 
-                return ConfigResponse.builder()
+                return UserConfigResponse.builder()
                         .exitoso(false)
                         .mensaje("Configuración no encontrada para eliminar")
                         .build();
@@ -126,13 +126,13 @@ public class UserConfigComp {
 
             configfile.deleteConfiguration(configToRemove.get().getName());
 
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(true)
                     .mensaje("Configuración eliminada correctamente")
                     .build();
 
         } catch (Exception e) {
-            return ConfigResponse.builder()
+            return UserConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al eliminar configuración")
                     .error(e.getMessage())
@@ -141,12 +141,13 @@ public class UserConfigComp {
     }
 
     // READ ALL
-    public List<ConfigResponse> getAllUserConfigurations() {
+    public List<UserConfigResponse> getAllUserConfigurations() {
         try {
             return mapclients.entrySet().stream()
-                    .map(entry -> ConfigResponse.builder()
+                    .map(entry -> UserConfigResponse.builder()
                             .exitoso(true)
                             .miloClient(entry.getValue())
+                            .client(entry.getKey())
                             .clientId(entry.getKey().getId())
                             .endpointUrl(entry.getKey().getConnection().getEndpointUrl())
                             .securityMode(entry.getKey().getAuthentication().getMessageSecurityMode().toString())
@@ -156,7 +157,7 @@ public class UserConfigComp {
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            return List.of(ConfigResponse.builder()
+            return List.of(UserConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Error al recuperar configuraciones")
                     .error(e.getMessage())

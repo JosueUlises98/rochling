@@ -10,6 +10,7 @@ import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.ConnectionPoolException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
-@Service
+@Component( "userConnectionPool")
 @RequiredArgsConstructor
 public class UserConnectionPool implements AutoCloseable {
 
@@ -99,31 +100,31 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    public UserConnectionPool(PoolConfig config, List<UserOpcUa>clients) throws ConnectionPoolException {
+    public UserConnectionPool(PoolConfig config, List<String>clientIds) throws ConnectionPoolException {
         this.config = config;
         this.availableConnections = new LinkedBlockingQueue<>(config.getMaxPoolSize());
         this.activeConnections = new ConcurrentHashMap<>();
         this.poolLock = new ReentrantReadWriteLock();
         this.healthCheckExecutor = Executors.newSingleThreadScheduledExecutor();
         this.isShutdown = false;
-        initializePool(clients);
-        startHealthCheck(clients.getFirst());
+        initializePool(clientIds);
+        startHealthCheck(clientIds.getFirst());
     }
 
-    private void initializePool(List<UserOpcUa>clients) throws ConnectionPoolException {
+    private void initializePool(List<String>clientIds) throws ConnectionPoolException {
         poolLock.writeLock().lock();
         try {
             for (int i = 0; i < config.getMinPoolSize(); i++) {
-                createAndAddConnection(clients.get(i));
+                createAndAddConnection(clientIds.get(i));
             }
         } finally {
             poolLock.writeLock().unlock();
         }
     }
 
-    private void createAndAddConnection(UserOpcUa client) throws ConnectionPoolException {
+    private void createAndAddConnection(String clientId) throws ConnectionPoolException {
         try {
-            UserConnectionImpl connection = new UserConnectionImpl(client);
+            UserConnectionImpl connection = new UserConnectionImpl(clientId);
             PooledConnection pooledConnection = new PooledConnection(connection);
             availableConnections.offer(pooledConnection);
         } catch (Exception e) {
@@ -131,7 +132,7 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    public CompletableFuture<PooledConnection> acquireConnection(UrlType url, UserOpcUa client) {
+    public CompletableFuture<PooledConnection> acquireConnection(UrlType url, String clientId) {
         validatePoolState();
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -142,7 +143,7 @@ public class UserConnectionPool implements AutoCloseable {
                     if (getTotalConnections() < config.getMaxPoolSize()) {
                         connection = availableConnections.poll();
                         if (connection == null) {
-                            createAndAddConnection(client);
+                            createAndAddConnection(clientId);
                         }
                     } else {
                         throw new ConnectionPoolException("Connection pool exhausted");
@@ -191,7 +192,7 @@ public class UserConnectionPool implements AutoCloseable {
                 .join();
     }
 
-    public void releaseConnection(PooledConnection connection, UserOpcUa client) throws Exception {
+    public void releaseConnection(PooledConnection connection, String clientId) throws Exception {
         if (connection == null) return;
 
         poolLock.writeLock().lock();
@@ -200,30 +201,30 @@ public class UserConnectionPool implements AutoCloseable {
             if (connection.getStatus() != ConnectionStatus.FAILED) {
                 availableConnections.offer(connection);
             } else {
-                replaceFailedConnection(connection,client);
+                replaceFailedConnection(connection,clientId);
             }
         } finally {
             poolLock.writeLock().unlock();
         }
     }
 
-    private void replaceFailedConnection(PooledConnection failedConnection, UserOpcUa client) throws Exception {
+    private void replaceFailedConnection(PooledConnection failedConnection, String clientId) throws Exception {
             failedConnection.getConnection().close();
             if (!isShutdown && getTotalConnections() < config.getMinPoolSize()) {
-                createAndAddConnection(client);
+                createAndAddConnection(clientId);
             }
     }
 
-    private void startHealthCheck(UserOpcUa client) {
+    private void startHealthCheck(String clientId) {
         healthCheckExecutor.scheduleAtFixedRate(
-                () -> performHealthCheck(client),
+                () -> performHealthCheck(clientId),
                 config.getHealthCheckInterval().toMillis(),
                 config.getHealthCheckInterval().toMillis(),
                 TimeUnit.MILLISECONDS
         );
     }
 
-    private void performHealthCheck(UserOpcUa client) {
+    private void performHealthCheck(String clientId) {
         poolLock.readLock().lock();
         try {
             List<CompletableFuture<Void>> healthChecks = new ArrayList<>();
@@ -235,7 +236,7 @@ public class UserConnectionPool implements AutoCloseable {
                                     .thenAccept(valid -> {
                                         if (!valid) {
                                             try {
-                                                handleUnhealthyConnection(conn,client);
+                                                handleUnhealthyConnection(conn,clientId);
                                             } catch (Exception e) {
                                                 throw new RuntimeException(e);
                                             }
@@ -254,11 +255,11 @@ public class UserConnectionPool implements AutoCloseable {
         }
     }
 
-    private void handleUnhealthyConnection(PooledConnection connection, UserOpcUa client) throws Exception {
+    private void handleUnhealthyConnection(PooledConnection connection, String clientId) throws Exception {
         poolLock.writeLock().lock();
         try {
             availableConnections.remove(connection);
-            replaceFailedConnection(connection,client);
+            replaceFailedConnection(connection,clientId);
         } finally {
             poolLock.writeLock().unlock();
         }

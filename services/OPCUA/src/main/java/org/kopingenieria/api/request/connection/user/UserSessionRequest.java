@@ -15,7 +15,5 @@ public class UserSessionRequest {
     private String sessionName;
     @NotBlank(message = "El endpoint URL es obligatorio")
     private String serverUri;
-    @NotBlank(message = "La configuracion del usuario es obligatoria")
-    private UserOpcUa client;
 
 }

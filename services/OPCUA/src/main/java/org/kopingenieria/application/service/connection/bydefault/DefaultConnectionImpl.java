@@ -18,7 +18,6 @@ import org.kopingenieria.exception.exceptions.OpcUaPingException;
 import org.kopingenieria.exception.exceptions.OpcUaReconnectionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +36,7 @@ public class DefaultConnectionImpl implements DefaultConnection {
     private static final int CONNECTION_TIMEOUT = 10000;
 
     @Autowired
-    private OpcUaDefaultPoolManager poolManager;
+    private OpcUaDefaultPool defaultPool;
     private OpcUaDefaultPool.PooledOpcUaClient pooledClient;
     private final DefaultConnectionValidatorImpl validatorConnection;
     private UrlType lastConnectedUrl;
@@ -46,13 +45,13 @@ public class DefaultConnectionImpl implements DefaultConnection {
     @Getter
     private LocalDateTime lastActivityTime;
     @Getter
-    private final DefaultOpcUa defaultclient;
+    private String clientId;
 
-    public DefaultConnectionImpl(DefaultOpcUa defaultclient) {
+    public DefaultConnectionImpl(String clientId) {
         this.validatorConnection = new DefaultConnectionValidatorImpl();
         this.currentStatus = ConnectionStatus.UNKNOWN;
         this.lastActivityTime = LocalDateTime.now();
-        this.defaultclient =  defaultclient;
+        this.clientId = clientId;
     }
 
     @Override
@@ -70,7 +69,7 @@ public class DefaultConnectionImpl implements DefaultConnection {
         updateConnectionStatus(ConnectionStatus.CONNECTING);
         try {
             Optional<OpcUaDefaultPool.PooledOpcUaClient> optionalClient =
-                    poolManager.obtenerCliente(defaultclient);
+                    defaultPool.obtenerCliente(clientId);
 
             if (optionalClient.isEmpty()) {
                 throw new ConnectionException("No se pudo obtener un cliente del pool");
@@ -210,7 +209,8 @@ public class DefaultConnectionImpl implements DefaultConnection {
 
     private boolean validateConnection(UrlType url, OpcUaClient client) {
         return validatorConnection.validateActiveSession(client) &&
-                validatorConnection.validateLocalHost(url.getUrl());
+                validatorConnection.validateLocalHost(url.getUrl()) && validatorConnection.validatePort(url.getPort())
+                && validatorConnection.validateHost(url.getIpAddress()) && validatorConnection.validateEndpoint(url.name());
     }
 
     private CompletableFuture<ConnectionResponse> connectClient(OpcUaClient client) {
@@ -245,7 +245,7 @@ public class DefaultConnectionImpl implements DefaultConnection {
     }
 
     private void validateUrl(UrlType url) throws ConnectionException {
-        if (url == null || url.getUrl() == null || url.getUrl().trim().isEmpty()) {
+        if (url == null || url.getUrl() == null || url.getUrl().trim().isEmpty() ) {
             throw new ConnectionException("La URL no puede ser nula o vacía");
         }
     }
@@ -269,7 +269,6 @@ public class DefaultConnectionImpl implements DefaultConnection {
                         opcUaClient.getConfig().getProductUri() : null)
                 .status(status)
                 .lastActivity(lastActivityTime)
-                .client(client)
                 .build();
     }
 
@@ -284,7 +283,7 @@ public class DefaultConnectionImpl implements DefaultConnection {
 
     private void cleanup() {
         if (pooledClient != null) {
-            poolManager.liberarCliente(pooledClient);
+            defaultPool.liberarCliente(pooledClient);
             pooledClient = null;
         }
         updateConnectionStatus(ConnectionStatus.DISCONNECTED);

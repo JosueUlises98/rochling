@@ -1,23 +1,16 @@
 package org.kopingenieria.application.service.pool.clients.bydefault;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.application.service.configuration.bydefault.DefaultConfigComp;
-import org.kopingenieria.application.service.configuration.bydefault.DefaultSDKComp;
-import org.kopingenieria.application.service.files.component.DefaultConfigFile;
-import org.kopingenieria.application.service.files.component.UserConfigFile;
-import org.kopingenieria.application.service.files.user.UserFileService;
-import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
+import org.kopingenieria.api.response.configuration.bydefault.DefaultConfigResponse;
+import org.kopingenieria.application.service.configuration.bydefault.component.DefaultConfigComp;
 import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
-import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -71,15 +64,16 @@ public class OpcUaDefaultPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(DefaultOpcUa defaultConfig) {
-        ClientKey key = new ClientKey(defaultConfig);
+    public Optional<PooledOpcUaClient> obtenerCliente(String id) {
+        DefaultOpcUa defaultclient = opcUaConfiguration.readDefaultConfiguration(id).getClient();
+        ClientKey key = new ClientKey(defaultclient);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
         if (existingClient.isPresent()) {
             return existingClient;
         }
         // Crear nuevo cliente si no existe
-        return crearNuevoCliente();
+        return crearNuevoCliente(id);
     }
 
     private Optional<PooledOpcUaClient> obtenerClienteExistente(ClientKey key) {
@@ -95,16 +89,13 @@ public class OpcUaDefaultPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente() {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(String id) {
         try {
-            DefaultConfigFile defaultConfigFile = new DefaultConfigFile(new ObjectMapper(), new Properties());
-            defaultConfigFile.init();
-            defaultConfigFile.saveConfiguration(new DefaultConfiguration().getInmutableDefaultConfiguration(),defaultConfigFile.extractExistingFilename());
-            OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient();
-
-            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, opcUaConfiguration.getDefaultclient());
-            ClientKey key = new ClientKey(opcUaConfiguration.getDefaultclient());
-
+            DefaultConfigResponse response = opcUaConfiguration.readDefaultConfiguration(id);
+            OpcUaClient miloClient = response.getMiloClient();
+            DefaultOpcUa defaultClient = response.getClient();
+            PooledOpcUaClient pooledClient = new PooledOpcUaClient(miloClient, defaultClient);
+            ClientKey key = new ClientKey(defaultClient);
             activeClients.put(key, pooledClient);
             return Optional.of(pooledClient);
 

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ConnectionResponse {
-    private Long id;
+    private String id;
     private String endpointUrl;
     private String applicationName;
     private String applicationUri;
@@ -21,5 +21,4 @@ public class ConnectionResponse {
     private ConnectionStatus status;
     private QualityLevel quality;
     private LocalDateTime lastActivity;
-    private UaClient client;
 }

@@ -1,4 +1,4 @@
-package org.kopingenieria.application.service.configuration.user;
+package org.kopingenieria.application.service.configuration.user.component;
 
 import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -15,7 +15,6 @@ import org.kopingenieria.domain.enums.security.IdentityProvider;
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.exception.exceptions.OpcUaConfigurationException;
 import org.kopingenieria.util.security.user.UserCertificateManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -24,13 +23,10 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 @Getter
 public class UserSDKComp {
 
-    @Autowired
-    private UserCertificateManager certificateManager;
-
     public OpcUaClient createUserOpcUaClient(UserOpcUa useropcua) throws OpcUaConfigurationException {
         try {
             // Inicializar certificados
-            certificateManager.configurarCertificados(useropcua);
+            UserCertificateManager.configurarCertificados(useropcua);
 
             // Crear builder de configuración
             OpcUaClientConfigBuilder config = new OpcUaClientConfigBuilder();
@@ -42,7 +38,7 @@ public class UserSDKComp {
             configurarAutenticacion(config, useropcua);
 
             // 3. Configuración de encriptacion(Seguridad)
-            certificateManager.aplicarConfiguracionSeguridad(config,useropcua);
+            UserCertificateManager.aplicarConfiguracionSeguridad(config,useropcua);
 
             // 4. Configuración de sesión
             configurarSesion(config, useropcua);
@@ -85,8 +81,8 @@ public class UserSDKComp {
             ));
         } else if (userConfig.getAuthentication().getIdentityProvider().equals(IdentityProvider.X509IDENTITY)) {
             config.setIdentityProvider(new X509IdentityProvider(
-                    certificateManager.getClientCertificate(),
-                    certificateManager.getPrivateKey()
+                    UserCertificateManager.getClientCertificate(),
+                    UserCertificateManager.getPrivateKey()
             ));
         }
     }

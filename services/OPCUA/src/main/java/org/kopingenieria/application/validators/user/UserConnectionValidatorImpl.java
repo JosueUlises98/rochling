@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 public class UserConnectionValidatorImpl implements UserConnectionValidator {
 
-    private final UserCertificateManager certificateManager= new UserCertificateManager();
     private static final String PASSWORD_FILE_EXTENSION = ".pwd";
     private static final long MAX_CERTIFICATE_SIZE = 10_485_760; // 10MB
     private static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
@@ -197,7 +196,7 @@ public class UserConnectionValidatorImpl implements UserConnectionValidator {
                         tempCertFile.getAbsolutePath()
                 );
 
-                certificateManager.validarCertificado(x509Certificate);
+                UserCertificateManager.validarCertificado(x509Certificate);
 
                 return true;
 

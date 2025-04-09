@@ -8,6 +8,8 @@ import java.util.Properties;
 @Component("configurationLoader")
 public class PropertiesLoader {
 
+    private PropertiesLoader() {}
+
     public static Properties loadProperties(String fileName) throws IOException {
         Properties properties = new Properties();
         properties.load(PropertiesLoader.class.getClassLoader().getResourceAsStream(fileName));

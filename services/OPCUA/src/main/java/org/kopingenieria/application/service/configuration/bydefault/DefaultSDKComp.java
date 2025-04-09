@@ -65,10 +65,10 @@ public class DefaultSDKComp {
             // 1. Configuración de conexión
             configurarConexion(config, defaultopcua);
 
-            // 4. Configuración de sesión
+            // 2. Configuración de sesión
             configurarSesion(config, defaultopcua);
 
-            // 5. Crear cliente
+            // 3. Crear cliente
 
             return OpcUaClient.create(config.build());
 

@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.kopingenieria.application.service.configuration.bydefault.DefaultConfigComp;
 import org.kopingenieria.application.service.configuration.bydefault.DefaultSDKComp;
 import org.kopingenieria.application.service.files.component.DefaultConfigFile;
 import org.kopingenieria.application.service.files.component.UserConfigFile;
 import org.kopingenieria.application.service.files.user.UserFileService;
 import org.kopingenieria.config.opcua.bydefault.DefaultConfiguration;
 import org.kopingenieria.domain.model.bydefault.DefaultOpcUa;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
@@ -26,19 +28,24 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaDefaultPool {
 
     @Autowired
-    private DefaultSDKComp opcUaConfiguration;
+    private DefaultConfigComp opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
     private final ScheduledExecutorService maintenanceExecutor;
 
+
+    @Data
     public static class ClientKey {
         private static final String id = UUID.randomUUID().toString();
         private String name;
         private static final LocalDateTime timestamp = LocalDateTime.now();
 
-        public ClientKey(DefaultOpcUa defaultConfig) {
-            this.name = defaultConfig.getName();
+        public ClientKey(DefaultOpcUa defaultOpcUa) {
+            String fullName = defaultOpcUa.getName();
+            this.name = fullName != null && fullName.contains(".")
+                    ? fullName.substring(0, fullName.lastIndexOf('.'))
+                    : fullName;
         }
     }
 
@@ -92,7 +99,7 @@ public class OpcUaDefaultPool {
         try {
             DefaultConfigFile defaultConfigFile = new DefaultConfigFile(new ObjectMapper(), new Properties());
             defaultConfigFile.init();
-            defaultConfigFile.saveConfiguration(new DefaultConfiguration().getInmutableDefaultConfiguration(),);
+            defaultConfigFile.saveConfiguration(new DefaultConfiguration().getInmutableDefaultConfiguration(),defaultConfigFile.extractExistingFilename());
             OpcUaClient client = opcUaConfiguration.createDefaultOpcUaClient();
 
             PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, opcUaConfiguration.getDefaultclient());

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpcUaConnectionResponse {
+public class ConnectionResponse {
     private Long id;
     private String endpointUrl;
     private String applicationName;

@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Getter
 @Builder
 public class DefaultOpcUa implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 7L;
 

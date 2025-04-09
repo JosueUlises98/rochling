@@ -1,42 +1,51 @@
 package org.kopingenieria.application.service.configuration.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.kopingenieria.api.request.configuration.UserConfigRequest;
-import org.kopingenieria.api.response.configuration.OpcUaConfigResponse;
+import org.kopingenieria.api.response.configuration.ConfigResponse;
 import org.kopingenieria.application.service.files.component.UserConfigFile;
 import org.kopingenieria.application.service.files.user.UserFileService;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.kopingenieria.util.helper.ConfigurationHelper;
 import org.springframework.stereotype.Component;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("UserConfiguration")
+@Getter
 public class UserConfigComp {
 
     private final UserSDKComp sdkconfig;
     private final UserFileService configfile;
+    private Map<UserOpcUa, OpcUaClient> mapclients;
+    private List<Map<UserOpcUa, OpcUaClient>> clients;
 
     public UserConfigComp() {
         configfile = new UserFileService(new UserConfigFile(new ObjectMapper(), new Properties()));
         sdkconfig = new UserSDKComp();
         configfile.initializeSystem();
+        mapclients = new HashMap<>();
+        clients = new ArrayList<>();
     }
 
-    public OpcUaConfigResponse createUserOpcUaClient(UserConfigRequest useropcua) {
+    // CREATE
+    public ConfigResponse createUserOpcUaClient(UserConfigRequest useropcua) {
         if (useropcua == null) {
-            return OpcUaConfigResponse.builder()
+            return ConfigResponse.builder()
                     .exitoso(false)
                     .mensaje("Configuración no puede ser null")
                     .build();
         }
         try {
 
-            //Creacion del cliente opcua del sdk de org.eclipse.milo
             OpcUaClient uaclient = sdkconfig.createUserOpcUaClient(useropcua.getUserConfig());
-            //Creacion del archivo de configuracion del cliente opcua
             saveConfiguration(useropcua);
+            mapclients.put(useropcua.getUserConfig(), uaclient);
+            clients.add(new HashMap<>(mapclients));
 
-            return OpcUaConfigResponse.builder()
+            return ConfigResponse.builder()
                     .exitoso(true)
                     .miloClient(uaclient)
                     .clientId(useropcua.getUserConfig().getId())
@@ -45,18 +54,113 @@ public class UserConfigComp {
                     .securityPolicy(useropcua.getUserConfig().getAuthentication().getSecurityPolicy().toString())
                     .mensaje("Cliente OPC UA creado correctamente")
                     .build();
-
         } catch (Exception e) {
-            return OpcUaConfigResponse.builder()
+            return ConfigResponse.builder()
                     .exitoso(false)
-                    .miloClient(null)
-                    .clientId(useropcua.getUserConfig().getId())
-                    .endpointUrl(useropcua.getUserConfig().getConnection().getEndpointUrl())
-                    .securityMode(useropcua.getUserConfig().getAuthentication().getMessageSecurityMode().name())
-                    .securityPolicy(useropcua.getUserConfig().getAuthentication().getSecurityPolicy().name())
                     .mensaje("Error creando cliente OPC UA")
                     .error(e.getMessage())
                     .build();
+        }
+    }
+
+    // READ
+    public ConfigResponse getUserConfiguration(String clientId) {
+        try {
+
+            Optional<UserOpcUa> userConfig = mapclients.keySet()
+                    .stream()
+                    .filter(config -> config.getId().equals(clientId))
+                    .findFirst();
+
+            if (userConfig.isEmpty()) {
+                return ConfigResponse.builder()
+                        .exitoso(false)
+                        .mensaje("Configuración no encontrada")
+                        .build();
+            }
+
+            UserOpcUa config = userConfig.get();
+            OpcUaClient client = mapclients.get(config);
+
+            return ConfigResponse.builder()
+                    .exitoso(true)
+                    .miloClient(client)
+                    .userOpcUa(config)
+                    .clientId(config.getId())
+                    .endpointUrl(config.getConnection().getEndpointUrl())
+                    .securityMode(config.getAuthentication().getMessageSecurityMode().toString())
+                    .securityPolicy(config.getAuthentication().getSecurityPolicy().toString())
+                    .mensaje("Configuración recuperada exitosamente")
+                    .build();
+
+        } catch (Exception e) {
+            return ConfigResponse.builder()
+                    .exitoso(false)
+                    .mensaje("Error al recuperar configuración")
+                    .error(e.getMessage())
+                    .build();
+        }
+    }
+
+    // DELETE
+    public ConfigResponse deleteUserConfiguration(String clientId) {
+        try {
+
+            Optional<UserOpcUa> configToRemove = mapclients.keySet()
+                    .stream()
+                    .filter(config -> config.getId().equals(clientId))
+                    .findFirst();
+
+            if (configToRemove.isEmpty()) {
+
+                return ConfigResponse.builder()
+                        .exitoso(false)
+                        .mensaje("Configuración no encontrada para eliminar")
+                        .build();
+            }
+
+            OpcUaClient client = mapclients.remove(configToRemove.get());
+            if (client != null) {
+                client.disconnect().get();
+            }
+
+            configfile.deleteConfiguration(configToRemove.get().getName());
+
+            return ConfigResponse.builder()
+                    .exitoso(true)
+                    .mensaje("Configuración eliminada correctamente")
+                    .build();
+
+        } catch (Exception e) {
+            return ConfigResponse.builder()
+                    .exitoso(false)
+                    .mensaje("Error al eliminar configuración")
+                    .error(e.getMessage())
+                    .build();
+        }
+    }
+
+    // READ ALL
+    public List<ConfigResponse> getAllUserConfigurations() {
+        try {
+            return mapclients.entrySet().stream()
+                    .map(entry -> ConfigResponse.builder()
+                            .exitoso(true)
+                            .miloClient(entry.getValue())
+                            .clientId(entry.getKey().getId())
+                            .endpointUrl(entry.getKey().getConnection().getEndpointUrl())
+                            .securityMode(entry.getKey().getAuthentication().getMessageSecurityMode().toString())
+                            .securityPolicy(entry.getKey().getAuthentication().getSecurityPolicy().toString())
+                            .mensaje("Configuración recuperada")
+                            .build())
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            return List.of(ConfigResponse.builder()
+                    .exitoso(false)
+                    .mensaje("Error al recuperar configuraciones")
+                    .error(e.getMessage())
+                    .build());
         }
     }
 

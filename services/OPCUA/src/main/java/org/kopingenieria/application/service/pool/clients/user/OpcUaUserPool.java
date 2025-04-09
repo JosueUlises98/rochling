@@ -3,12 +3,16 @@ package org.kopingenieria.application.service.pool.clients.user;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.kopingenieria.application.service.configuration.user.UserSDKComp;
+import org.kopingenieria.api.response.configuration.ConfigResponse;
+import org.kopingenieria.application.service.configuration.user.UserConfigComp;
 import org.kopingenieria.domain.model.user.UserOpcUa;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 public class OpcUaUserPool {
 
     @Autowired
-    private UserSDKComp opcUaConfiguration;
+    private UserConfigComp opcUaConfiguration;
 
     private final Map<ClientKey, PooledOpcUaClient> activeClients;
     private final Map<ClientKey, BlockingQueue<PooledOpcUaClient>> availableClients;
@@ -31,7 +35,10 @@ public class OpcUaUserPool {
         private static final LocalDateTime timestamp = LocalDateTime.now();
 
         public ClientKey(UserOpcUa userConfig) {
-            this.name = userConfig.getName();
+            String fullName = userConfig.getName();
+            this.name = fullName != null && fullName.contains(".")
+                    ? fullName.substring(0, fullName.lastIndexOf('.'))
+                    : fullName;
         }
     }
 
@@ -57,15 +64,17 @@ public class OpcUaUserPool {
         }
     }
 
-    public Optional<PooledOpcUaClient> obtenerCliente(UserOpcUa userConfig) {
-        ClientKey key = new ClientKey(userConfig);
+    public Optional<PooledOpcUaClient> obtenerCliente(String id) {
+        ConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
+        UserOpcUa opcUa = configuration.getUserOpcUa();
+        ClientKey key = new ClientKey(opcUa);
         // Intentar obtener un cliente existente
         Optional<PooledOpcUaClient> existingClient = obtenerClienteExistente(key);
         if (existingClient.isPresent()) {
             return existingClient;
         }
         // Crear nuevo cliente si no existe
-        return crearNuevoCliente(userConfig);
+        return crearNuevoCliente(id);
     }
 
     private Optional<PooledOpcUaClient> obtenerClienteExistente(ClientKey key) {
@@ -81,12 +90,15 @@ public class OpcUaUserPool {
         return Optional.empty();
     }
 
-    private Optional<PooledOpcUaClient> crearNuevoCliente(UserOpcUa userConfig) {
+    private Optional<PooledOpcUaClient> crearNuevoCliente(String id) {
         try {
-            OpcUaClient client = opcUaConfiguration.createUserOpcUaClient(userConfig);
 
-            PooledOpcUaClient pooledClient = new PooledOpcUaClient(client, userConfig);
-            ClientKey key = new ClientKey(userConfig);
+            ConfigResponse configuration = opcUaConfiguration.getUserConfiguration(id);
+            UserOpcUa userOpcUa = configuration.getUserOpcUa();
+            OpcUaClient miloClient = configuration.getMiloClient();
+
+            PooledOpcUaClient pooledClient = new PooledOpcUaClient(miloClient, userOpcUa);
+            ClientKey key = new ClientKey(userOpcUa);
 
             activeClients.put(key, pooledClient);
             return Optional.of(pooledClient);

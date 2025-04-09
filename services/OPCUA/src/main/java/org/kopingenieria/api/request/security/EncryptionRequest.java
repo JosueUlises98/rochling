@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Builder
-public class UserEncryptionRequest {
+public class EncryptionRequest {
 
     @NotNull(message = "El identificador de conexión es obligatorio")
     private String connectionId;

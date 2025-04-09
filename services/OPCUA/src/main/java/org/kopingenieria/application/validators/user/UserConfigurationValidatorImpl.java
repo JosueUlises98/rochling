@@ -1,13 +1,11 @@
 package org.kopingenieria.application.validators.user;
 
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.kopingenieria.audit.model.AuditEntryType;
 import org.kopingenieria.audit.model.annotation.Auditable;
 import org.kopingenieria.config.opcua.user.UserConfiguration;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.CertificateType;
 import org.kopingenieria.domain.enums.security.EncryptionAlgorithm;
 import org.kopingenieria.domain.enums.security.MessageSecurityMode;
@@ -467,21 +465,5 @@ public class UserConfigurationValidatorImpl implements UserConfigurationValidato
         if (locale == null || locale.isBlank()) return false;
         Set<LocaleIds> validLocales = Set.of(LocaleIds.values());
         return validLocales.contains(LocaleIds.valueOf(locale));
-    }
-
-    private boolean isValidPublishingInterval(Double interval) {
-        return interval != null && interval > 0 && interval <= 10000;
-    }
-
-    private boolean isValidSamplingInterval(Double interval) {
-        return interval != null && interval > 0 && interval <= 10000;
-    }
-
-    private boolean isValidMonitoringMode(String mode) {
-        return (Objects.equals(mode, MonitoringMode.Disabled.name()) || Objects.equals(mode, MonitoringMode.Sampling.name()) || Objects.equals(mode, MonitoringMode.Reporting.name()));
-    }
-
-    private boolean isValidTimeStampToReturn(String timeStampsToReturn) {
-        return (Objects.equals(timeStampsToReturn, TimestampsToReturn.Both.name()) || Objects.equals(timeStampsToReturn, TimestampsToReturn.Server.name()) || Objects.equals(timeStampsToReturn, TimestampsToReturn.Source.name()));
     }
 }

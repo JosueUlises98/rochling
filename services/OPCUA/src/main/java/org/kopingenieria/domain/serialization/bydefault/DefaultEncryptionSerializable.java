@@ -3,7 +3,6 @@ package org.kopingenieria.domain.serialization.bydefault;
 import com.fasterxml.jackson.annotation.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.kopingenieria.domain.model.bydefault.DefaultEncryptionConfiguration;
 
 import javax.xml.bind.annotation.*;
 import java.io.Serial;

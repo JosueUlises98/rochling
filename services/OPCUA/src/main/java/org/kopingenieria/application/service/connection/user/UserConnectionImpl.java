@@ -6,10 +6,8 @@ import org.eclipse.milo.opcua.sdk.client.api.UaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import org.kopingenieria.api.request.connection.user.UserConnectionRequest;
-import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
+import org.kopingenieria.api.response.connection.ConnectionResponse;
 import org.kopingenieria.application.service.pool.clients.user.OpcUaUserPool;
-import org.kopingenieria.application.service.pool.clients.user.OpcUaUserPoolManager;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
 import org.kopingenieria.application.validators.user.UserConnectionValidatorImpl;
@@ -55,7 +53,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> connect() throws Exception {
+    public CompletableFuture<ConnectionResponse> connect() throws Exception {
         if (lastConnectedUrl == null) {
             throw new ConnectionException("No hay URL disponible para la conexión");
         }
@@ -63,7 +61,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> connect(UrlType url) throws Exception {
+    public CompletableFuture<ConnectionResponse> connect(UrlType url) throws Exception {
         validateUrl(url);
         lastConnectedUrl = url;
         updateConnectionStatus(ConnectionStatus.CONNECTING);
@@ -94,7 +92,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> disconnect() throws Exception {
+    public CompletableFuture<ConnectionResponse> disconnect() throws Exception {
         if (pooledClient == null) {
             return CompletableFuture.completedFuture(
                     createConnectionResponse(ConnectionStatus.DISCONNECTED));
@@ -113,7 +111,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> backoffreconnection() throws Exception {
+    public CompletableFuture<ConnectionResponse> backoffreconnection() throws Exception {
         if (lastConnectedUrl == null) {
             throw new OpcUaReconnectionException("No hay URL previa disponible para la reconexión");
         }
@@ -121,7 +119,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> backoffreconnection(UrlType url)
+    public CompletableFuture<ConnectionResponse> backoffreconnection(UrlType url)
             throws Exception {
         validateUrl(url);
         cleanup();
@@ -129,7 +127,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> linearreconnection() throws Exception {
+    public CompletableFuture<ConnectionResponse> linearreconnection() throws Exception {
         if (lastConnectedUrl == null) {
             throw new OpcUaReconnectionException("No hay URL previa disponible para la reconexión");
         }
@@ -137,7 +135,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> linearreconnection(UrlType url)
+    public CompletableFuture<ConnectionResponse> linearreconnection(UrlType url)
             throws Exception {
         validateUrl(url);
         cleanup();
@@ -145,7 +143,7 @@ public class UserConnectionImpl implements UserConnection {
     }
 
     @Override
-    public CompletableFuture<OpcUaConnectionResponse> ping() throws Exception {
+    public CompletableFuture<ConnectionResponse> ping() throws Exception {
         if (pooledClient == null || !pooledClient.isConnected()) {
             throw new OpcUaPingException("Cliente OPC UA no conectado");
         }
@@ -161,7 +159,7 @@ public class UserConnectionImpl implements UserConnection {
         cleanup();
     }
 
-    private CompletableFuture<OpcUaConnectionResponse> attemptBackoffReconnection(
+    private CompletableFuture<ConnectionResponse> attemptBackoffReconnection(
             UrlType url, int retryCount, double waitTime) {
         if (retryCount > MAX_RETRIES) {
             updateConnectionStatus(ConnectionStatus.RECONNECTION_FAILED);
@@ -185,7 +183,7 @@ public class UserConnectionImpl implements UserConnection {
                 .thenCompose(Function.identity());
     }
 
-    private CompletableFuture<OpcUaConnectionResponse> attemptLinearReconnection(
+    private CompletableFuture<ConnectionResponse> attemptLinearReconnection(
             UrlType url, int retryCount) {
         if (retryCount > MAX_RETRIES) {
             updateConnectionStatus(ConnectionStatus.RECONNECTION_FAILED);
@@ -212,7 +210,7 @@ public class UserConnectionImpl implements UserConnection {
                 validatorConnection.validateLocalHost(url.getUrl());
     }
 
-    private CompletableFuture<OpcUaConnectionResponse> connectClient(OpcUaClient client) {
+    private CompletableFuture<ConnectionResponse> connectClient(OpcUaClient client) {
         return client.connect()
                 .thenApply(connection -> {
                     updateConnectionStatus(ConnectionStatus.CONNECTED);
@@ -220,7 +218,7 @@ public class UserConnectionImpl implements UserConnection {
                 });
     }
 
-    private OpcUaConnectionResponse handleConnectionException(Throwable ex) {
+    private ConnectionResponse handleConnectionException(Throwable ex) {
         cleanup();
 
         if (ex instanceof TimeoutException) {
@@ -233,7 +231,7 @@ public class UserConnectionImpl implements UserConnection {
         return createConnectionResponse(ConnectionStatus.ERROR);
     }
 
-    private OpcUaConnectionResponse handlePingResponse(DataValue value) {
+    private ConnectionResponse handlePingResponse(DataValue value) {
         updateLastActivity();
         if (value != null && value.getValue() != null) {
             updateConnectionStatus(ConnectionStatus.CONNECTED);
@@ -249,15 +247,15 @@ public class UserConnectionImpl implements UserConnection {
         }
     }
 
-    private OpcUaConnectionResponse createConnectionResponse(ConnectionStatus status) {
+    private ConnectionResponse createConnectionResponse(ConnectionStatus status) {
         return createConnectionResponse(status, null);
     }
 
-    private OpcUaConnectionResponse createConnectionResponse(ConnectionStatus status, UaClient client) {
+    private ConnectionResponse createConnectionResponse(ConnectionStatus status, UaClient client) {
         updateLastActivity();
 
         OpcUaClient opcUaClient = pooledClient != null ? pooledClient.getClient() : null;
-        return OpcUaConnectionResponse.builder()
+        return ConnectionResponse.builder()
                 .endpointUrl(opcUaClient != null ?
                         opcUaClient.getConfig().getEndpoint().getEndpointUrl() : null)
                 .applicationName(opcUaClient != null ?

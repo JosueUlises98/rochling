@@ -20,6 +20,8 @@ import java.nio.file.NoSuchFileException;
 
 public class PrivateKeyLoader {
 
+    private PrivateKeyLoader() {}
+
     public static PrivateKey loadPrivateKey(String privateKeyPath)
             throws IOException, GeneralSecurityException {
         byte[] keyBytes = Files.readAllBytes(new File(privateKeyPath).toPath());

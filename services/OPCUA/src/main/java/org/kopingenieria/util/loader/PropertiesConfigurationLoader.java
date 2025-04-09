@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class UserConfigurationLoader {
+public class PropertiesConfigurationLoader {
 
-    private UserConfiguration mapPropertiesToConfig(Properties props) {
+    private PropertiesConfigurationLoader() {}
+
+    private static UserConfiguration mapPropertiesToConfig(Properties props) {
         return UserConfiguration.builder()
                 .id(props.getProperty("opcua.user.id"))
                 .filename(props.getProperty("opcua.user.filename"))
@@ -26,7 +28,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    private UserConfiguration.Connection mapConnection(Properties props) {
+    private static UserConfiguration.Connection mapConnection(Properties props) {
         return UserConfiguration.Connection.builder()
                 .name(props.getProperty("opcua.user.connection.name"))
                 .endpointUrl(props.getProperty("opcua.user.connection.endpointUrl"))
@@ -38,7 +40,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    private UserConfiguration.Authentication mapAuthentication(Properties props) {
+    private static UserConfiguration.Authentication mapAuthentication(Properties props) {
         return UserConfiguration.Authentication.builder()
                 .identityProvider(IdentityProvider.valueOf(
                         props.getProperty("opcua.user.authentication.identityProvider", "ANONYMOUS")))
@@ -58,7 +60,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    private UserConfiguration.Session mapSession(Properties props) {
+    private static UserConfiguration.Session mapSession(Properties props) {
         return UserConfiguration.Session.builder()
                 .sessionName(props.getProperty("opcua.user.session.sessionName"))
                 .serverUri(props.getProperty("opcua.user.session.serverUri"))
@@ -75,7 +77,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    private UserConfiguration.IndustrialConfiguration mapIndustrialConfig(Properties props) {
+    private static UserConfiguration.IndustrialConfiguration mapIndustrialConfig(Properties props) {
         return UserConfiguration.IndustrialConfiguration.builder()
                 .industrialZone(props.getProperty("opcua.user.industrial.zone"))
                 .equipmentId(props.getProperty("opcua.user.industrial.equipmentId"))
@@ -86,7 +88,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    private UserConfiguration.Encryption mapEncryption(Properties props) {
+    private static UserConfiguration.Encryption mapEncryption(Properties props) {
         return UserConfiguration.Encryption.builder()
                 .securityPolicy(SecurityPolicy.valueOf(
                         props.getProperty("opcua.user.encryption.securityPolicy", "NONE")))
@@ -101,7 +103,7 @@ public class UserConfigurationLoader {
                 .build();
     }
 
-    public UserConfiguration loadConfiguration(String filePath) {
+    public static UserConfiguration loadConfiguration(String filePath) {
         try (InputStream is = new FileInputStream(filePath)) {
             Properties props = new Properties();
             props.load(is);

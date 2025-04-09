@@ -6,7 +6,7 @@ import org.kopingenieria.exception.exceptions.SerializationException;
 import org.springframework.stereotype.Component;
 
 @Component(value = "JsonSerializer")
-public class JsonSerializer<T extends UserOpcUaSerializable> implements OutSerializer<T> {
+public class JsonSerializer<T extends UserOpcUaSerializable> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 

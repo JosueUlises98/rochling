@@ -5,18 +5,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.kopingenieria.domain.model.user.UserOpcUa;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OpcUaConfigResponse {
+public class ConfigResponse {
 
     // Indica si la configuración fue exitosa
     private boolean exitoso;
 
     //Cliente opcua de eclipse milo
     private OpcUaClient miloClient;
+
+    //Cliente opcua del dominio
+    private UserOpcUa userOpcUa;
 
     // Identificador único del cliente configurado
     private String clientId;

@@ -6,7 +6,7 @@ import org.kopingenieria.domain.enums.communication.MessageStatusCode;
 
 @Data
 @Builder
-public class OpcUaCommunicationResponse {
+public class CommunicationResponse {
     private String message;
     private MessageStatusCode statusCode;
     private boolean success;

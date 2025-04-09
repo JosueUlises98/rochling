@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpcUaSessionResponse {
+public class SessionResponse {
     private Long id;
     private String sessionId;
     private String sessionName;

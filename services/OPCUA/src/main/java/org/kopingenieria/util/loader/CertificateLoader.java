@@ -11,6 +11,8 @@ import java.security.cert.X509Certificate;
 @Component("certificateLoader")
 public class CertificateLoader {
 
+    private CertificateLoader() {}
+
     public static X509Certificate loadX509Certificate(String certificatePath)
             throws CertificateException, IOException {
         try (FileInputStream fis = new FileInputStream(certificatePath)) {

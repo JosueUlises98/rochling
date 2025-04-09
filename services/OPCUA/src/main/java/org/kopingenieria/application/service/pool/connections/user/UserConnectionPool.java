@@ -4,7 +4,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.kopingenieria.api.response.connection.OpcUaConnectionResponse;
+import org.kopingenieria.api.response.connection.ConnectionResponse;
 import org.kopingenieria.application.service.connection.user.UserConnectionImpl;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.UrlType;
@@ -91,7 +91,7 @@ public class UserConnectionPool implements AutoCloseable {
             }
         }
 
-        public CompletableFuture<OpcUaConnectionResponse> reconnect() throws Exception {
+        public CompletableFuture<ConnectionResponse> reconnect() throws Exception {
             if (config.isEnableBackoffRetry()) {
                 return connection.backoffreconnection(currentUrl);
             }

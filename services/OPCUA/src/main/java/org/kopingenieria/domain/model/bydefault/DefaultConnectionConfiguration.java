@@ -1,7 +1,6 @@
 package org.kopingenieria.domain.model.bydefault;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;

@@ -3,31 +3,23 @@ package org.kopingenieria.config.opcua.bydefault;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UByte;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import lombok.*;
 import org.kopingenieria.domain.enums.connection.ConnectionStatus;
 import org.kopingenieria.domain.enums.connection.ConnectionType;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.monitoring.MonitoringMode;
 import org.kopingenieria.domain.enums.security.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cglib.core.Local;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Configuration
 @ConfigurationProperties(prefix = "opcua.default")
 @Validated
 @Getter
+@ToString
 public class DefaultConfiguration {
 
     private final String id = UUID.randomUUID().toString();

@@ -1,16 +1,11 @@
 package org.kopingenieria.domain.model.bydefault;
 
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.kopingenieria.domain.enums.communication.SessionStatus;
 import org.kopingenieria.domain.enums.connection.Timeouts;
 import org.kopingenieria.domain.enums.locale.LocaleIds;
-import org.kopingenieria.domain.enums.security.MessageSecurityMode;
-import org.kopingenieria.domain.enums.security.SecurityPolicy;
-import org.kopingenieria.domain.enums.security.SecurityPolicyUri;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;

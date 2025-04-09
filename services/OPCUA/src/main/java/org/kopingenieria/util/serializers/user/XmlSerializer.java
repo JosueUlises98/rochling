@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 @Component(value = "XmlSerializer")
-public class XmlSerializer<T extends UserOpcUaSerializable> implements OutSerializer<T> {
+public class XmlSerializer<T extends UserOpcUaSerializable> {
 
     private final JAXBContext jaxbContext;
 

@@ -12,7 +12,7 @@ import org.kopingenieria.exception.exceptions.ConfigurationException;
 import org.kopingenieria.logging.model.LogException;
 import org.kopingenieria.logging.model.LogLevel;
 import org.kopingenieria.logging.model.LogSystemEvent;
-import org.kopingenieria.util.loader.UserConfigurationLoader;
+import org.kopingenieria.util.loader.PropertiesConfigurationLoader;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -288,8 +288,7 @@ public class UserConfigFile {
     }
 
     private UserConfiguration loadPropertiesConfiguration(String filePath) throws IOException {
-        UserConfigurationLoader userConfigurationLoader = new UserConfigurationLoader();
-        return userConfigurationLoader.loadConfiguration(filePath);
+        return PropertiesConfigurationLoader.loadConfiguration(filePath);
     }
 
     private void saveYamlConfiguration(UserConfiguration config, String filePath) throws IOException {

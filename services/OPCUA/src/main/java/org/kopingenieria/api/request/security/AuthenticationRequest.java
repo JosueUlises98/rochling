@@ -7,7 +7,7 @@ import org.kopingenieria.domain.enums.security.IdentityProvider;
 
 @Data
 @Builder
-public class UserAuthenticationRequest {
+public class AuthenticationRequest {
 
     @NotNull(message = "El identificador de conexión es obligatorio")
     private String connectionId;

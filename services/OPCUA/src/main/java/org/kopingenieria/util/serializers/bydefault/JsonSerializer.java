@@ -2,12 +2,11 @@ package org.kopingenieria.util.serializers.bydefault;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.kopingenieria.domain.serialization.bydefault.DefaultOpcUaSerializable;
-import org.kopingenieria.domain.serialization.user.UserOpcUaSerializable;
 import org.kopingenieria.exception.exceptions.SerializationException;
 import org.springframework.stereotype.Component;
 
 @Component(value = "JsonSerializer")
-public class JsonSerializer<T extends DefaultOpcUaSerializable> implements OutSerializer<T> {
+public class JsonSerializer<T extends DefaultOpcUaSerializable> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 

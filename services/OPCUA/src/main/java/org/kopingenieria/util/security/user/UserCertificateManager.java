@@ -22,30 +22,32 @@ import java.util.Date;
 @Component("certificateManager")
 public class UserCertificateManager {
 
-    @Getter
-    private X509Certificate clientCertificate;
-    @Getter
-    private PrivateKey privateKey;
+    private UserCertificateManager() {}
 
-    public void configurarCertificados(UserOpcUa userConfig)
+    @Getter
+    private static X509Certificate clientCertificate;
+    @Getter
+    private static PrivateKey privateKey;
+
+    public static void configurarCertificados(UserOpcUa userConfig)
             throws OpcUaConfigurationException {
         try {
             // Cargar certificado y clave privada una sola vez
-            this.clientCertificate = CertificateLoader.loadX509Certificate(
+            clientCertificate = CertificateLoader.loadX509Certificate(
                     userConfig.getAuthentication().getCertificatePath()
             );
-            this.privateKey = PrivateKeyLoader.loadPrivateKey(
+            privateKey = PrivateKeyLoader.loadPrivateKey(
                     userConfig.getAuthentication().getPrivateKeyPath()
             );
 
-            validarCertificado(this.clientCertificate);
+            validarCertificado(clientCertificate);
 
         } catch (Exception e) {
             throw new OpcUaConfigurationException("Error configurando certificados", e);
         }
     }
 
-    public void aplicarConfiguracionSeguridad(OpcUaClientConfigBuilder config,
+    public static void aplicarConfiguracionSeguridad(OpcUaClientConfigBuilder config,
                                               UserOpcUa userConfig) throws OpcUaConfigurationException {
         try {
             // Configurar validador de certificados
@@ -64,7 +66,7 @@ public class UserCertificateManager {
         }
     }
 
-    public void validarCertificado(X509Certificate certificate) throws OpcUaConfigurationException {
+    public static void validarCertificado(X509Certificate certificate) throws OpcUaConfigurationException {
         try {
             // Obtener fecha actual
             Date fechaActual = new Date();
@@ -111,7 +113,7 @@ public class UserCertificateManager {
         }
     }
 
-    private File configurarListaConfianza(String trustListPath) throws OpcUaConfigurationException {
+    private static File configurarListaConfianza(String trustListPath) throws OpcUaConfigurationException {
         if (trustListPath == null || trustListPath.trim().isEmpty()) {
             throw new OpcUaConfigurationException("Ruta de lista de confianza no válida");
         }

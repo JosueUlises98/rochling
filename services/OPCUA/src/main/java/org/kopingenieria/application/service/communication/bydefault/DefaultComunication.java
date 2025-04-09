@@ -1,16 +1,16 @@
 package org.kopingenieria.application.service.communication.bydefault;
 
 import org.kopingenieria.api.request.communication.CommunicationRequest;
-import org.kopingenieria.api.response.communication.OpcUaCommunicationResponse;
+import org.kopingenieria.api.response.communication.CommunicationResponse;
 
 
 public interface DefaultComunication {
 
-    OpcUaCommunicationResponse lectura(CommunicationRequest request)throws Exception;
+    CommunicationResponse lectura(CommunicationRequest request)throws Exception;
 
-    OpcUaCommunicationResponse escritura(CommunicationRequest request)throws Exception;
+    CommunicationResponse escritura(CommunicationRequest request)throws Exception;
 
-    OpcUaCommunicationResponse modificacion(CommunicationRequest request)throws Exception;
+    CommunicationResponse modificacion(CommunicationRequest request)throws Exception;
 
-    OpcUaCommunicationResponse eliminacion(CommunicationRequest request)throws Exception;
+    CommunicationResponse eliminacion(CommunicationRequest request)throws Exception;
 }

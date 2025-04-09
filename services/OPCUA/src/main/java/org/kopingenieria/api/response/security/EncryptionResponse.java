@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpcUaEncryptionResponse {
+public class EncryptionResponse {
     private String securityPolicy;
     private String messageSecurityMode;
     private boolean hasCertificate;

@@ -29,6 +29,7 @@ public class UserConfigurationMapper {
         }
 
         return UserOpcUa.builder()
+                .name(userConfig.getFilename())
                 .connection(mapConnectionConfig(userConfig))
                 .encryption(mapEncryptionConfig(userConfig))
                 .industrial(mapIndustrialConfig(userConfig))
